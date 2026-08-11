@@ -6374,10 +6374,103 @@
             };
         }
 
+        // Exclusão sincronizada de vendas:
+        // remove da loja local, do Painel Geral e da linha correspondente no Supabase.
+        async function excluirVendaDoSupabase(venda, slug) {
+            if (!window.supabaseDisponivel || !window.supabaseClient || !COLUNAS.vendas) return { remoto: false };
+
+            const lojaId = lojaIdPorSlug(slug);
+            if (!lojaId) throw new Error(`Loja sem id no Supabase: ${slug}`);
+
+            const idCampo = campo('vendas', ['id']);
+            const lojaCampo = campo('vendas', ['loja_id']);
+            const origemCampo = campo('vendas', ['origem_id','local_id','id_local','legacy_id','legado_id']);
+            const chaveLocal = String(venda?.id ?? assinatura(venda || {}));
+            const mapa = carregarMapa('vendas', slug);
+            let dbId = venda?.supabaseId || mapa[chaveLocal]?.dbId || null;
+
+            // Em aparelhos que apenas baixaram a venda, o mapa local pode não existir ainda.
+            // Nesse caso localizamos a linha pelo legado_id + loja_id.
+            if (!dbId && origemCampo && venda?.id != null) {
+                let consulta = window.supabaseClient.from('vendas').select(idCampo || '*').eq(origemCampo, String(venda.id));
+                if (lojaCampo && lojaId) consulta = consulta.eq(lojaCampo, lojaId);
+                const { data, error } = await consulta.limit(1);
+                if (error) throw error;
+                if (data?.length && idCampo) dbId = data[0][idCampo];
+            }
+
+            // Remove primeiro os itens vinculados para não esbarrar em eventual FK sem cascade.
+            if (dbId && COLUNAS.venda_itens) {
+                const vendaIdCampo = campo('venda_itens', ['venda_id']);
+                if (vendaIdCampo) {
+                    const itensDel = await window.supabaseClient.from('venda_itens').delete().eq(vendaIdCampo, dbId);
+                    if (itensDel.error) console.warn('Não foi possível excluir venda_itens antes da venda:', itensDel.error);
+                }
+            }
+
+            let exclusao;
+            if (dbId && idCampo) {
+                exclusao = window.supabaseClient.from('vendas').delete().eq(idCampo, dbId);
+            } else if (origemCampo && venda?.id != null) {
+                exclusao = window.supabaseClient.from('vendas').delete().eq(origemCampo, String(venda.id));
+                if (lojaCampo && lojaId) exclusao = exclusao.eq(lojaCampo, lojaId);
+            } else {
+                throw new Error('Não foi possível identificar a venda no Supabase para exclusão.');
+            }
+
+            const { error } = await exclusao;
+            if (error) throw error;
+
+            delete mapa[chaveLocal];
+            salvarMapa('vendas', slug, mapa);
+            return { remoto: true, dbId };
+        }
+
+        function instalarExclusaoVendaSincronizada() {
+            window.apagarVenda = (idVenda) => {
+                const venda = todasVendasBanco.find(v => String(v.id) === String(idVenda));
+                if (!venda) return;
+                const slug = window.lojaAtualSlug;
+
+                window.abrirModal(
+                    'Apagar Venda?',
+                    'Tem certeza que deseja apagar este registro? O faturamento, o Painel Geral e o banco de dados serão atualizados automaticamente.',
+                    async () => {
+                        todasVendasBanco = todasVendasBanco.filter(v => String(v.id) !== String(idVenda));
+
+                        // Atualiza tanto a chave ativa quanto a chave exclusiva desta loja.
+                        salvarArrayLoja(BASES_LOCAIS.vendas, slug, todasVendasBanco);
+
+                        filtrarEAtualizarDashboard();
+                        window.renderizarDashVendedores();
+                        renderizarAcesso();
+                        renderizarPainelGeralLocal();
+
+                        try {
+                            if (window.supabaseDisponivel) {
+                                setStatusBanco('Banco: excluindo venda', 'sync');
+                                await excluirVendaDoSupabase(venda, slug);
+                                // Sincroniza os registros restantes para manter mapa/cache consistentes.
+                                await sincronizarLoja(slug);
+                                setStatusBanco('Banco: sincronizado', 'ok');
+                            }
+                            mostrarToast('Venda apagada do caixa, Painel Geral e banco de dados.', 'bg-gray-800 text-white');
+                        } catch (e) {
+                            const msg = formatarErroSupabase(e);
+                            console.error('Falha ao excluir venda no Supabase:', e);
+                            setStatusBanco('Banco: erro ao excluir venda', 'erro');
+                            mostrarToast(`Venda removida localmente, mas o Supabase não confirmou a exclusão: ${msg}`.slice(0, 220), 'bg-red-600 text-white');
+                        }
+                    }
+                );
+            };
+        }
+
         function iniciar() {
             prepararDadosLegados();
             aplicarContextoLoja(window.lojaAtualSlug);
             instalarObservadorLocalStorage();
+            instalarExclusaoVendaSincronizada();
             const fatIni = document.getElementById('geralDataInicioFat'); const fatFim = document.getElementById('geralDataFimFat');
             const sanIni = document.getElementById('geralDataInicioSan'); const sanFim = document.getElementById('geralDataFimSan');
             const hoje = new Date(); const iso = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${String(hoje.getDate()).padStart(2,'0')}`;
