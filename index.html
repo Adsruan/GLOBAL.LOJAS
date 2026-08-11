@@ -5466,11 +5466,18 @@
             salvarMapa(tabela, slug, mapa);
         }
 
+        function formatarErroSupabase(e) {
+            if (!e) return 'Erro desconhecido';
+            const partes = [e.message, e.details, e.hint, e.code].filter(Boolean);
+            return partes.length ? partes.join(' | ') : String(e);
+        }
+
         async function sincronizarLoja(slug) {
-            if (!window.supabaseDisponivel || syncEmAndamento) return;
+            if (!window.supabaseDisponivel || syncEmAndamento) return { ok: false, ignorado: true, erros: [] };
             syncEmAndamento = true;
             window.sincronizandoSupabase = true;
             setStatusBanco('Banco: sincronizando', 'sync');
+            const erros = [];
             try {
                 const vendasTodas = carregarArrayLoja(BASES_LOCAIS.vendas, slug).map(v => ({...v, lojaSlug: v.lojaSlug || slug}));
                 const vendas = vendasTodas.filter(v => v.tipoRegistro !== 'recebimento');
@@ -5479,20 +5486,45 @@
                 const lembretes = carregarArrayLoja(BASES_LOCAIS.lembretes, slug).map(v => ({...v, lojaSlug: v.lojaSlug || slug}));
                 const boletos = carregarArrayLoja(BASES_LOCAIS.boletos, slug).map(v => ({...v, lojaSlug: v.lojaSlug || slug}));
 
-                await sincronizarColecao('vendas', vendas, slug);
-                await sincronizarColecao('recebimentos', recebimentos, slug);
-                await sincronizarColecao('sangrias', sangrias, slug);
-                await sincronizarColecao('lembretes', lembretes, slug);
-                await sincronizarColecao('boletos', boletos, slug);
-                setStatusBanco('Banco: sincronizado', 'ok');
-                erroSyncMostrado = false;
-            } catch (e) {
-                console.error('Falha na sincronização Supabase:', e);
-                setStatusBanco('Banco: erro de gravação', 'erro');
-                if (!erroSyncMostrado) {
-                    erroSyncMostrado = true;
-                    mostrarToast('Supabase conectado, mas a gravação foi bloqueada. Verifique as políticas RLS/colunas das tabelas.', 'bg-red-600 text-white');
+                const colecoes = [
+                    ['vendas', vendas],
+                    ['recebimentos', recebimentos],
+                    ['sangrias', sangrias],
+                    ['lembretes', lembretes],
+                    ['boletos', boletos]
+                ];
+
+                for (const [tabela, registros] of colecoes) {
+                    try {
+                        await sincronizarColecao(tabela, registros, slug);
+                    } catch (e) {
+                        const msg = formatarErroSupabase(e);
+                        erros.push({ tabela, mensagem: msg });
+                        console.error(`Falha ao sincronizar ${tabela} (${slug}):`, e);
+                    }
                 }
+
+                const erroVendas = erros.find(x => x.tabela === 'vendas');
+                if (erroVendas) {
+                    window.__ultimoErroSupabase = `vendas: ${erroVendas.mensagem}`;
+                    setStatusBanco('Banco: erro em vendas', 'erro');
+                    if (!erroSyncMostrado) {
+                        erroSyncMostrado = true;
+                        mostrarToast(`Erro Supabase em vendas: ${erroVendas.mensagem}`.slice(0, 220), 'bg-red-600 text-white');
+                    }
+                    return { ok: false, erros };
+                }
+
+                if (erros.length) {
+                    window.__ultimoErroSupabase = erros.map(x => `${x.tabela}: ${x.mensagem}`).join(' || ');
+                    setStatusBanco('Banco: vendas sincronizadas • avisos', 'aviso');
+                    console.warn('Sincronização parcial:', erros);
+                } else {
+                    setStatusBanco('Banco: sincronizado', 'ok');
+                    erroSyncMostrado = false;
+                    window.__ultimoErroSupabase = '';
+                }
+                return { ok: true, erros };
             } finally {
                 window.sincronizandoSupabase = false;
                 syncEmAndamento = false;
@@ -5683,12 +5715,32 @@
             return [...mapa.values()].sort((a,b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
         }
 
+        async function selecionarTabelaLojaSegura(tabela, slug, obrigatoria = false) {
+            try {
+                return await selecionarTabelaLoja(tabela, slug);
+            } catch (e) {
+                const msg = formatarErroSupabase(e);
+                console.error(`Falha ao ler ${tabela} (${slug}):`, e);
+                if (obrigatoria) throw new Error(`${tabela}: ${msg}`);
+                return [];
+            }
+        }
+
         async function baixarLojaDoSupabase(slug) {
             if (!window.supabaseDisponivel) return;
-            const [vLinhas, rLinhas, sLinhas, lLinhas, bLinhas, itens] = await Promise.all([
-                selecionarTabelaLoja('vendas', slug), selecionarTabelaLoja('recebimentos', slug), selecionarTabelaLoja('sangrias', slug),
-                selecionarTabelaLoja('lembretes', slug), selecionarTabelaLoja('boletos', slug), carregarItensRemotos(slug)
+            // Vendas são a coleção principal. As demais não derrubam toda a conexão caso
+            // alguma policy/coluna ainda precise de ajuste.
+            const vLinhas = await selecionarTabelaLojaSegura('vendas', slug, true);
+            const [rLinhas, sLinhas, lLinhas, bLinhas] = await Promise.all([
+                selecionarTabelaLojaSegura('recebimentos', slug),
+                selecionarTabelaLojaSegura('sangrias', slug),
+                selecionarTabelaLojaSegura('lembretes', slug),
+                selecionarTabelaLojaSegura('boletos', slug)
             ]);
+            let itens = new Map();
+            try { itens = await carregarItensRemotos(slug); }
+            catch (e) { console.warn(`venda_itens indisponível (${slug}); usando itens do payload da venda.`, e); }
+
             const vendasRemotas = vLinhas.map(l => {
                 const v = vendaDoDb(l);
                 const dbId = String(lerCampo(l,['id']));
@@ -5708,7 +5760,16 @@
 
         async function baixarTodasLojas() {
             if (!window.supabaseDisponivel) return;
-            for (const loja of LOJAS) await baixarLojaDoSupabase(loja.slug);
+            const erros = [];
+            for (const loja of LOJAS) {
+                try { await baixarLojaDoSupabase(loja.slug); }
+                catch (e) { erros.push(`${loja.nome}: ${formatarErroSupabase(e)}`); }
+            }
+            if (erros.length) {
+                window.__ultimoErroSupabase = erros.join(' || ');
+                console.error('Falha ao baixar vendas de algumas lojas:', erros);
+            }
+            return erros;
         }
 
         async function inicializarSupabase() {
@@ -5716,24 +5777,26 @@
             try {
                 if (!window.supabase || !window.supabase.createClient) throw new Error('SDK Supabase não carregado');
                 window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-                const { error } = await window.supabaseClient.from('lojas').select('*').limit(1);
-                if (error) throw error;
+                const teste = await window.supabaseClient.from('lojas').select('*').limit(1);
+                if (teste.error) throw new Error(`lojas: ${formatarErroSupabase(teste.error)}`);
                 window.supabaseDisponivel = true;
                 await carregarEsquemaSupabase();
                 aplicarEsquemaFallback();
                 await carregarLojasSupabase();
+                setStatusBanco('Banco: conectado', 'ok');
 
-                const faltandoEsquema = ['vendas','sangrias','recebimentos','lembretes','boletos'].filter(t => !COLUNAS[t]);
-                if (faltandoEsquema.length) {
-                    console.warn('Tabelas sem esquema detectável:', faltandoEsquema);
-                    setStatusBanco('Banco: conectado (esquema parcial)', 'aviso');
-                } else {
-                    setStatusBanco('Banco: conectado', 'ok');
+                // Primeiro sobe o local. Um erro em módulo secundário não bloqueia vendas.
+                let falhaVenda = null;
+                for (const loja of LOJAS) {
+                    const r = await sincronizarLoja(loja.slug);
+                    const ev = r?.erros?.find(x => x.tabela === 'vendas');
+                    if (ev && !falhaVenda) falhaVenda = `${loja.nome}: ${ev.mensagem}`;
                 }
+                if (falhaVenda) throw new Error(`gravação de vendas: ${falhaVenda}`);
 
-                // Ordem de segurança: primeiro sobe o local, depois mescla o remoto.
-                for (const loja of LOJAS) await sincronizarLoja(loja.slug);
-                await baixarTodasLojas();
+                const errosLeitura = await baixarTodasLojas();
+                if (errosLeitura?.length) throw new Error(`leitura de vendas: ${errosLeitura[0]}`);
+
                 carregarDadosLocaisDaLoja(window.lojaAtualSlug);
                 marcarRegistrosDaLoja();
                 renderizarAcesso();
@@ -5742,11 +5805,15 @@
                 inicializacaoConcluida = true;
                 setStatusBanco('Banco: sincronizado', 'ok');
             } catch (e) {
-                window.supabaseDisponivel = false;
                 inicializacaoConcluida = true;
-                console.error('Supabase indisponível; sistema continuará localmente:', e);
-                setStatusBanco('Banco: somente local', 'aviso');
-                mostrarToast('Não foi possível sincronizar com o Supabase. O caixa continua funcionando localmente.', 'bg-yellow-600 text-white');
+                const msg = formatarErroSupabase(e);
+                window.__ultimoErroSupabase = msg;
+                console.error('Supabase - erro real:', e);
+                // Mantém o cliente marcado como disponível quando a conexão base funcionou;
+                // isso permite novas tentativas após corrigir RLS sem recarregar toda a lógica local.
+                if (!window.supabaseClient) window.supabaseDisponivel = false;
+                setStatusBanco(`Banco: erro • ${msg}`.slice(0, 95), 'erro');
+                mostrarToast(`Supabase: ${msg}`.slice(0, 220), 'bg-red-600 text-white');
             }
         }
 
