@@ -1,0 +1,58 @@
+Estou continuando um projeto que estava sendo desenvolvido em outra conta. Quero que você assuma exatamente a partir do ponto em que paramos.
+
+Tenho um sistema de caixa/gestão em HTML/JavaScript que originalmente funcionava localmente. Ele possui Caixa/PDV, Recebimentos, Lembretes, Dashboard, Equipe/Vendedores, Painel Admin, Sangrias, Relatórios e Backup.
+
+A versão atual tem senha do Admin 4512.
+
+O objetivo agora é transformar o sistema em um sistema multi-lojas, com 4 lojas:
+
+Real Papelaria
+TECN IN
+Biber Moda 1
+Biber Moda 2
+
+Todas usam a mesma lógica e funcionalidades. A única diferença entre elas é o nome do cupom.
+
+A estrutura desejada é:
+
+PAINEL GERAL
+
+Acesso
+Faturamento
+Sangrias
+Relatórios
+
+ACESSO
+
+Real Papelaria
+TECN IN
+Biber Moda 1
+Biber Moda 2
+
+O Painel Geral deve mostrar os valores separados por loja e também o total consolidado das quatro.
+
+Não queremos login individual nem permissões de usuários. Será apenas o acesso ao sistema e seleção da loja.
+
+Criamos um projeto Supabase para armazenar os dados online, para que as vendas possam ser acessadas de qualquer computador ou celular.
+
+Já criamos no Supabase as tabelas principais:
+lojas, vendedores, vendas, venda_itens, sangrias, recebimentos, lembretes, boletos, configuracoes_loja, backups e despesas.
+
+Todas as estruturas relevantes possuem loja_id.
+
+Também já cadastramos as quatro lojas no banco.
+
+IMPORTANTE: o código atual deve ser preservado. Não queremos refazer as funcionalidades existentes. A ideia é adaptar o armazenamento para o Supabase e depois criar o painel consolidado.
+
+O próximo objetivo é terminar a sincronização real entre o código e o Supabase, incluindo migração dos dados atuais do localStorage sem perder vendas existentes.
+
+Eu vou anexar o código mais atualizado do sistema nesta conversa. Analise o arquivo antes de alterar qualquer coisa.
+
+Não faça mudanças além do que for necessário para essa migração.
+ 
+as chaves são
+ 
+O Project URL essa é: https://pyszkebplijapypcascv.supabase.co/rest/v1/
+Publishable key essa é: sb_publishable_EPJytBL6lEU8hKiUcEeHfA_EfRpUihc
+ 
+fizemos Banco multi-lojas criado → código ainda precisa ser integrado ao Supabase e os dados locais precisam ser migrados. Então conecte ao supabase para fazermos isso
