@@ -258,6 +258,13 @@
             background: rgba(17,21,18,.96) !important;
             border-color: rgba(255,255,255,.08) !important;
             box-shadow: 0 14px 36px rgba(17,21,18,.20) !important;
+            /* Desktop: fica dentro da área visual da sidebar e nunca cobre o conteúdo principal. */
+            top: auto !important;
+            right: auto !important;
+            left: 16px !important;
+            bottom: 84px !important;
+            width: calc(16rem - 32px) !important;
+            justify-content: space-between !important;
         }
         #barraContextoLoja p:first-child { color: #8e998b !important; }
         #nomeLojaAtiva { color: #ffffff !important; }
@@ -494,6 +501,10 @@
             #barraContextoLoja {
                 top: 8px !important;
                 right: 8px !important;
+                left: auto !important;
+                bottom: auto !important;
+                width: auto !important;
+                max-width: calc(100vw - 16px) !important;
             }
         }
     </style>
