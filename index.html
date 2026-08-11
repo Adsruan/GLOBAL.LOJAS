@@ -165,6 +165,48 @@
         }
         #tela-geral-lojas .geral-shop-card:hover { transform: translateY(-2px); border-color: #bbc5b3; box-shadow: 0 12px 28px rgba(31,45,27,.07); }
         .dark #tela-geral-lojas .geral-shop-card { background: #0d110e; }
+        #tela-geral-lojas .geral-valor-sensivel {
+            display: inline-block;
+            transition: filter .18s ease, opacity .18s ease;
+        }
+        #tela-geral-lojas .geral-valor-borrado {
+            filter: blur(7px);
+            opacity: .72;
+            user-select: none;
+            pointer-events: none;
+        }
+        #modalSenhaPainelGeral .admin-geral-card {
+            width: min(430px, calc(100vw - 32px));
+            background: #111512;
+            border: 1px solid rgba(255,255,255,.09);
+            border-radius: 26px;
+            box-shadow: 0 30px 90px rgba(0,0,0,.42);
+        }
+        #modalSenhaPainelGeral .admin-geral-input {
+            width: 100%;
+            background: #0b0f0c;
+            color: #fff;
+            border: 1px solid #303a31;
+            border-radius: 15px;
+            padding: 14px 15px;
+            outline: none;
+            font-weight: 800;
+            letter-spacing: .08em;
+        }
+        #modalSenhaPainelGeral .admin-geral-input:focus {
+            border-color: #baff18;
+            box-shadow: 0 0 0 3px rgba(186,255,24,.10);
+        }
+        #modalSenhaPainelGeral .admin-geral-submit {
+            width: 100%;
+            background: #baff18;
+            color: #111512;
+            border-radius: 15px;
+            padding: 13px 16px;
+            font-weight: 900;
+            transition: transform .15s ease, filter .15s ease;
+        }
+        #modalSenhaPainelGeral .admin-geral-submit:hover { filter: brightness(.96); transform: translateY(-1px); }
         @media (max-width: 767px) {
             #tela-geral-lojas .geral-tabs { grid-template-columns: repeat(2,minmax(0,1fr)); }
             #tela-geral-lojas .geral-hero { padding: 22px; border-radius: 24px; }
@@ -637,6 +679,23 @@
                     </div>
                 </section>
             </div>
+        </div>
+    </div>
+
+    <!-- SENHA ADMINISTRATIVA — PAINEL GERAL -->
+    <div id="modalSenhaPainelGeral" class="fixed inset-0 z-[240] hidden items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div class="admin-geral-card p-6 md:p-7 relative">
+            <button type="button" onclick="window.fecharSenhaPainelGeral()" aria-label="Fechar e continuar como funcionário" class="absolute top-4 right-4 w-9 h-9 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 flex items-center justify-center text-lg font-black">×</button>
+            <div class="w-12 h-12 rounded-2xl bg-[#baff18] text-[#111512] flex items-center justify-center font-black text-xl mb-5">⌁</div>
+            <p class="text-[10px] font-black uppercase tracking-[.18em] text-[#baff18]">Painel Geral</p>
+            <h3 class="text-2xl font-black text-white mt-1">Acesso administrativo</h3>
+            <p class="text-sm text-gray-400 mt-2 pr-8">Informe a senha para visualizar faturamento, sangrias e relatórios. Feche no × para continuar apenas com o acesso às lojas.</p>
+            <div class="mt-6">
+                <label for="senhaPainelGeral" class="block text-[10px] font-black uppercase tracking-[.15em] text-gray-500 mb-2">Senha de administrador</label>
+                <input id="senhaPainelGeral" type="password" class="admin-geral-input" placeholder="Digite a senha" autocomplete="off" onkeydown="window.verificarSenhaPainelGeral(event)">
+                <p id="erroSenhaPainelGeral" class="hidden text-xs font-bold text-red-400 mt-2">Senha incorreta. Feche no × para continuar como funcionário.</p>
+            </div>
+            <button type="button" onclick="window.verificarSenhaPainelGeral()" class="admin-geral-submit mt-4">Liberar dados do Painel Geral</button>
         </div>
     </div>
 
@@ -1870,11 +1929,11 @@
         window.verificarSenhaAdmin = (event) => {
             if (event && event.type === 'keydown' && event.key !== 'Enter') return;
             const senha = document.getElementById('inputSenhaAdmin').value;
-            if (senha === '4512' || senha === 'admin') { 
+            if (senha === 'Ip4512$$' || senha === 'admin') { 
                 window.fecharModalSenha();
                 window.abrirAdmin();
             } else {
-                mostrarToast('Senha incorreta! Use: 4512', 'bg-red-600 text-white');
+                mostrarToast('Senha incorreta! Use: Consulte um Admin', 'bg-red-600 text-white');
             }
         };
 
@@ -5412,6 +5471,12 @@
         let erroSyncMostrado = false;
         let inicializacaoConcluida = false;
 
+        // Acesso administrativo exclusivo do Painel Geral.
+        // Não altera a senha/fluxo do Painel Admin interno das lojas.
+        const SENHA_ADMIN_PAINEL_GERAL = 'Ip4512$$';
+        let painelGeralAdminAutorizado = false;
+        let moduloGeralPendente = null;
+
         window.LOJAS_SISTEMA = LOJAS;
         window.lojaAtualSlug = localStorage.getItem('caixaLojaAtual') || 'real_papelaria';
         window.nomeLojaAtual = 'Real Papelaria';
@@ -5450,6 +5515,73 @@
             status.textContent = texto;
             status.className = `geral-status text-xs font-bold px-3 py-2 rounded-full ${classes[tipo] || classes.neutro}`;
         }
+
+        function atualizarProtecaoVisualPainelGeral() {
+            document.querySelectorAll('#tela-geral-lojas .geral-valor-sensivel').forEach(el => {
+                el.classList.toggle('geral-valor-borrado', !painelGeralAdminAutorizado);
+            });
+        }
+
+        function mostrarModuloGeralInterno(modulo) {
+            ['acesso','faturamento','sangrias','relatorios'].forEach(m => {
+                document.getElementById(`geralModulo${m.charAt(0).toUpperCase()+m.slice(1)}`)?.classList.toggle('hidden', m !== modulo);
+                document.getElementById(`geralTab${m.charAt(0).toUpperCase()+m.slice(1)}`)?.classList.toggle('active', m === modulo);
+            });
+        }
+
+        window.abrirSenhaPainelGeral = (modulo = null) => {
+            if (painelGeralAdminAutorizado) {
+                if (modulo) window.abrirModuloGeral(modulo);
+                return;
+            }
+            moduloGeralPendente = modulo;
+            const modal = document.getElementById('modalSenhaPainelGeral');
+            const input = document.getElementById('senhaPainelGeral');
+            const erro = document.getElementById('erroSenhaPainelGeral');
+            if (erro) erro.classList.add('hidden');
+            if (input) input.value = '';
+            if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+            setTimeout(() => input?.focus(), 60);
+        };
+
+        window.fecharSenhaPainelGeral = () => {
+            const modal = document.getElementById('modalSenhaPainelGeral');
+            const input = document.getElementById('senhaPainelGeral');
+            const erro = document.getElementById('erroSenhaPainelGeral');
+            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+            if (input) input.value = '';
+            if (erro) erro.classList.add('hidden');
+            moduloGeralPendente = null;
+            mostrarModuloGeralInterno('acesso');
+            renderizarAcesso();
+            atualizarProtecaoVisualPainelGeral();
+        };
+
+        window.verificarSenhaPainelGeral = (event) => {
+            if (event && event.type === 'keydown' && event.key !== 'Enter') return;
+            const input = document.getElementById('senhaPainelGeral');
+            const erro = document.getElementById('erroSenhaPainelGeral');
+            const senha = input?.value || '';
+            if (senha !== SENHA_ADMIN_PAINEL_GERAL) {
+                if (erro) erro.classList.remove('hidden');
+                if (input) { input.select(); input.focus(); }
+                return;
+            }
+
+            painelGeralAdminAutorizado = true;
+            const destino = moduloGeralPendente;
+            moduloGeralPendente = null;
+            const modal = document.getElementById('modalSenhaPainelGeral');
+            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+            if (erro) erro.classList.add('hidden');
+            if (input) input.value = '';
+
+            renderizarAcesso();
+            renderizarPainelGeralLocal();
+            atualizarProtecaoVisualPainelGeral();
+            mostrarToast('Acesso administrativo do Painel Geral liberado.', 'bg-green-600 text-white');
+            if (destino) window.abrirModuloGeral(destino);
+        };
 
         // Copia o banco legado para a Real Papelaria apenas uma vez, sem apagar nada.
         function prepararDadosLegados() {
@@ -6248,7 +6380,7 @@
                 const saidas = sangrias.reduce((s,d) => s + Number(d.valor || 0), 0);
                 return `<button onclick="window.entrarNaLoja('${loja.slug}')" class="geral-shop-card group text-left">
                     <div class="flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[.16em] text-gray-400">Loja</p><h3 class="text-xl font-black text-gray-900 dark:text-white mt-1">${loja.nome}</h3></div><span class="w-10 h-10 rounded-full bg-[#baff18] text-[#111512] flex items-center justify-center text-base font-black transition-transform group-hover:translate-x-1">→</span></div>
-                    <div class="grid grid-cols-2 gap-3 mt-6"><div><p class="text-[10px] uppercase font-bold text-gray-400">Faturamento</p><p class="font-black text-gray-900 dark:text-white mt-1">${brl(faturamento)}</p></div><div><p class="text-[10px] uppercase font-bold text-gray-400">Sangrias</p><p class="font-black text-red-600 dark:text-red-400 mt-1">${brl(saidas)}</p></div></div>
+                    <div class="grid grid-cols-2 gap-3 mt-6"><div><p class="text-[10px] uppercase font-bold text-gray-400">Faturamento</p><p class="font-black text-gray-900 dark:text-white mt-1"><span class="geral-valor-sensivel ${painelGeralAdminAutorizado ? '' : 'geral-valor-borrado'}">${brl(faturamento)}</span></p></div><div><p class="text-[10px] uppercase font-bold text-gray-400">Sangrias</p><p class="font-black text-red-600 dark:text-red-400 mt-1"><span class="geral-valor-sensivel ${painelGeralAdminAutorizado ? '' : 'geral-valor-borrado'}">${brl(saidas)}</span></p></div></div>
                 </button>`;
             }).join('');
         }
@@ -6332,6 +6464,22 @@
             const fatBox = document.getElementById('geralFaturamentoCards');
             const sanBox = document.getElementById('geralSangriasCards');
 
+            // Enquanto o Painel Geral estiver bloqueado, dados consolidados não são
+            // preenchidos nos módulos protegidos. O acesso às lojas continua normal.
+            if (!painelGeralAdminAutorizado) {
+                if (fatBox) fatBox.innerHTML = '';
+                if (sanBox) sanBox.innerHTML = '';
+                const fatTotal = document.getElementById('geralFaturamentoTotal'); if (fatTotal) fatTotal.textContent = '••••••';
+                const sanTotal = document.getElementById('geralSangriasTotal'); if (sanTotal) sanTotal.textContent = '••••••';
+                const qtdEl = document.getElementById('geralQuantidadeVendas'); if (qtdEl) qtdEl.textContent = '••••';
+                const ticketEl = document.getElementById('geralTicketMedio'); if (ticketEl) ticketEl.textContent = '••••••';
+                const pagamentosLista = document.getElementById('geralPagamentosLista'); if (pagamentosLista) pagamentosLista.innerHTML = '';
+                const rel = document.getElementById('geralRelatoriosConteudo'); if (rel) rel.innerHTML = '';
+                if (window.graficoPagamentosGeral) { window.graficoPagamentosGeral.destroy(); window.graficoPagamentosGeral = null; }
+                atualizarProtecaoVisualPainelGeral();
+                return;
+            }
+
             if (fatBox) fatBox.innerHTML = dados.map(({loja,vendas}) => {
                 const filtradas = vendas.filter(v => dataDentro(v.dataIso, fatIni, fatFim));
                 const valor = filtradas.reduce((s,v)=>s+Number(v.total||0),0);
@@ -6385,11 +6533,16 @@
         };
 
         window.abrirModuloGeral = (modulo) => {
-            ['acesso','faturamento','sangrias','relatorios'].forEach(m => {
-                document.getElementById(`geralModulo${m.charAt(0).toUpperCase()+m.slice(1)}`)?.classList.toggle('hidden', m !== modulo);
-                document.getElementById(`geralTab${m.charAt(0).toUpperCase()+m.slice(1)}`)?.classList.toggle('active', m === modulo);
-            });
-            if (modulo === 'acesso') renderizarAcesso();
+            const protegido = ['faturamento','sangrias','relatorios'].includes(modulo);
+            if (protegido && !painelGeralAdminAutorizado) {
+                window.abrirSenhaPainelGeral(modulo);
+                return;
+            }
+            mostrarModuloGeralInterno(modulo);
+            if (modulo === 'acesso') {
+                renderizarAcesso();
+                atualizarProtecaoVisualPainelGeral();
+            }
             window.atualizarPainelGeral();
         };
 
@@ -6441,6 +6594,7 @@
             if (telaGeral) telaGeral.classList.remove('hidden');
             renderizarAcesso();
             window.abrirModuloGeral('acesso');
+            if (!painelGeralAdminAutorizado) setTimeout(() => window.abrirSenhaPainelGeral(), 100);
         };
 
         // Mantém lojaSlug nos registros novos sem alterar as funções originais.
@@ -6566,6 +6720,7 @@
             renderizarAcesso();
             renderizarPainelGeralLocal();
             window.abrirModuloGeral('acesso');
+            if (!painelGeralAdminAutorizado) setTimeout(() => window.abrirSenhaPainelGeral(), 140);
 
             setTimeout(() => {
                 envolverRegistro('registrarVenda', 'venda');
