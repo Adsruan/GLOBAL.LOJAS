@@ -60,79 +60,243 @@
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; text-shadow: none !important; box-shadow: none !important; }
         }
     </style>
+
+    <style>
+        /* PAINEL GERAL — estética profissional inspirada no layout de referência */
+        #tela-geral-lojas {
+            --geral-accent: #baff18;
+            --geral-mint: #78e6c7;
+            --geral-ink: #111512;
+            --geral-ink-2: #1a201b;
+            --geral-soft: #eef1e9;
+            --geral-line: #dfe4d7;
+            background:
+                radial-gradient(circle at 82% 10%, rgba(186,255,24,.14), transparent 24%),
+                radial-gradient(circle at 18% 0%, rgba(120,230,199,.12), transparent 28%),
+                var(--geral-soft);
+        }
+        .dark #tela-geral-lojas {
+            --geral-soft: #090c0a;
+            --geral-line: #273027;
+            background:
+                radial-gradient(circle at 82% 10%, rgba(186,255,24,.08), transparent 24%),
+                radial-gradient(circle at 18% 0%, rgba(120,230,199,.07), transparent 28%),
+                #090c0a;
+        }
+        #tela-geral-lojas .geral-shell { max-width: 1440px; margin: 0 auto; }
+        #tela-geral-lojas .geral-hero {
+            position: relative; overflow: hidden; border-radius: 30px; padding: 28px;
+            background: linear-gradient(125deg, #101411 0%, #171d18 60%, #20291e 100%);
+            border: 1px solid rgba(255,255,255,.06); box-shadow: 0 24px 70px rgba(19,28,18,.16);
+        }
+        #tela-geral-lojas .geral-hero::after {
+            content: ''; position: absolute; width: 440px; height: 180px; right: -70px; bottom: -105px;
+            border-radius: 50%; transform: rotate(-8deg);
+            background: linear-gradient(90deg, rgba(120,230,199,.68), rgba(186,255,24,.86));
+            filter: blur(2px); opacity: .9;
+        }
+        #tela-geral-lojas .geral-hero::before {
+            content: ''; position: absolute; width: 360px; height: 130px; right: 120px; bottom: -95px;
+            border-radius: 50%; transform: rotate(7deg);
+            background: rgba(120,230,199,.34); filter: blur(10px);
+        }
+        #tela-geral-lojas .geral-kicker { color: var(--geral-accent); letter-spacing: .2em; }
+        #tela-geral-lojas .geral-status {
+            background: rgba(255,255,255,.08); color: #e9f0e5; border: 1px solid rgba(255,255,255,.1);
+            backdrop-filter: blur(10px);
+        }
+        #tela-geral-lojas .geral-tabs {
+            display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; margin: 14px 0 18px;
+        }
+        #tela-geral-lojas .geral-tab {
+            border: 1px solid var(--geral-line) !important; background: rgba(255,255,255,.86) !important;
+            border-radius: 18px !important; padding: 15px 16px !important; box-shadow: 0 7px 24px rgba(32,45,29,.05) !important;
+            transition: transform .2s ease, border-color .2s ease, background .2s ease !important;
+        }
+        #tela-geral-lojas .geral-tab:hover { transform: translateY(-2px); border-color: #aeb7a8 !important; }
+        #tela-geral-lojas .geral-tab.active {
+            background: var(--geral-ink) !important; border-color: var(--geral-ink) !important;
+            box-shadow: 0 14px 34px rgba(17,21,18,.18) !important;
+        }
+        #tela-geral-lojas .geral-tab.active span:first-child { color: var(--geral-accent) !important; }
+        #tela-geral-lojas .geral-tab.active span:last-child { color: white !important; }
+        .dark #tela-geral-lojas .geral-tab { background: rgba(20,25,21,.9) !important; border-color: #263027 !important; }
+        .dark #tela-geral-lojas .geral-tab.active { background: var(--geral-accent) !important; border-color: var(--geral-accent) !important; }
+        .dark #tela-geral-lojas .geral-tab.active span:first-child,
+        .dark #tela-geral-lojas .geral-tab.active span:last-child { color: #101411 !important; }
+        #tela-geral-lojas .geral-panel {
+            background: rgba(255,255,255,.92); border: 1px solid var(--geral-line); border-radius: 28px;
+            box-shadow: 0 18px 55px rgba(40,55,34,.07); padding: 22px;
+        }
+        .dark #tela-geral-lojas .geral-panel { background: rgba(17,21,18,.94); }
+        #tela-geral-lojas .geral-dark-card {
+            background: linear-gradient(145deg, #111512, #1a201b); color: white; border-radius: 24px;
+            border: 1px solid rgba(255,255,255,.06); box-shadow: 0 18px 45px rgba(17,21,18,.16);
+        }
+        #tela-geral-lojas .geral-accent-card {
+            background: linear-gradient(135deg, #baff18, #d7ff63); color: #101411; border-radius: 24px;
+            border: 1px solid rgba(114,160,0,.16); box-shadow: 0 18px 45px rgba(143,198,0,.14);
+        }
+        #tela-geral-lojas .geral-soft-card {
+            background: #f7f9f3; border: 1px solid var(--geral-line); border-radius: 22px;
+        }
+        .dark #tela-geral-lojas .geral-soft-card { background: #0d110e; }
+        #tela-geral-lojas .geral-filter input {
+            background: #f7f9f3; border: 1px solid var(--geral-line); border-radius: 14px; padding: 11px 12px;
+            font-weight: 700; color: #242a23; outline: none;
+        }
+        .dark #tela-geral-lojas .geral-filter input { background: #0c100d; color: #e7ece4; }
+        #tela-geral-lojas .geral-apply {
+            background: var(--geral-accent); color: #101411; border-radius: 14px; padding: 11px 17px; font-weight: 900;
+            transition: transform .15s ease, filter .15s ease;
+        }
+        #tela-geral-lojas .geral-apply:hover { filter: brightness(.96); transform: translateY(-1px); }
+        #tela-geral-lojas .geral-method-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+        #tela-geral-lojas .geral-method-row:last-child { border-bottom: 0; }
+        #tela-geral-lojas .geral-dot { width: 9px; height: 9px; border-radius: 999px; background: var(--geral-accent); box-shadow: 0 0 0 5px rgba(186,255,24,.08); }
+        #tela-geral-lojas .geral-progress { height: 7px; background: rgba(255,255,255,.08); border-radius: 999px; overflow: hidden; }
+        #tela-geral-lojas .geral-progress > span { display:block; height:100%; border-radius:999px; background: linear-gradient(90deg, var(--geral-mint), var(--geral-accent)); }
+        #tela-geral-lojas .geral-shop-card {
+            background: #f8faf5; border: 1px solid var(--geral-line); border-radius: 20px; padding: 18px;
+            transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+        }
+        #tela-geral-lojas .geral-shop-card:hover { transform: translateY(-2px); border-color: #bbc5b3; box-shadow: 0 12px 28px rgba(31,45,27,.07); }
+        .dark #tela-geral-lojas .geral-shop-card { background: #0d110e; }
+        @media (max-width: 767px) {
+            #tela-geral-lojas .geral-tabs { grid-template-columns: repeat(2,minmax(0,1fr)); }
+            #tela-geral-lojas .geral-hero { padding: 22px; border-radius: 24px; }
+            #tela-geral-lojas .geral-hero::after { width: 300px; right: -140px; opacity: .55; }
+            #tela-geral-lojas .geral-panel { padding: 16px; border-radius: 22px; }
+        }
+    </style>
+
 </head>
 
 <body class="text-gray-900 bg-gray-100 dark:bg-[#0f111a] dark:text-gray-100 flex flex-col md:flex-row h-screen overflow-hidden transition-colors duration-300">
 
     <!-- PAINEL GERAL MULTI-LOJAS -->
-    <div id="tela-geral-lojas" class="fixed inset-0 z-[190] bg-gray-100 dark:bg-[#0f111a] overflow-y-auto transition-colors duration-300">
-        <div class="min-h-full p-5 md:p-10">
-            <div class="max-w-7xl mx-auto">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-8">
-                    <div>
-                        <p class="text-xs font-black uppercase tracking-[0.22em] text-blue-600 dark:text-cyan-400">Caixa Expresso</p>
-                        <h1 class="text-3xl md:text-5xl font-black text-gray-900 dark:text-white mt-2">Painel Geral</h1>
-                        <p class="text-gray-500 dark:text-gray-400 mt-2">Gestão consolidada das quatro lojas.</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span id="statusBancoMultiLoja" class="text-xs font-bold px-3 py-2 rounded-full bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400">Banco: preparando</span>
+    <div id="tela-geral-lojas" class="fixed inset-0 z-[190] overflow-y-auto transition-colors duration-300">
+        <div class="min-h-full p-4 md:p-7 lg:p-9">
+            <div class="geral-shell">
+                <div class="geral-hero mb-4 md:mb-5">
+                    <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                        <div>
+                            <p class="geral-kicker text-[10px] md:text-xs font-black uppercase">Caixa Expresso • Multi-lojas</p>
+                            <h1 class="text-3xl md:text-5xl font-black text-white mt-2 tracking-[-0.03em]">Painel Geral</h1>
+                            <p class="text-sm md:text-base text-gray-300 mt-2 max-w-2xl">Visão consolidada das quatro lojas, com faturamento, meios de pagamento e movimentações.</p>
+                        </div>
+                        <div class="flex items-center gap-3 self-start md:self-center">
+                            <span id="statusBancoMultiLoja" class="geral-status text-xs font-bold px-3.5 py-2.5 rounded-full">Banco: preparando</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                    <button id="geralTabAcesso" onclick="window.abrirModuloGeral('acesso')" class="geral-tab active bg-white dark:bg-[#161925] border border-gray-200 dark:border-gray-800 rounded-2xl p-4 text-left shadow-sm">
-                        <span class="text-xs font-black uppercase tracking-wider text-blue-600 dark:text-cyan-400">Acesso</span>
-                        <span class="block font-bold text-gray-800 dark:text-gray-100 mt-1">Entrar em uma loja</span>
+                <div class="geral-tabs">
+                    <button id="geralTabAcesso" onclick="window.abrirModuloGeral('acesso')" class="geral-tab active text-left">
+                        <span class="text-[10px] font-black uppercase tracking-[.16em] text-emerald-600">01 • Acesso</span>
+                        <span class="block font-black text-gray-800 mt-1 text-sm md:text-base">Entrar em uma loja</span>
                     </button>
-                    <button id="geralTabFaturamento" onclick="window.abrirModuloGeral('faturamento')" class="geral-tab bg-white dark:bg-[#161925] border border-gray-200 dark:border-gray-800 rounded-2xl p-4 text-left shadow-sm">
-                        <span class="text-xs font-black uppercase tracking-wider text-green-600 dark:text-emerald-400">Faturamento</span>
-                        <span class="block font-bold text-gray-800 dark:text-gray-100 mt-1">Valores das lojas</span>
+                    <button id="geralTabFaturamento" onclick="window.abrirModuloGeral('faturamento')" class="geral-tab text-left">
+                        <span class="text-[10px] font-black uppercase tracking-[.16em] text-emerald-600">02 • Faturamento</span>
+                        <span class="block font-black text-gray-800 mt-1 text-sm md:text-base">Vendas e pagamentos</span>
                     </button>
-                    <button id="geralTabSangrias" onclick="window.abrirModuloGeral('sangrias')" class="geral-tab bg-white dark:bg-[#161925] border border-gray-200 dark:border-gray-800 rounded-2xl p-4 text-left shadow-sm">
-                        <span class="text-xs font-black uppercase tracking-wider text-red-600 dark:text-red-400">Sangrias</span>
-                        <span class="block font-bold text-gray-800 dark:text-gray-100 mt-1">Saídas dos caixas</span>
+                    <button id="geralTabSangrias" onclick="window.abrirModuloGeral('sangrias')" class="geral-tab text-left">
+                        <span class="text-[10px] font-black uppercase tracking-[.16em] text-red-600">03 • Sangrias</span>
+                        <span class="block font-black text-gray-800 mt-1 text-sm md:text-base">Saídas dos caixas</span>
                     </button>
-                    <button id="geralTabRelatorios" onclick="window.abrirModuloGeral('relatorios')" class="geral-tab bg-white dark:bg-[#161925] border border-gray-200 dark:border-gray-800 rounded-2xl p-4 text-left shadow-sm">
-                        <span class="text-xs font-black uppercase tracking-wider text-purple-600 dark:text-purple-400">Relatórios</span>
-                        <span class="block font-bold text-gray-800 dark:text-gray-100 mt-1">Análise consolidada</span>
+                    <button id="geralTabRelatorios" onclick="window.abrirModuloGeral('relatorios')" class="geral-tab text-left">
+                        <span class="text-[10px] font-black uppercase tracking-[.16em] text-purple-600">04 • Relatórios</span>
+                        <span class="block font-black text-gray-800 mt-1 text-sm md:text-base">Análise consolidada</span>
                     </button>
                 </div>
 
                 <section id="geralModuloAcesso" class="geral-modulo">
-                    <div class="bg-white dark:bg-[#161925] rounded-3xl border border-gray-200 dark:border-gray-800 shadow-sm p-5 md:p-8">
-                        <div class="mb-6">
-                            <h2 class="text-2xl font-black text-gray-900 dark:text-white">Acesso</h2>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Escolha qual loja você deseja operar.</p>
+                    <div class="geral-panel">
+                        <div class="flex items-end justify-between gap-4 mb-6">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Operação</p>
+                                <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white mt-1">Acesso às lojas</h2>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Escolha qual loja você deseja operar.</p>
+                            </div>
                         </div>
                         <div id="listaAcessoLojas" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                     </div>
                 </section>
 
                 <section id="geralModuloFaturamento" class="geral-modulo hidden">
-                    <div class="bg-white dark:bg-[#161925] rounded-3xl border border-gray-200 dark:border-gray-800 shadow-sm p-5 md:p-8">
-                        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
-                            <div><h2 class="text-2xl font-black text-gray-900 dark:text-white">Faturamento</h2><p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Faturamento individual e total das quatro lojas.</p></div>
-                            <div class="flex gap-2"><input id="geralDataInicioFat" type="date" class="bg-gray-50 dark:bg-[#0f111a] border border-gray-200 dark:border-gray-700 rounded-xl p-3 text-sm"><input id="geralDataFimFat" type="date" class="bg-gray-50 dark:bg-[#0f111a] border border-gray-200 dark:border-gray-700 rounded-xl p-3 text-sm"><button onclick="window.atualizarPainelGeral()" class="px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm">Aplicar</button></div>
+                    <div class="geral-panel">
+                        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-6">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Visão de vendas</p>
+                                <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white mt-1">Faturamento consolidado</h2>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Total das quatro lojas e distribuição por meio de pagamento.</p>
+                            </div>
+                            <div class="geral-filter flex flex-col sm:flex-row gap-2">
+                                <input id="geralDataInicioFat" type="date" aria-label="Data inicial do faturamento">
+                                <input id="geralDataFimFat" type="date" aria-label="Data final do faturamento">
+                                <button onclick="window.atualizarPainelGeral()" class="geral-apply">Aplicar</button>
+                            </div>
                         </div>
-                        <div id="geralFaturamentoCards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
-                        <div class="mt-5 bg-gray-900 dark:bg-[#0b0d14] rounded-2xl p-5 text-white"><p class="text-xs uppercase tracking-wider text-gray-400 font-bold">Total das 4 lojas</p><p id="geralFaturamentoTotal" class="text-3xl md:text-4xl font-black mt-1">R$ 0,00</p></div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div class="geral-accent-card md:col-span-1 p-5 md:p-6 flex flex-col justify-between min-h-[154px]">
+                                <div class="flex items-center justify-between gap-3">
+                                    <p class="text-[10px] uppercase tracking-[.16em] font-black opacity-60">Total das 4 lojas</p>
+                                    <span class="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center font-black">↗</span>
+                                </div>
+                                <div>
+                                    <p id="geralFaturamentoTotal" class="text-3xl md:text-4xl font-black mt-4 tracking-[-0.04em]">R$ 0,00</p>
+                                    <p class="text-xs font-bold opacity-60 mt-1">Faturamento no período selecionado</p>
+                                </div>
+                            </div>
+                            <div class="geral-soft-card p-5 md:p-6 flex flex-col justify-between min-h-[154px]">
+                                <p class="text-[10px] uppercase tracking-[.16em] font-black text-gray-400">Vendas registradas</p>
+                                <div><p id="geralQuantidadeVendas" class="text-3xl md:text-4xl font-black text-gray-900 dark:text-white">0</p><p class="text-xs text-gray-500 mt-1">Transações no período</p></div>
+                            </div>
+                            <div class="geral-soft-card p-5 md:p-6 flex flex-col justify-between min-h-[154px]">
+                                <p class="text-[10px] uppercase tracking-[.16em] font-black text-gray-400">Ticket médio</p>
+                                <div><p id="geralTicketMedio" class="text-3xl md:text-4xl font-black text-gray-900 dark:text-white">R$ 0,00</p><p class="text-xs text-gray-500 mt-1">Média por venda</p></div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
+                            <div class="geral-dark-card lg:col-span-3 p-5 md:p-6 min-h-[340px]">
+                                <div class="flex items-start justify-between gap-4 mb-5">
+                                    <div><p class="text-[10px] uppercase tracking-[.16em] font-black text-gray-500">Vendas por pagamento</p><h3 class="text-xl font-black text-white mt-1">Distribuição do faturamento</h3></div>
+                                    <span class="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black text-gray-300">VALOR</span>
+                                </div>
+                                <div class="h-[245px]"><canvas id="geralGraficoPagamentos"></canvas></div>
+                            </div>
+                            <div class="geral-dark-card lg:col-span-2 p-5 md:p-6">
+                                <div class="mb-4"><p class="text-[10px] uppercase tracking-[.16em] font-black text-gray-500">Meios de pagamento</p><h3 class="text-xl font-black text-white mt-1">Totais do período</h3></div>
+                                <div id="geralPagamentosLista"></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 mt-6 flex items-center justify-between gap-4">
+                            <div><p class="text-[10px] uppercase tracking-[.16em] font-black text-gray-400">Por unidade</p><h3 class="text-lg font-black text-gray-900 dark:text-white mt-1">Faturamento por loja</h3></div>
+                        </div>
+                        <div id="geralFaturamentoCards" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3"></div>
                     </div>
                 </section>
 
                 <section id="geralModuloSangrias" class="geral-modulo hidden">
-                    <div class="bg-white dark:bg-[#161925] rounded-3xl border border-gray-200 dark:border-gray-800 shadow-sm p-5 md:p-8">
-                        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
-                            <div><h2 class="text-2xl font-black text-gray-900 dark:text-white">Sangrias</h2><p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Saídas individuais e total consolidado.</p></div>
-                            <div class="flex gap-2"><input id="geralDataInicioSan" type="date" class="bg-gray-50 dark:bg-[#0f111a] border border-gray-200 dark:border-gray-700 rounded-xl p-3 text-sm"><input id="geralDataFimSan" type="date" class="bg-gray-50 dark:bg-[#0f111a] border border-gray-200 dark:border-gray-700 rounded-xl p-3 text-sm"><button onclick="window.atualizarPainelGeral()" class="px-4 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm">Aplicar</button></div>
+                    <div class="geral-panel">
+                        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-6">
+                            <div><p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Movimentações</p><h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white mt-1">Sangrias</h2><p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Saídas individuais e total consolidado.</p></div>
+                            <div class="geral-filter flex flex-col sm:flex-row gap-2"><input id="geralDataInicioSan" type="date"><input id="geralDataFimSan" type="date"><button onclick="window.atualizarPainelGeral()" class="geral-apply">Aplicar</button></div>
                         </div>
-                        <div id="geralSangriasCards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
-                        <div class="mt-5 bg-red-600 rounded-2xl p-5 text-white"><p class="text-xs uppercase tracking-wider text-red-100 font-bold">Total de sangrias</p><p id="geralSangriasTotal" class="text-3xl md:text-4xl font-black mt-1">R$ 0,00</p></div>
+                        <div class="geral-dark-card p-5 md:p-6 mb-4"><p class="text-[10px] uppercase tracking-[.16em] text-gray-500 font-black">Total de sangrias</p><p id="geralSangriasTotal" class="text-3xl md:text-4xl font-black text-white mt-2">R$ 0,00</p><div class="w-14 h-1 rounded-full bg-[#baff18] mt-4"></div></div>
+                        <div id="geralSangriasCards" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3"></div>
                     </div>
                 </section>
 
                 <section id="geralModuloRelatorios" class="geral-modulo hidden">
-                    <div class="bg-white dark:bg-[#161925] rounded-3xl border border-gray-200 dark:border-gray-800 shadow-sm p-5 md:p-8">
-                        <div class="mb-6"><h2 class="text-2xl font-black text-gray-900 dark:text-white">Relatórios</h2><p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Resumo consolidado para análise rápida.</p></div>
+                    <div class="geral-panel">
+                        <div class="mb-6"><p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Resumo executivo</p><h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white mt-1">Relatórios</h2><p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Resumo consolidado para análise rápida.</p></div>
                         <div id="geralRelatoriosConteudo" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                     </div>
                 </section>
@@ -4944,7 +5108,7 @@
                 neutro: 'bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
             };
             status.textContent = texto;
-            status.className = `text-xs font-bold px-3 py-2 rounded-full ${classes[tipo] || classes.neutro}`;
+            status.className = `geral-status text-xs font-bold px-3 py-2 rounded-full ${classes[tipo] || classes.neutro}`;
         }
 
         // Copia o banco legado para a Real Papelaria apenas uma vez, sem apagar nada.
@@ -5037,6 +5201,27 @@
             }
         }
 
+        // Fallback deterministico para sincronizacao.
+        // Mesmo que o endpoint OpenAPI nao exponha o esquema completo, estas colunas
+        // sao suficientes para transportar o registro completo sem perder dados.
+        function aplicarEsquemaFallback() {
+            const base = {
+                id: { type: 'string', format: 'uuid' },
+                loja_id: { type: 'string', format: 'uuid' },
+                legado_id: { type: 'string' },
+                payload: { type: 'object' }
+            };
+            ['vendas','sangrias','recebimentos','lembretes','boletos'].forEach(tabela => {
+                const atual = COLUNAS[tabela]?.properties || {};
+                COLUNAS[tabela] = { ...(COLUNAS[tabela] || {}), properties: { ...base, ...atual } };
+            });
+            // venda_itens continua usando as colunas reais quando o esquema estiver disponivel.
+            // No fallback, os itens ja viajam dentro do payload da venda, evitando perda de dados.
+            if (!COLUNAS.venda_itens) {
+                COLUNAS.venda_itens = { properties: { ...base } };
+            }
+        }
+
         function propriedadesTabela(tabela) { return COLUNAS[tabela]?.properties || {}; }
         function campo(tabela, aliases) {
             const props = propriedadesTabela(tabela);
@@ -5073,7 +5258,7 @@
             const p = campoPayload(tabela);
             if (p) out[p] = adaptarValor(tabela, p, copiar(registro));
             definir(out, tabela, ['loja_id'], lojaId);
-            definir(out, tabela, ['origem_id','local_id','id_local','legacy_id'], registro.id != null ? String(registro.id) : undefined);
+            definir(out, tabela, ['origem_id','local_id','id_local','legacy_id','legado_id'], registro.id != null ? String(registro.id) : undefined);
             if (podeUsarIdLocal(tabela, registro.id)) definir(out, tabela, ['id'], registro.id);
             return out;
         }
@@ -5081,9 +5266,9 @@
         function vendaParaDb(v) {
             const out = payloadBase('vendas', v, lojaIdPorSlug(v.lojaSlug || window.lojaAtualSlug));
             definir(out,'vendas',['timestamp','timestamp_ms'],v.timestamp);
-            definir(out,'vendas',['data_iso','data','data_venda'],v.dataIso);
+            definir(out,'vendas',['data_iso','data','data_venda','dados_venda'],v.dataIso);
             definir(out,'vendas',['data_br'],v.dataBr);
-            definir(out,'vendas',['hora'],v.hora);
+            definir(out,'vendas',['hora','hora_venda'],v.hora);
             definir(out,'vendas',['forma_pagamento','pagamento'],v.formaPagamento);
             definir(out,'vendas',['detalhes','detalhes_pagamento'],v.detalhes);
             definir(out,'vendas',['vendedor','vendedor_nome'],v.vendedor);
@@ -5187,7 +5372,7 @@
         function salvarMapa(tabela, slug, mapa) { bloqueioPersistencia = true; try { localStorage.setItem(chaveMapa(tabela, slug), JSON.stringify(mapa)); } finally { bloqueioPersistencia = false; } }
 
         async function buscarExistente(tabela, registro, lojaId) {
-            const origem = campo(tabela, ['origem_id','local_id','id_local','legacy_id']);
+            const origem = campo(tabela, ['origem_id','local_id','id_local','legacy_id','legado_id']);
             if (origem && registro.id != null) {
                 let q = window.supabaseClient.from(tabela).select('*').eq(origem, String(registro.id));
                 if (campo(tabela,['loja_id']) && lojaId) q = q.eq('loja_id', lojaId);
@@ -5359,7 +5544,7 @@
         }
 
         function idLocalDaLinha(tabela, linha, base) {
-            return base.id ?? lerCampo(linha,['origem_id','local_id','id_local','legacy_id']) ?? lerCampo(linha,['id']);
+            return base.id ?? lerCampo(linha,['origem_id','local_id','id_local','legacy_id','legado_id']) ?? lerCampo(linha,['id']);
         }
 
         function vendaDoDb(linha) {
@@ -5367,9 +5552,9 @@
             v.id = idLocalDaLinha('vendas', linha, v);
             v.supabaseId = lerCampo(linha,['id']);
             v.timestamp ??= Number(lerCampo(linha,['timestamp','timestamp_ms'])) || Date.parse(lerCampo(linha,['created_at','criado_em'])) || Date.now();
-            v.dataIso ??= lerCampo(linha,['data_iso','data','data_venda']) || new Date(v.timestamp).toISOString().slice(0,10);
+            v.dataIso ??= lerCampo(linha,['data_iso','data','data_venda','dados_venda']) || new Date(v.timestamp).toISOString().slice(0,10);
             v.dataBr ??= lerCampo(linha,['data_br']) || new Date(`${v.dataIso}T12:00:00`).toLocaleDateString('pt-BR');
-            v.hora ??= lerCampo(linha,['hora']) || new Date(v.timestamp).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+            v.hora ??= lerCampo(linha,['hora','hora_venda']) || new Date(v.timestamp).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
             v.formaPagamento ??= lerCampo(linha,['forma_pagamento','pagamento']) || 'Não informado';
             v.detalhes ??= parseJson(lerCampo(linha,['detalhes','detalhes_pagamento']), []);
             v.vendedor ??= lerCampo(linha,['vendedor','vendedor_nome']) || '';
@@ -5535,6 +5720,7 @@
                 if (error) throw error;
                 window.supabaseDisponivel = true;
                 await carregarEsquemaSupabase();
+                aplicarEsquemaFallback();
                 await carregarLojasSupabase();
 
                 const faltandoEsquema = ['vendas','sangrias','recebimentos','lembretes','boletos'].filter(t => !COLUNAS[t]);
@@ -5572,9 +5758,9 @@
                 const sangrias = carregarArrayLoja(BASES_LOCAIS.sangrias, loja.slug);
                 const faturamento = vendas.reduce((s,v) => s + Number(v.total || 0), 0);
                 const saidas = sangrias.reduce((s,d) => s + Number(d.valor || 0), 0);
-                return `<button onclick="window.entrarNaLoja('${loja.slug}')" class="group text-left bg-gray-50 dark:bg-[#0f111a] hover:bg-white dark:hover:bg-[#1c2033] border border-gray-200 dark:border-gray-800 hover:border-blue-500 dark:hover:border-cyan-500 rounded-2xl p-5 transition-all shadow-sm hover:shadow-lg">
-                    <div class="flex items-start justify-between gap-4"><div><p class="text-xs font-black uppercase tracking-wider text-gray-400">Loja</p><h3 class="text-xl font-black text-gray-900 dark:text-white mt-1">${loja.nome}</h3></div><span class="bg-blue-600 dark:bg-cyan-500 text-white dark:text-[#0f111a] px-3 py-2 rounded-xl text-xs font-black">ENTRAR</span></div>
-                    <div class="grid grid-cols-2 gap-3 mt-5"><div><p class="text-[10px] uppercase font-bold text-gray-400">Faturamento</p><p class="font-black text-gray-800 dark:text-gray-100 mt-1">${brl(faturamento)}</p></div><div><p class="text-[10px] uppercase font-bold text-gray-400">Sangrias</p><p class="font-black text-red-600 dark:text-red-400 mt-1">${brl(saidas)}</p></div></div>
+                return `<button onclick="window.entrarNaLoja('${loja.slug}')" class="geral-shop-card group text-left">
+                    <div class="flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[.16em] text-gray-400">Loja</p><h3 class="text-xl font-black text-gray-900 dark:text-white mt-1">${loja.nome}</h3></div><span class="w-10 h-10 rounded-full bg-[#baff18] text-[#111512] flex items-center justify-center text-base font-black transition-transform group-hover:translate-x-1">→</span></div>
+                    <div class="grid grid-cols-2 gap-3 mt-6"><div><p class="text-[10px] uppercase font-bold text-gray-400">Faturamento</p><p class="font-black text-gray-900 dark:text-white mt-1">${brl(faturamento)}</p></div><div><p class="text-[10px] uppercase font-bold text-gray-400">Sangrias</p><p class="font-black text-red-600 dark:text-red-400 mt-1">${brl(saidas)}</p></div></div>
                 </button>`;
             }).join('');
         }
@@ -5583,29 +5769,115 @@
             return LOJAS.map(loja => ({ loja, vendas: carregarArrayLoja(BASES_LOCAIS.vendas, loja.slug), sangrias: carregarArrayLoja(BASES_LOCAIS.sangrias, loja.slug) }));
         }
 
+        function categoriaPagamentoGeral(pag) {
+            const txt = `${pag?.tipoBase || ''} ${pag?.forma || ''}`.toLowerCase();
+            if (txt.includes('dinheiro')) return 'Dinheiro';
+            if (txt.includes('pix')) return 'PIX';
+            if (txt.includes('débito') || txt.includes('debito')) return 'Débito';
+            if (txt.includes('crédito') || txt.includes('credito')) return 'Crédito';
+            return 'Outros';
+        }
+
+        function resumoPagamentosGeral(vendas) {
+            const mapa = { Dinheiro: 0, PIX: 0, 'Débito': 0, 'Crédito': 0, Outros: 0 };
+            vendas.forEach(v => {
+                const formas = Array.isArray(v.detalhes) && v.detalhes.length
+                    ? v.detalhes
+                    : [{ forma: v.formaPagamento || 'Outros', valor: Number(v.total || 0), tipoBase: v.formaPagamento || 'Outros' }];
+                formas.forEach(p => {
+                    const cat = categoriaPagamentoGeral(p);
+                    mapa[cat] += Number(p.valor ?? v.total ?? 0) || 0;
+                });
+            });
+            return mapa;
+        }
+
+        function renderizarGraficoPagamentosGeral(resumo) {
+            const canvas = document.getElementById('geralGraficoPagamentos');
+            if (!canvas || typeof Chart === 'undefined') return;
+            if (window.graficoPagamentosGeral) window.graficoPagamentosGeral.destroy();
+            const labels = Object.keys(resumo);
+            const valores = Object.values(resumo);
+            window.graficoPagamentosGeral = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        data: valores,
+                        backgroundColor: ['#baff18','#78e6c7','#9ad9c6','#d7ff63','#647067'],
+                        borderRadius: 10,
+                        borderSkipped: false,
+                        barThickness: 26
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#f7f9f3',
+                            titleColor: '#111512',
+                            bodyColor: '#111512',
+                            borderColor: '#dfe4d7',
+                            borderWidth: 1,
+                            padding: 12,
+                            callbacks: { label: ctx => ` ${brl(ctx.parsed.y)}` }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#a7afa8', font: { weight: '700', size: 10 } }, border: { display: false } },
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,.07)' }, ticks: { color: '#7f8981', callback: v => Number(v).toLocaleString('pt-BR', { notation: 'compact', maximumFractionDigits: 1 }) }, border: { display: false } }
+                    }
+                }
+            });
+        }
+
         function renderizarPainelGeralLocal() {
             const fatIni = document.getElementById('geralDataInicioFat')?.value || '';
             const fatFim = document.getElementById('geralDataFimFat')?.value || '';
             const sanIni = document.getElementById('geralDataInicioSan')?.value || '';
             const sanFim = document.getElementById('geralDataFimSan')?.value || '';
             const dados = dadosGerais();
-            let totalFat = 0, totalSan = 0;
+            let totalFat = 0, totalSan = 0, qtdVendas = 0;
+            const vendasPeriodo = [];
             const fatBox = document.getElementById('geralFaturamentoCards');
             const sanBox = document.getElementById('geralSangriasCards');
+
             if (fatBox) fatBox.innerHTML = dados.map(({loja,vendas}) => {
-                const valor = vendas.filter(v => dataDentro(v.dataIso, fatIni, fatFim)).reduce((s,v)=>s+Number(v.total||0),0); totalFat += valor;
-                return `<div class="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 bg-gray-50 dark:bg-[#0f111a]"><p class="text-xs font-black uppercase text-gray-400">${loja.nome}</p><p class="text-2xl font-black text-green-600 dark:text-emerald-400 mt-2">${brl(valor)}</p></div>`;
+                const filtradas = vendas.filter(v => dataDentro(v.dataIso, fatIni, fatFim));
+                const valor = filtradas.reduce((s,v)=>s+Number(v.total||0),0);
+                totalFat += valor;
+                qtdVendas += filtradas.length;
+                vendasPeriodo.push(...filtradas);
+                return `<div class="geral-shop-card"><div class="flex items-center justify-between gap-3"><p class="text-[10px] font-black uppercase tracking-[.14em] text-gray-400">${loja.nome}</p><span class="w-7 h-7 rounded-full bg-[#baff18]/20 text-emerald-700 dark:text-[#baff18] flex items-center justify-center text-xs font-black">↗</span></div><p class="text-2xl font-black text-gray-900 dark:text-white mt-3 tracking-[-.03em]">${brl(valor)}</p><p class="text-[10px] text-gray-400 mt-1">${filtradas.length} venda${filtradas.length === 1 ? '' : 's'} no período</p></div>`;
             }).join('');
+
             if (sanBox) sanBox.innerHTML = dados.map(({loja,sangrias}) => {
-                const valor = sangrias.filter(d => dataDentro(d.dataIso, sanIni, sanFim)).reduce((s,d)=>s+Number(d.valor||0),0); totalSan += valor;
-                return `<div class="border border-gray-200 dark:border-gray-800 rounded-2xl p-5 bg-gray-50 dark:bg-[#0f111a]"><p class="text-xs font-black uppercase text-gray-400">${loja.nome}</p><p class="text-2xl font-black text-red-600 dark:text-red-400 mt-2">${brl(valor)}</p></div>`;
+                const filtradas = sangrias.filter(d => dataDentro(d.dataIso, sanIni, sanFim));
+                const valor = filtradas.reduce((s,d)=>s+Number(d.valor||0),0); totalSan += valor;
+                return `<div class="geral-shop-card"><p class="text-[10px] font-black uppercase tracking-[.14em] text-gray-400">${loja.nome}</p><p class="text-2xl font-black text-red-600 dark:text-red-400 mt-3">${brl(valor)}</p><p class="text-[10px] text-gray-400 mt-1">${filtradas.length} retirada${filtradas.length === 1 ? '' : 's'} no período</p></div>`;
             }).join('');
+
             const fatTotal = document.getElementById('geralFaturamentoTotal'); if (fatTotal) fatTotal.textContent = brl(totalFat);
             const sanTotal = document.getElementById('geralSangriasTotal'); if (sanTotal) sanTotal.textContent = brl(totalSan);
+            const qtdEl = document.getElementById('geralQuantidadeVendas'); if (qtdEl) qtdEl.textContent = qtdVendas.toLocaleString('pt-BR');
+            const ticketEl = document.getElementById('geralTicketMedio'); if (ticketEl) ticketEl.textContent = brl(qtdVendas ? totalFat / qtdVendas : 0);
+
+            const resumoPag = resumoPagamentosGeral(vendasPeriodo);
+            const pagamentosLista = document.getElementById('geralPagamentosLista');
+            if (pagamentosLista) {
+                pagamentosLista.innerHTML = Object.entries(resumoPag).map(([nome, valor]) => {
+                    const percentual = totalFat > 0 ? (valor / totalFat) * 100 : 0;
+                    return `<div class="geral-method-row"><div class="min-w-0 flex-1"><div class="flex items-center gap-2"><span class="geral-dot"></span><p class="text-sm font-black text-white">${nome}</p></div><div class="geral-progress mt-2"><span style="width:${Math.min(100, percentual).toFixed(2)}%"></span></div></div><div class="text-right shrink-0"><p class="text-sm font-black text-white">${brl(valor)}</p><p class="text-[10px] font-bold text-gray-500 mt-0.5">${percentual.toFixed(1).replace('.', ',')}%</p></div></div>`;
+                }).join('');
+            }
+            renderizarGraficoPagamentosGeral(resumoPag);
+
             const rel = document.getElementById('geralRelatoriosConteudo');
             if (rel) rel.innerHTML = dados.map(({loja,vendas,sangrias}) => {
                 const fat=vendas.reduce((s,v)=>s+Number(v.total||0),0), san=sangrias.reduce((s,d)=>s+Number(d.valor||0),0);
-                return `<div class="border border-gray-200 dark:border-gray-800 rounded-2xl p-5"><div class="flex justify-between gap-3"><h3 class="font-black text-gray-900 dark:text-white">${loja.nome}</h3><button onclick="window.entrarNaLoja('${loja.slug}')" class="text-xs font-bold text-blue-600 dark:text-cyan-400">Abrir</button></div><div class="grid grid-cols-3 gap-3 mt-5"><div><p class="text-[10px] uppercase font-bold text-gray-400">Vendas</p><p class="font-black mt-1">${vendas.length}</p></div><div><p class="text-[10px] uppercase font-bold text-gray-400">Faturamento</p><p class="font-black text-green-600 mt-1">${brl(fat)}</p></div><div><p class="text-[10px] uppercase font-bold text-gray-400">Sangrias</p><p class="font-black text-red-600 mt-1">${brl(san)}</p></div></div></div>`;
+                return `<div class="geral-shop-card"><div class="flex justify-between gap-3"><div><p class="text-[10px] uppercase tracking-[.15em] font-black text-gray-400">Unidade</p><h3 class="text-lg font-black text-gray-900 dark:text-white mt-1">${loja.nome}</h3></div><button onclick="window.entrarNaLoja('${loja.slug}')" class="w-9 h-9 rounded-full bg-[#baff18] text-[#111512] font-black">→</button></div><div class="grid grid-cols-3 gap-3 mt-5"><div><p class="text-[9px] uppercase font-bold text-gray-400">Vendas</p><p class="font-black mt-1 text-gray-900 dark:text-white">${vendas.length}</p></div><div><p class="text-[9px] uppercase font-bold text-gray-400">Faturamento</p><p class="font-black text-emerald-700 dark:text-[#baff18] mt-1">${brl(fat)}</p></div><div><p class="text-[9px] uppercase font-bold text-gray-400">Sangrias</p><p class="font-black text-red-600 mt-1">${brl(san)}</p></div></div></div>`;
             }).join('');
         }
 
