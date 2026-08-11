@@ -173,6 +173,331 @@
         }
     </style>
 
+    <style id="tema-lojas-painel-geral">
+        /* ============================================================
+           TEMA VISUAL DAS LOJAS — MESMA IDENTIDADE DO PAINEL GERAL
+           Alteração exclusivamente estética. Nenhuma lógica é afetada.
+           ============================================================ */
+        :root {
+            --loja-accent: #baff18;
+            --loja-mint: #78e6c7;
+            --loja-ink: #111512;
+            --loja-ink-2: #1a201b;
+            --loja-soft: #eef1e9;
+            --loja-card: #f8faf5;
+            --loja-line: #dfe4d7;
+            --loja-muted: #657064;
+        }
+
+        /* Fundo geral das telas internas */
+        body > main,
+        #tela-admin {
+            background:
+                radial-gradient(circle at 88% 4%, rgba(186,255,24,.10), transparent 24%),
+                radial-gradient(circle at 12% 0%, rgba(120,230,199,.10), transparent 28%),
+                var(--loja-soft) !important;
+        }
+        .dark body > main,
+        .dark #tela-admin {
+            background:
+                radial-gradient(circle at 88% 4%, rgba(186,255,24,.055), transparent 24%),
+                radial-gradient(circle at 12% 0%, rgba(120,230,199,.05), transparent 28%),
+                #090c0a !important;
+        }
+
+        /* Navegação lateral / inferior */
+        body > nav {
+            background: rgba(248,250,245,.96) !important;
+            border-color: var(--loja-line) !important;
+            box-shadow: 8px 0 35px rgba(24,34,22,.07) !important;
+            backdrop-filter: blur(12px);
+        }
+        .dark body > nav {
+            background: rgba(17,21,18,.97) !important;
+            border-color: #283128 !important;
+        }
+        body > nav > div:first-child { border-color: var(--loja-line) !important; }
+        .dark body > nav > div:first-child { border-color: #283128 !important; }
+        body > nav > div:first-child > div > div:first-child {
+            background: var(--loja-accent) !important;
+            color: var(--loja-ink) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 8px 22px rgba(150,205,16,.18);
+        }
+        body > nav h2 { color: var(--loja-ink) !important; font-weight: 900 !important; }
+        .dark body > nav h2 { color: #f4f7f1 !important; }
+
+        .nav-btn { color: #758074 !important; }
+        .nav-btn:hover { color: var(--loja-ink) !important; background: #f0f4ea !important; }
+        .nav-btn.active {
+            color: var(--loja-accent) !important;
+            background: var(--loja-ink) !important;
+            border-color: var(--loja-accent) !important;
+            font-weight: 900 !important;
+        }
+        .dark .nav-btn { color: #8c978b !important; }
+        .dark .nav-btn:hover { color: #f3f7f0 !important; background: #171d18 !important; }
+        .dark .nav-btn.active {
+            color: var(--loja-ink) !important;
+            background: var(--loja-accent) !important;
+            border-color: var(--loja-accent) !important;
+        }
+        body > nav button[onclick="window.toggleTheme()"] {
+            background: #edf1e8 !important;
+            color: #566254 !important;
+            border-color: var(--loja-line) !important;
+        }
+        .dark body > nav button[onclick="window.toggleTheme()"] {
+            background: #0d110e !important;
+            color: #a7b1a4 !important;
+            border-color: #2a342b !important;
+        }
+
+        /* Barra da loja ativa */
+        #barraContextoLoja {
+            background: rgba(17,21,18,.96) !important;
+            border-color: rgba(255,255,255,.08) !important;
+            box-shadow: 0 14px 36px rgba(17,21,18,.20) !important;
+        }
+        #barraContextoLoja p:first-child { color: #8e998b !important; }
+        #nomeLojaAtiva { color: #ffffff !important; }
+        #barraContextoLoja button {
+            background: var(--loja-accent) !important;
+            color: var(--loja-ink) !important;
+            font-weight: 900 !important;
+        }
+
+        /* Cabeçalhos móveis das telas internas */
+        main header {
+            background: linear-gradient(125deg, #101411 0%, #171d18 62%, #20291e 100%) !important;
+            border-color: rgba(255,255,255,.06) !important;
+            box-shadow: 0 16px 38px rgba(17,21,18,.15) !important;
+        }
+        main header h1 { color: #ffffff !important; }
+        main header p:not([class*="text-red-"]) { color: #b7c1b3 !important; }
+
+        /* Cartões e superfícies claras */
+        main [class~="bg-white"],
+        main [class*="md:bg-white"],
+        main [class~="bg-gray-50"],
+        main [class~="bg-gray-100"] {
+            background-color: var(--loja-card) !important;
+        }
+        main [class~="bg-blue-50"],
+        main [class~="bg-indigo-50"],
+        main [class~="bg-purple-50"],
+        main [class~="bg-emerald-50"],
+        main [class~="bg-green-50"] {
+            background-color: #eff7e6 !important;
+        }
+        .dark main [class~="bg-white"],
+        .dark main [class*="md:bg-white"],
+        .dark main [class~="bg-gray-50"],
+        .dark main [class~="bg-gray-100"] {
+            background-color: #111512 !important;
+        }
+        .dark main [class~="bg-blue-50"],
+        .dark main [class~="bg-indigo-50"],
+        .dark main [class~="bg-purple-50"],
+        .dark main [class~="bg-emerald-50"],
+        .dark main [class~="bg-green-50"] {
+            background-color: #182017 !important;
+        }
+
+        /* Bordas no mesmo tom do Painel Geral */
+        main [class*="border-gray-"],
+        main [class*="border-blue-"],
+        main [class*="border-indigo-"],
+        main [class*="border-purple-"],
+        main [class*="border-cyan-"] {
+            border-color: var(--loja-line) !important;
+        }
+        .dark main [class*="border-gray-"],
+        .dark main [class*="border-blue-"],
+        .dark main [class*="border-indigo-"],
+        .dark main [class*="border-purple-"],
+        .dark main [class*="border-cyan-"] {
+            border-color: #2a342b !important;
+        }
+
+        /* Campos e selects */
+        main input:not([type="checkbox"]):not([type="radio"]),
+        main select,
+        main textarea {
+            background-color: #f7f9f3 !important;
+            border-color: var(--loja-line) !important;
+            color: #242a23 !important;
+        }
+        main input:focus,
+        main select:focus,
+        main textarea:focus {
+            border-color: #9bcf19 !important;
+            box-shadow: 0 0 0 3px rgba(186,255,24,.13) !important;
+        }
+        .dark main input:not([type="checkbox"]):not([type="radio"]),
+        .dark main select,
+        .dark main textarea {
+            background-color: #0c100d !important;
+            border-color: #2a342b !important;
+            color: #eef3eb !important;
+        }
+
+        /* Textos de destaque que antes eram azul/índigo/roxo/ciano */
+        main [class~="text-blue-600"],
+        main [class~="text-blue-700"],
+        main [class~="text-blue-800"],
+        main [class~="text-indigo-600"],
+        main [class~="text-indigo-700"],
+        main [class~="text-indigo-800"],
+        main [class~="text-purple-600"],
+        main [class~="text-purple-700"],
+        main [class~="text-cyan-400"],
+        main [class~="text-cyan-500"],
+        main [class~="text-cyan-600"],
+        main [class~="text-green-600"],
+        main [class~="text-emerald-600"] {
+            color: #55780f !important;
+        }
+        .dark main [class~="text-blue-600"],
+        .dark main [class~="text-blue-700"],
+        .dark main [class~="text-blue-800"],
+        .dark main [class~="text-indigo-600"],
+        .dark main [class~="text-indigo-700"],
+        .dark main [class~="text-indigo-800"],
+        .dark main [class~="text-purple-600"],
+        .dark main [class~="text-purple-700"],
+        .dark main [class~="text-cyan-400"],
+        .dark main [class~="text-cyan-500"],
+        .dark main [class~="text-cyan-600"],
+        .dark main [class~="text-green-600"],
+        .dark main [class~="text-emerald-600"] {
+            color: var(--loja-accent) !important;
+        }
+
+        /* Botões de ação primária */
+        main button[class~="bg-blue-600"],
+        main button[class~="bg-indigo-600"],
+        main button[class~="bg-purple-600"],
+        main button[class~="bg-green-600"],
+        main button[class~="bg-emerald-600"],
+        main button[class~="bg-cyan-600"] {
+            background: var(--loja-accent) !important;
+            color: var(--loja-ink) !important;
+            border-color: var(--loja-accent) !important;
+            box-shadow: 0 10px 28px rgba(143,198,0,.16) !important;
+            font-weight: 900 !important;
+        }
+        main button[class~="bg-blue-600"]:hover,
+        main button[class~="bg-indigo-600"]:hover,
+        main button[class~="bg-purple-600"]:hover,
+        main button[class~="bg-green-600"]:hover,
+        main button[class~="bg-emerald-600"]:hover,
+        main button[class~="bg-cyan-600"]:hover {
+            background: #aef20f !important;
+            filter: brightness(.98);
+        }
+
+        /* Ações secundárias */
+        main button[class~="bg-blue-100"],
+        main button[class~="bg-indigo-100"],
+        main button[class~="bg-purple-100"],
+        main button[class~="bg-cyan-100"],
+        main button[class~="bg-emerald-100"] {
+            background: #e9f5db !important;
+            color: #4d6d12 !important;
+            border-color: #d6e7c4 !important;
+        }
+        .dark main button[class~="bg-blue-100"],
+        .dark main button[class~="bg-indigo-100"],
+        .dark main button[class~="bg-purple-100"],
+        .dark main button[class~="bg-cyan-100"],
+        .dark main button[class~="bg-emerald-100"] {
+            background: #1a2516 !important;
+            color: var(--loja-accent) !important;
+            border-color: #33422b !important;
+        }
+
+        /* Totais e destaques do caixa */
+        #displayTotal,
+        #dashTotalBruto,
+        #dashTotalLiquido {
+            color: #55780f !important;
+        }
+        .dark #displayTotal,
+        .dark #dashTotalBruto,
+        .dark #dashTotalLiquido {
+            color: var(--loja-accent) !important;
+        }
+        #resultBox {
+            background: linear-gradient(145deg, #f8faf5, #eff5e9) !important;
+            border-color: var(--loja-line) !important;
+        }
+        .dark #resultBox {
+            background: linear-gradient(145deg, #111512, #171d18) !important;
+            border-color: #2a342b !important;
+        }
+
+        /* Tela Admin recebe a mesma família visual */
+        #tela-admin [class~="bg-white"],
+        #tela-admin [class~="bg-gray-50"],
+        #tela-admin [class~="bg-gray-100"] {
+            background-color: var(--loja-card) !important;
+        }
+        .dark #tela-admin [class~="bg-white"],
+        .dark #tela-admin [class~="bg-gray-50"],
+        .dark #tela-admin [class~="bg-gray-100"] {
+            background-color: #111512 !important;
+        }
+
+        /* Modais usados dentro das lojas */
+        body > div[id^="modal"] > div {
+            background-color: var(--loja-card) !important;
+            border-color: var(--loja-line) !important;
+        }
+        .dark body > div[id^="modal"] > div {
+            background-color: #111512 !important;
+            border-color: #2a342b !important;
+        }
+        body > div[id^="modal"] input,
+        body > div[id^="modal"] select,
+        body > div[id^="modal"] textarea {
+            background-color: #f7f9f3 !important;
+            border-color: var(--loja-line) !important;
+        }
+        .dark body > div[id^="modal"] input,
+        .dark body > div[id^="modal"] select,
+        .dark body > div[id^="modal"] textarea {
+            background-color: #0c100d !important;
+            border-color: #2a342b !important;
+            color: #eef3eb !important;
+        }
+        body > div[id^="modal"] button[class~="bg-blue-600"],
+        body > div[id^="modal"] button[class~="bg-indigo-600"],
+        body > div[id^="modal"] button[class~="bg-purple-600"],
+        body > div[id^="modal"] button[class~="bg-green-600"],
+        body > div[id^="modal"] button[class~="bg-emerald-600"],
+        body > div[id^="modal"] button[class~="bg-cyan-600"] {
+            background: var(--loja-accent) !important;
+            color: var(--loja-ink) !important;
+            border-color: var(--loja-accent) !important;
+        }
+
+        /* Mobile: mantém o visual limpo do painel */
+        @media (max-width: 767px) {
+            body > nav {
+                box-shadow: 0 -10px 34px rgba(24,34,22,.10) !important;
+            }
+            .nav-btn.active {
+                border-left-color: transparent !important;
+                border-top: 3px solid var(--loja-accent) !important;
+            }
+            #barraContextoLoja {
+                top: 8px !important;
+                right: 8px !important;
+            }
+        }
+    </style>
+
 </head>
 
 <body class="text-gray-900 bg-gray-100 dark:bg-[#0f111a] dark:text-gray-100 flex flex-col md:flex-row h-screen overflow-hidden transition-colors duration-300">
@@ -3025,22 +3350,22 @@
             const dataDinheiro = labels.map(label => faturamentoPorHora['Dinheiro'][label] || 0);
 
             const isDark = document.documentElement.classList.contains('dark');
-            Chart.defaults.color = isDark ? '#94a3b8' : '#64748b'; 
+            Chart.defaults.color = isDark ? '#a7b1a4' : '#657064'; 
             Chart.defaults.font.family = "'Inter', sans-serif";
-            const gridColor = isDark ? '#1e293b' : '#e2e8f0';
-            const tooltipBg = isDark ? '#1e293b' : '#ffffff';
-            const tooltipText = isDark ? '#f8fafc' : '#1e293b';
-            const tooltipBorder = isDark ? '#334155' : '#cbd5e1';
+            const gridColor = isDark ? '#273027' : '#dfe4d7';
+            const tooltipBg = isDark ? '#111512' : '#f8faf5';
+            const tooltipText = isDark ? '#f4f7f1' : '#242a23';
+            const tooltipBorder = isDark ? '#33402f' : '#dfe4d7';
 
             const ctxVendas = document.getElementById('vendasChart').getContext('2d');
             
             let gradientPix = ctxVendas.createLinearGradient(0, 0, 0, 400);
-            gradientPix.addColorStop(0, isDark ? 'rgba(34, 211, 238, 0.4)' : 'rgba(59, 130, 246, 0.2)'); 
-            gradientPix.addColorStop(1, isDark ? 'rgba(34, 211, 238, 0.0)' : 'rgba(59, 130, 246, 0.0)'); 
+            gradientPix.addColorStop(0, isDark ? 'rgba(120, 230, 199, 0.38)' : 'rgba(120, 230, 199, 0.22)'); 
+            gradientPix.addColorStop(1, isDark ? 'rgba(120, 230, 199, 0.0)' : 'rgba(120, 230, 199, 0.0)'); 
 
             let gradientDinheiro = ctxVendas.createLinearGradient(0, 0, 0, 400);
-            gradientDinheiro.addColorStop(0, isDark ? 'rgba(52, 211, 153, 0.4)' : 'rgba(16, 185, 129, 0.2)'); 
-            gradientDinheiro.addColorStop(1, isDark ? 'rgba(52, 211, 153, 0.0)' : 'rgba(16, 185, 129, 0.0)'); 
+            gradientDinheiro.addColorStop(0, isDark ? 'rgba(186, 255, 24, 0.28)' : 'rgba(139, 184, 28, 0.20)'); 
+            gradientDinheiro.addColorStop(1, isDark ? 'rgba(186, 255, 24, 0.0)' : 'rgba(139, 184, 28, 0.0)'); 
 
             if (chartInstance) { chartInstance.destroy(); }
 
@@ -3052,10 +3377,10 @@
                         {
                             label: 'PIX',
                             data: labels.length > 0 ? dataPix : [0],
-                            borderColor: isDark ? '#22d3ee' : '#3b82f6', 
+                            borderColor: isDark ? '#78e6c7' : '#58b99f', 
                             borderWidth: 3,
-                            pointBackgroundColor: isDark ? '#0f111a' : '#ffffff',
-                            pointBorderColor: isDark ? '#22d3ee' : '#3b82f6',
+                            pointBackgroundColor: isDark ? '#111512' : '#f8faf5',
+                            pointBorderColor: isDark ? '#78e6c7' : '#58b99f',
                             pointBorderWidth: 2,
                             pointRadius: 4,
                             pointHoverRadius: 6,
@@ -3066,11 +3391,11 @@
                         {
                             label: 'Cartões',
                             data: labels.length > 0 ? dataCartoes : [0],
-                            borderColor: isDark ? '#a855f7' : '#8b5cf6', 
+                            borderColor: isDark ? '#baff18' : '#8bb81c', 
                             borderWidth: 2,
                             borderDash: [5, 5], 
-                            pointBackgroundColor: isDark ? '#0f111a' : '#ffffff',
-                            pointBorderColor: isDark ? '#a855f7' : '#8b5cf6',
+                            pointBackgroundColor: isDark ? '#111512' : '#f8faf5',
+                            pointBorderColor: isDark ? '#baff18' : '#8bb81c',
                             pointBorderWidth: 2,
                             pointRadius: 4,
                             pointHoverRadius: 6,
@@ -3080,10 +3405,10 @@
                         {
                             label: 'Dinheiro',
                             data: labels.length > 0 ? dataDinheiro : [0],
-                            borderColor: isDark ? '#34d399' : '#10b981', 
+                            borderColor: isDark ? '#d7ff63' : '#6f9716', 
                             borderWidth: 2,
-                            pointBackgroundColor: isDark ? '#0f111a' : '#ffffff',
-                            pointBorderColor: isDark ? '#34d399' : '#10b981',
+                            pointBackgroundColor: isDark ? '#111512' : '#f8faf5',
+                            pointBorderColor: isDark ? '#d7ff63' : '#6f9716',
                             pointBorderWidth: 2,
                             pointRadius: 4,
                             pointHoverRadius: 6,
@@ -3099,7 +3424,7 @@
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
                         legend: { display: true, position: 'top', align: 'end', labels: { color: isDark ? '#94a3b8' : '#64748b', usePointStyle: true, boxWidth: 8, font: { size: 11, family: "'Inter', sans-serif" } } },
-                        tooltip: { backgroundColor: tooltipBg, titleColor: tooltipText, bodyColor: isDark ? '#cbd5e1' : '#475569', borderColor: tooltipBorder, borderWidth: 1, padding: 12, callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); } } }
+                        tooltip: { backgroundColor: tooltipBg, titleColor: tooltipText, bodyColor: isDark ? '#cbd3c8' : '#596456', borderColor: tooltipBorder, borderWidth: 1, padding: 12, callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); } } }
                     },
                     scales: {
                         x: { grid: { color: gridColor, drawBorder: false } },
@@ -3112,7 +3437,7 @@
             if (chartPagamentosInstance) { chartPagamentosInstance.destroy(); }
 
             const temDadosPagamento = (totalDinheiro > 0 || totalPix > 0 || totalCartao > 0);
-            const emptyColor = isDark ? '#1e293b' : '#e2e8f0';
+            const emptyColor = isDark ? '#273027' : '#dfe4d7';
 
             chartPagamentosInstance = new Chart(ctxPagamentos, {
                 type: 'doughnut',
@@ -3121,9 +3446,9 @@
                     datasets: [{
                         data: temDadosPagamento ? [totalDinheiro, totalPix, totalCartao] : [1],
                         backgroundColor: temDadosPagamento ? [
-                            isDark ? '#34d399' : '#10b981', 
-                            isDark ? '#22d3ee' : '#3b82f6', 
-                            isDark ? '#a855f7' : '#8b5cf6'  
+                            isDark ? '#d7ff63' : '#6f9716', 
+                            isDark ? '#78e6c7' : '#58b99f', 
+                            isDark ? '#baff18' : '#8bb81c'  
                         ] : [emptyColor], 
                         borderWidth: 0,
                         hoverOffset: 4
@@ -3135,7 +3460,7 @@
                     cutout: '75%', 
                     plugins: {
                         legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, pointStyle: 'circle' } },
-                        tooltip: { enabled: temDadosPagamento, backgroundColor: tooltipBg, titleColor: tooltipText, bodyColor: isDark ? '#cbd5e1' : '#475569', borderColor: tooltipBorder, borderWidth: 1, callbacks: { label: function(context) { return ' ' + context.parsed.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); } } }
+                        tooltip: { enabled: temDadosPagamento, backgroundColor: tooltipBg, titleColor: tooltipText, bodyColor: isDark ? '#cbd3c8' : '#596456', borderColor: tooltipBorder, borderWidth: 1, callbacks: { label: function(context) { return ' ' + context.parsed.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); } } }
                     }
                 }
             });
