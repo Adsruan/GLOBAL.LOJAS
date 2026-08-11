@@ -5405,6 +5405,10 @@
         let bloqueioPersistencia = false;
         let timerSync = null;
         let syncEmAndamento = false;
+        let canalTempoReal = null;
+        let timerAtualizacaoRemota = null;
+        let atualizacaoRemotaEmAndamento = false;
+        let intervaloSegurancaRemota = null;
         let erroSyncMostrado = false;
         let inicializacaoConcluida = false;
 
@@ -6088,7 +6092,12 @@
             const lembretesRemotos = lLinhas.map(l => ({...lembreteDoDb(l), lojaSlug: slug}));
             const boletosRemotos = bLinhas.map(l => ({...boletoDoDb(l), lojaSlug: slug}));
 
-            salvarArrayLoja(BASES_LOCAIS.vendas, slug, mesclarRegistros(carregarArrayLoja(BASES_LOCAIS.vendas, slug), [...vendasRemotas, ...recebimentosRemotos]));
+            // Supabase é a fonte de verdade para vendas/recebimentos depois da migração.
+            // Não fazemos merge com o localStorage aqui: um registro apagado em outro
+            // dispositivo precisa desaparecer também deste aparelho, e não ser ressuscitado
+            // por uma cópia local antiga.
+            salvarArrayLoja(BASES_LOCAIS.vendas, slug, [...vendasRemotas, ...recebimentosRemotos]
+                .sort((a,b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)));
             salvarArrayLoja(BASES_LOCAIS.sangrias, slug, mesclarRegistros(carregarArrayLoja(BASES_LOCAIS.sangrias, slug), sangriasRemotas));
             salvarArrayLoja(BASES_LOCAIS.lembretes, slug, mesclarRegistros(carregarArrayLoja(BASES_LOCAIS.lembretes, slug), lembretesRemotos));
             salvarArrayLoja(BASES_LOCAIS.boletos, slug, mesclarRegistros(carregarArrayLoja(BASES_LOCAIS.boletos, slug), boletosRemotos));
@@ -6108,6 +6117,87 @@
             return erros;
         }
 
+
+        function slugPorLojaIdRemoto(lojaId) {
+            if (lojaId == null) return null;
+            const alvo = String(lojaId);
+            for (const loja of LOJAS) {
+                const remoto = LOJAS_DB.get(loja.slug);
+                if (remoto?.id != null && String(remoto.id) === alvo) return loja.slug;
+            }
+            return null;
+        }
+
+        async function aplicarAtualizacaoRemota(slug = null) {
+            if (!window.supabaseDisponivel || !window.supabaseClient) return;
+            if (atualizacaoRemotaEmAndamento || window.sincronizandoSupabase) {
+                agendarAtualizacaoRemota(slug, 500);
+                return;
+            }
+            atualizacaoRemotaEmAndamento = true;
+            try {
+                if (slug) await baixarLojaDoSupabase(slug);
+                else await baixarTodasLojas();
+
+                if (!slug || slug === window.lojaAtualSlug) {
+                    carregarDadosLocaisDaLoja(window.lojaAtualSlug);
+                    marcarRegistrosDaLoja();
+                    atualizarTelasDaLoja();
+                }
+                renderizarAcesso();
+                renderizarPainelGeralLocal();
+                setStatusBanco('Banco: tempo real', 'ok');
+            } catch (e) {
+                console.warn('Atualização remota em tempo real falhou:', e);
+            } finally {
+                atualizacaoRemotaEmAndamento = false;
+            }
+        }
+
+        function agendarAtualizacaoRemota(slug = null, atraso = 140) {
+            clearTimeout(timerAtualizacaoRemota);
+            timerAtualizacaoRemota = setTimeout(() => aplicarAtualizacaoRemota(slug), atraso);
+        }
+
+        function instalarTempoRealSupabase() {
+            if (!window.supabaseClient || canalTempoReal) return;
+
+            const tratarEvento = (payload) => {
+                // Para INSERT/UPDATE normalmente temos loja_id em new. Para DELETE,
+                // com REPLICA IDENTITY FULL, ele vem em old. Se não vier, atualizamos todas.
+                const lojaId = payload?.new?.loja_id ?? payload?.old?.loja_id ?? null;
+                const slug = slugPorLojaIdRemoto(lojaId);
+                agendarAtualizacaoRemota(slug, 120);
+            };
+
+            canalTempoReal = window.supabaseClient
+                .channel('caixa-expresso-tempo-real')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'vendas' }, tratarEvento)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'recebimentos' }, tratarEvento)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'sangrias' }, tratarEvento)
+                .subscribe((status) => {
+                    if (status === 'SUBSCRIBED') console.info('Supabase Realtime conectado.');
+                    else if (status === 'CHANNEL_ERROR') console.warn('Supabase Realtime indisponível; usando atualização automática de segurança.');
+                });
+
+            // Segurança: mesmo se o Realtime estiver desativado para alguma tabela,
+            // os aparelhos conferem o Supabase periodicamente. Isso também elimina
+            // qualquer cache antigo deixado por versões anteriores.
+            if (!intervaloSegurancaRemota) {
+                intervaloSegurancaRemota = setInterval(() => {
+                    if (document.visibilityState !== 'visible' || !window.supabaseDisponivel) return;
+                    const geralVisivel = !document.getElementById('tela-geral-lojas')?.classList.contains('hidden');
+                    agendarAtualizacaoRemota(geralVisivel ? null : window.lojaAtualSlug, 40);
+                }, 4000);
+            }
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible' && window.supabaseDisponivel) {
+                    agendarAtualizacaoRemota(null, 80);
+                }
+            });
+        }
+
         async function inicializarSupabase() {
             setStatusBanco('Banco: conectando', 'sync');
             try {
@@ -6121,15 +6211,9 @@
                 await carregarLojasSupabase();
                 setStatusBanco('Banco: conectado', 'ok');
 
-                // Primeiro sobe o local. Um erro em módulo secundário não bloqueia vendas.
-                let falhaVenda = null;
-                for (const loja of LOJAS) {
-                    const r = await sincronizarLoja(loja.slug);
-                    const ev = r?.erros?.find(x => x.tabela === 'vendas');
-                    if (ev && !falhaVenda) falhaVenda = `${loja.nome}: ${ev.mensagem}`;
-                }
-                if (falhaVenda) throw new Error(`gravação de vendas: ${falhaVenda}`);
-
+                // A migração inicial já foi concluída. A partir daqui o Supabase é a
+                // fonte de verdade ao abrir o sistema, evitando que um celular/PC com
+                // localStorage antigo reenvie vendas que já foram excluídas em outro aparelho.
                 const errosLeitura = await baixarTodasLojas();
                 if (errosLeitura?.length) throw new Error(`leitura de vendas: ${errosLeitura[0]}`);
 
@@ -6139,6 +6223,7 @@
                 renderizarPainelGeralLocal();
                 window.multiLojaInicializado = true;
                 inicializacaoConcluida = true;
+                instalarTempoRealSupabase();
                 setStatusBanco('Banco: sincronizado', 'ok');
             } catch (e) {
                 inicializacaoConcluida = true;
@@ -6331,11 +6416,13 @@
 
             if (window.supabaseDisponivel) {
                 try {
-                    await sincronizarLoja(slug);
+                    // Baixa primeiro. Nunca envia um cache antigo antes de consultar o banco.
                     await baixarLojaDoSupabase(slug);
                     carregarDadosLocaisDaLoja(slug);
                     marcarRegistrosDaLoja();
                     atualizarTelasDaLoja();
+                    renderizarAcesso();
+                    renderizarPainelGeralLocal();
                 } catch (e) {
                     console.warn('Loja aberta com dados locais; atualização remota falhou:', e);
                 }
@@ -6368,6 +6455,7 @@
                 if (arrDepois.length > tamanhoAntes) {
                     arrDepois.slice(0, arrDepois.length - tamanhoAntes).forEach(r => { if (!r.lojaSlug) r.lojaSlug = window.lojaAtualSlug; });
                     salvarArrayLoja(tipo === 'sangria' ? BASES_LOCAIS.sangrias : BASES_LOCAIS.vendas, window.lojaAtualSlug, arrDepois);
+                    window.__ultimaMutacaoLocal = Date.now();
                     agendarSincronizacao(window.lojaAtualSlug);
                 }
                 return resultado;
