@@ -589,6 +589,10 @@
                         <span class="text-[10px] font-black uppercase tracking-[.16em] text-purple-600">04 • Relatórios</span>
                         <span class="block font-black text-gray-800 mt-1 text-sm md:text-base">Análise consolidada</span>
                     </button>
+                    <button id="geralTabFinanceiro" onclick="window.abrirModuloGeral('financeiro')" class="geral-tab text-left">
+                        <span class="text-[10px] font-black uppercase tracking-[.16em] text-amber-600">05 • Financeiro</span>
+                        <span class="block font-black text-gray-800 mt-1 text-sm md:text-base">Contas e compromissos</span>
+                    </button>
                 </div>
 
                 <section id="geralModuloAcesso" class="geral-modulo">
@@ -676,6 +680,46 @@
                     <div class="geral-panel">
                         <div class="mb-6"><p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Resumo executivo</p><h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white mt-1">Relatórios</h2><p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Resumo consolidado para análise rápida.</p></div>
                         <div id="geralRelatoriosConteudo" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    </div>
+                </section>
+
+                <section id="geralModuloFinanceiro" class="geral-modulo hidden">
+                    <div class="geral-panel">
+                        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-6">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Gestão proprietária</p>
+                                <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white mt-1">Financeiro</h2>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Contas a pagar, despesas, impostos e gastos recorrentes.</p>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" class="geral-apply" onclick="window.abrirFormularioFinanceiro('lancamento')">+ Nova conta</button>
+                                <button type="button" class="geral-apply" onclick="window.abrirFormularioFinanceiro('recorrente')">+ Gasto recorrente</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
+                            <div class="geral-dark-card p-5"><p class="text-[10px] uppercase tracking-[.16em] text-gray-500 font-black">Vencido</p><p id="financeiroTotalVencido" class="text-2xl font-black text-red-500 mt-2">R$ 0,00</p></div>
+                            <div class="geral-dark-card p-5"><p class="text-[10px] uppercase tracking-[.16em] text-gray-500 font-black">Vence hoje</p><p id="financeiroTotalHoje" class="text-2xl font-black text-amber-400 mt-2">R$ 0,00</p></div>
+                            <div class="geral-dark-card p-5"><p class="text-[10px] uppercase tracking-[.16em] text-gray-500 font-black">A vencer</p><p id="financeiroTotalFuturo" class="text-2xl font-black text-white mt-2">R$ 0,00</p></div>
+                            <div class="geral-dark-card p-5"><p class="text-[10px] uppercase tracking-[.16em] text-gray-500 font-black">Total pendente</p><p id="financeiroTotalPendente" class="text-2xl font-black text-[#baff18] mt-2">R$ 0,00</p></div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-5" id="financeiroFiltros">
+                            <button type="button" class="geral-apply" data-fin-filter="todos">Todos</button>
+                            <button type="button" class="geral-apply" data-fin-filter="loja">Lojas</button>
+                            <button type="button" class="geral-apply" data-fin-filter="pessoal">Pessoal</button>
+                            <button type="button" class="geral-apply" data-fin-filter="conta_pagar">Contas a pagar</button>
+                            <button type="button" class="geral-apply" data-fin-filter="despesa">Despesas</button>
+                            <button type="button" class="geral-apply" data-fin-filter="imposto">Impostos</button>
+                        </div>
+                        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                            <div class="border border-gray-200 dark:border-gray-800 rounded-3xl p-5">
+                                <div class="flex items-center justify-between gap-3 mb-4"><div><p class="text-[10px] uppercase tracking-[.16em] font-black text-gray-400">Prioridade automática</p><h3 class="text-xl font-black text-gray-900 dark:text-white">Contas pendentes</h3></div><span id="financeiroQtdPendentes" class="text-xs font-black px-3 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">0</span></div>
+                                <div id="financeiroListaPendentes" class="space-y-2"></div>
+                            </div>
+                            <div class="border border-gray-200 dark:border-gray-800 rounded-3xl p-5">
+                                <div class="flex items-center justify-between gap-3 mb-4"><div><p class="text-[10px] uppercase tracking-[.16em] font-black text-gray-400">Programados</p><h3 class="text-xl font-black text-gray-900 dark:text-white">Gastos recorrentes</h3></div><span id="financeiroQtdRecorrentes" class="text-xs font-black px-3 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">0</span></div>
+                                <div id="financeiroListaRecorrentes" class="space-y-2"></div>
+                            </div>
+                        </div>
                     </div>
                 </section>
             </div>
@@ -6740,5 +6784,221 @@
     })();
     </script>
 
+<script>
+(() => {
+    const FINANCEIRO_SENHA = '739184';
+    let financeiroAutorizado = false;
+    let financeiroDados = [];
+    let financeiroRecorrentes = [];
+    let financeiroFiltro = 'todos';
+
+    const lojaFinanceiro = () => {
+        const lojas = window.LOJAS_SISTEMA || [];
+        return lojas.find(l => l.slug === (window.lojaAtualSlug || '')) || lojas[0] || null;
+    };
+    const hojeIsoFinanceiro = () => {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    };
+    const brlFin = v => Number(v || 0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    const escFin = s => String(s ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const dataBrFin = iso => iso ? new Date(`${iso}T12:00:00`).toLocaleDateString('pt-BR') : '-';
+    const empresaTexto = x => x.empresa_tipo === 'pessoal' ? 'Pessoal' : ((window.LOJAS_SISTEMA || []).find(l => l.slug === x.loja_slug)?.nome || x.loja_nome || 'Loja');
+
+    function financeiroLocalKey(sufixo) { return `financeiro_${sufixo}`; }
+    function salvarFinanceiroLocal() {
+        localStorage.setItem(financeiroLocalKey('lancamentos'), JSON.stringify(financeiroDados));
+        localStorage.setItem(financeiroLocalKey('recorrentes'), JSON.stringify(financeiroRecorrentes));
+    }
+    function carregarFinanceiroLocal() {
+        try { financeiroDados = JSON.parse(localStorage.getItem(financeiroLocalKey('lancamentos')) || '[]') || []; } catch { financeiroDados = []; }
+        try { financeiroRecorrentes = JSON.parse(localStorage.getItem(financeiroLocalKey('recorrentes')) || '[]') || []; } catch { financeiroRecorrentes = []; }
+    }
+
+    async function carregarFinanceiroRemoto() {
+        carregarFinanceiroLocal();
+        if (!window.supabaseClient) return;
+        const [{data:lanc,error:e1},{data:rec,error:e2},{data:lojas,error:e3}] = await Promise.all([
+            window.supabaseClient.from('finance_lancamentos').select('*').order('vencimento',{ascending:true}),
+            window.supabaseClient.from('finance_recorrentes').select('*').order('proximo_vencimento',{ascending:true}),
+            window.supabaseClient.from('lojas').select('id,slug,nome')
+        ]);
+        if (e1) throw e1;
+        if (e2) throw e2;
+        if (e3) throw e3;
+        const mapaLojas = new Map((lojas || []).map(l => [String(l.id), l]));
+        financeiroDados = (lanc || []).map(r => financeiroDbParaLocal({...r, loja_slug: mapaLojas.get(String(r.loja_id))?.slug || null, loja_nome: mapaLojas.get(String(r.loja_id))?.nome || null}));
+        financeiroRecorrentes = (rec || []).map(r => recorrenteDbParaLocal({...r, loja_slug: mapaLojas.get(String(r.loja_id))?.slug || null, loja_nome: mapaLojas.get(String(r.loja_id))?.nome || null}));
+        salvarFinanceiroLocal();
+    }
+    function financeiroDbParaLocal(r) {
+        const loja = (window.LOJAS_SISTEMA || []).find(l => l.slug && r.loja_id && l.slug === r.loja_slug);
+        return {...r, supabaseId:r.id, loja_slug:r.loja_slug || loja?.slug || null, loja_nome:r.loja_nome || loja?.nome || null};
+    }
+    function recorrenteDbParaLocal(r) {
+        const loja = (window.LOJAS_SISTEMA || []).find(l => l.slug && r.loja_id && l.slug === r.loja_slug);
+        return {...r, supabaseId:r.id, loja_slug:r.loja_slug || loja?.slug || null, loja_nome:r.loja_nome || loja?.nome || null};
+    }
+    async function inserirFinanceiroDb(item) {
+        if (!window.supabaseClient) return null;
+        const loja = item.empresa_tipo === 'loja' ? (window.LOJAS_SISTEMA || []).find(l => l.slug === item.loja_slug) : null;
+        const payload = {...item}; delete payload.supabaseId; delete payload.loja_slug; delete payload.loja_nome; delete payload.id;
+        payload.loja_id = loja?.id || null;
+        if (!payload.loja_id && item.empresa_tipo === 'loja' && window.supabaseClient) {
+            const {data} = await window.supabaseClient.from('lojas').select('id,slug,nome').eq('slug', item.loja_slug).maybeSingle();
+            payload.loja_id = data?.id || null;
+        }
+        const {data,error} = await window.supabaseClient.from('finance_lancamentos').insert(payload).select('*').single();
+        if (error) throw error;
+        return financeiroDbParaLocal(data);
+    }
+    async function atualizarFinanceiroDb(item) {
+        if (!window.supabaseClient || !item.supabaseId) return;
+        const payload = {...item}; delete payload.supabaseId; delete payload.loja_slug; delete payload.loja_nome; delete payload.id;
+        if (item.empresa_tipo === 'loja') {
+            const {data} = await window.supabaseClient.from('lojas').select('id').eq('slug', item.loja_slug).maybeSingle();
+            payload.loja_id = data?.id || null;
+        } else payload.loja_id = null;
+        const {error} = await window.supabaseClient.from('finance_lancamentos').update(payload).eq('id', item.supabaseId);
+        if (error) throw error;
+    }
+    async function inserirRecorrenteDb(item) {
+        if (!window.supabaseClient) return null;
+        const loja = item.empresa_tipo === 'loja' ? (window.LOJAS_SISTEMA || []).find(l => l.slug === item.loja_slug) : null;
+        const payload = {...item}; delete payload.supabaseId; delete payload.loja_slug; delete payload.loja_nome; delete payload.id;
+        payload.loja_id = loja?.id || null;
+        if (!payload.loja_id && item.empresa_tipo === 'loja') {
+            const {data} = await window.supabaseClient.from('lojas').select('id').eq('slug', item.loja_slug).maybeSingle(); payload.loja_id = data?.id || null;
+        }
+        const {data,error} = await window.supabaseClient.from('finance_recorrentes').insert(payload).select('*').single();
+        if (error) throw error;
+        return recorrenteDbParaLocal(data);
+    }
+    async function atualizarRecorrenteDb(item) {
+        if (!window.supabaseClient || !item.supabaseId) return;
+        const payload = {...item}; delete payload.supabaseId; delete payload.loja_slug; delete payload.loja_nome; delete payload.id;
+        if (item.empresa_tipo === 'loja') {
+            const {data} = await window.supabaseClient.from('lojas').select('id').eq('slug', item.loja_slug).maybeSingle(); payload.loja_id = data?.id || null;
+        } else payload.loja_id = null;
+        const {error} = await window.supabaseClient.from('finance_recorrentes').update(payload).eq('id', item.supabaseId);
+        if (error) throw error;
+    }
+
+    function filtroFinanceiroOk(x) {
+        if (financeiroFiltro === 'todos') return true;
+        if (financeiroFiltro === 'loja') return x.empresa_tipo === 'loja';
+        if (financeiroFiltro === 'pessoal') return x.empresa_tipo === 'pessoal';
+        return x.categoria === financeiroFiltro;
+    }
+    function prioridadeFinanceiro(data) {
+        const hoje = hojeIsoFinanceiro();
+        if (data < hoje) return 0;
+        if (data === hoje) return 1;
+        const diff = Math.ceil((new Date(`${data}T12:00:00`) - new Date(`${hoje}T12:00:00`))/86400000);
+        if (diff <= 3) return 2;
+        return 3;
+    }
+    function renderizarFinanceiro() {
+        if (!financeiroAutorizado) return;
+        const pendentes = financeiroDados.filter(x => x.status !== 'pago' && filtroFinanceiroOk(x)).sort((a,b) => prioridadeFinanceiro(a.vencimento)-prioridadeFinanceiro(b.vencimento) || String(a.vencimento).localeCompare(String(b.vencimento)));
+        const vencido = pendentes.filter(x => prioridadeFinanceiro(x.vencimento) === 0).reduce((s,x)=>s+Number(x.valor||0),0);
+        const hoje = pendentes.filter(x => prioridadeFinanceiro(x.vencimento) === 1).reduce((s,x)=>s+Number(x.valor||0),0);
+        const futuro = pendentes.filter(x => prioridadeFinanceiro(x.vencimento) >= 2).reduce((s,x)=>s+Number(x.valor||0),0);
+        const total = pendentes.reduce((s,x)=>s+Number(x.valor||0),0);
+        document.getElementById('financeiroTotalVencido').textContent=brlFin(vencido);
+        document.getElementById('financeiroTotalHoje').textContent=brlFin(hoje);
+        document.getElementById('financeiroTotalFuturo').textContent=brlFin(futuro);
+        document.getElementById('financeiroTotalPendente').textContent=brlFin(total);
+        document.getElementById('financeiroQtdPendentes').textContent=pendentes.length;
+        const box=document.getElementById('financeiroListaPendentes');
+        box.innerHTML=pendentes.length ? pendentes.map(x=>{
+            const p=prioridadeFinanceiro(x.vencimento); const cor=p===0?'border-red-200 bg-red-50 dark:bg-red-900/10':p===1?'border-amber-200 bg-amber-50 dark:bg-amber-900/10':'border-gray-200 dark:border-gray-800';
+            const label=p===0?'VENCIDO':p===1?'VENCE HOJE':`VENCE ${dataBrFin(x.vencimento)}`;
+            return `<div class="border ${cor} rounded-2xl p-4 flex items-center justify-between gap-3"><div class="min-w-0"><div class="flex flex-wrap gap-2 items-center"><span class="text-[9px] font-black uppercase tracking-wider">${label}</span><span class="text-[9px] font-bold text-gray-400">${escFin(x.categoria.replace('_',' '))}</span></div><p class="font-black text-sm text-gray-900 dark:text-white mt-1 truncate">${escFin(x.descricao)}</p><p class="text-[10px] text-gray-500 mt-1">${escFin(empresaTexto(x))}${x.fornecedor?' • '+escFin(x.fornecedor):''}</p></div><div class="text-right shrink-0"><p class="font-black text-sm text-gray-900 dark:text-white">${brlFin(x.valor)}</p><button onclick="window.quitarFinanceiro('${x.supabaseId || x.id}')" class="mt-2 text-[10px] font-black px-3 py-1.5 rounded-full bg-[#baff18] text-[#111512]">Marcar pago</button></div></div>`;
+        }).join('') : '<div class="text-sm text-gray-400 py-8 text-center">Nenhuma conta pendente.</div>';
+        const rec = financeiroRecorrentes.filter(x=>x.ativo).sort((a,b)=>String(a.proximo_vencimento).localeCompare(String(b.proximo_vencimento)));
+        document.getElementById('financeiroQtdRecorrentes').textContent=rec.length;
+        document.getElementById('financeiroListaRecorrentes').innerHTML=rec.length ? rec.map(x=>`<div class="border border-gray-200 dark:border-gray-800 rounded-2xl p-4 flex justify-between gap-3"><div><p class="font-black text-sm text-gray-900 dark:text-white">${escFin(x.descricao)}</p><p class="text-[10px] text-gray-500 mt-1">${escFin(x.frequencia)} • ${escFin(empresaTexto(x))} • próximo ${dataBrFin(x.proximo_vencimento)}</p></div><p class="font-black text-sm text-gray-900 dark:text-white">${brlFin(x.valor)}</p></div>`).join('') : '<div class="text-sm text-gray-400 py-8 text-center">Nenhum gasto recorrente cadastrado.</div>';
+    }
+
+    function modalFinanceiroHTML(tipo) {
+        const rec = tipo === 'recorrente';
+        const lojas = window.LOJAS_SISTEMA || [];
+        return `<div id="modalFinanceiro" class="fixed inset-0 z-[260] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"><div class="bg-white dark:bg-[#161925] rounded-3xl p-6 max-w-xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"><div class="flex justify-between items-start gap-4 mb-5"><div><p class="text-[10px] font-black uppercase tracking-[.16em] text-emerald-600">Financeiro</p><h3 class="text-2xl font-black text-gray-900 dark:text-white">${rec?'Novo gasto recorrente':'Nova conta / despesa'}</h3></div><button onclick="document.getElementById('modalFinanceiro')?.remove()" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500">×</button></div><form id="formFinanceiro" class="space-y-4"><div class="grid grid-cols-2 gap-3"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Tipo</span><select id="finTipoEmpresa" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"><option value="loja">Loja</option><option value="pessoal">Pessoal</option></select></label><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Categoria</span><select id="finCategoria" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"><option value="conta_pagar">Conta a pagar</option><option value="despesa">Despesa</option><option value="imposto">Imposto</option></select></label></div><div id="finLojaWrap"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Loja</span><select id="finLoja" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900">${lojas.map(l=>`<option value="${escFin(l.slug)}">${escFin(l.nome)}</option>`).join('')}</select></label></div><div class="grid grid-cols-2 gap-3"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Descrição</span><input id="finDescricao" required class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900" placeholder="Ex.: Fornecedor / energia"></label><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Valor</span><input id="finValor" required type="number" step="0.01" min="0" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900" placeholder="0,00"></label></div><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Fornecedor</span><input id="finFornecedor" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900" placeholder="Opcional"></label>${rec?`<div class="grid grid-cols-2 gap-3"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Frequência</span><select id="finFrequencia" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"><option value="diario">Diário</option><option value="semanal">Semanal</option><option value="quinzenal">Quinzenal</option><option value="mensal" selected>Mensal</option><option value="bimestral">Bimestral</option><option value="trimestral">Trimestral</option><option value="semestral">Semestral</option><option value="anual">Anual</option></select></label><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Próximo vencimento</span><input id="finData" required type="date" value="${hojeIsoFinanceiro()}" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"></label></div>`:`<label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Vencimento</span><input id="finData" required type="date" value="${hojeIsoFinanceiro()}" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"></label>`}<label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Observação</span><textarea id="finObservacao" rows="2" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900" placeholder="Opcional"></textarea></label><button class="w-full py-3 rounded-2xl bg-[#111512] text-[#baff18] font-black">Salvar</button></form></div></div>`;
+    }
+    window.abrirFormularioFinanceiro = tipo => {
+        if (!financeiroAutorizado) { window.abrirSenhaFinanceiro(); return; }
+        document.getElementById('modalFinanceiro')?.remove(); document.body.insertAdjacentHTML('beforeend', modalFinanceiroHTML(tipo));
+        const tipoEl=document.getElementById('finTipoEmpresa'), wrap=document.getElementById('finLojaWrap');
+        tipoEl.onchange=()=>wrap.classList.toggle('hidden',tipoEl.value==='pessoal');
+        document.getElementById('formFinanceiro').onsubmit=async e=>{
+            e.preventDefault();
+            const item={empresa_tipo:tipoEl.value,categoria:document.getElementById('finCategoria').value,loja_slug:tipoEl.value==='loja'?document.getElementById('finLoja').value:null,descricao:document.getElementById('finDescricao').value.trim(),fornecedor:document.getElementById('finFornecedor').value.trim()||null,valor:Number(document.getElementById('finValor').value||0),observacao:document.getElementById('finObservacao').value.trim()||null};
+            try {
+                if(tipo==='recorrente'){ item.frequencia=document.getElementById('finFrequencia').value; item.proximo_vencimento=document.getElementById('finData').value; item.ativo=true; const salvo=await inserirRecorrenteDb(item); financeiroRecorrentes.push(salvo||item); }
+                else { item.vencimento=document.getElementById('finData').value; item.status='pendente'; item.pago_em=null; const salvo=await inserirFinanceiroDb(item); financeiroDados.push(salvo||item); }
+                salvarFinanceiroLocal(); document.getElementById('modalFinanceiro')?.remove(); renderizarFinanceiro(); window.mostrarToast?.('Lançamento salvo com sucesso!','bg-green-600 text-white');
+            } catch(err) { console.error(err); window.mostrarToast?.('Não foi possível salvar no banco.','bg-red-600 text-white'); }
+        };
+    };
+    window.quitarFinanceiro = async id => {
+        const item=financeiroDados.find(x=>String(x.supabaseId||x.id)===String(id)); if(!item) return;
+        item.status='pago'; item.pago_em=hojeIsoFinanceiro(); item.atualizado_em=new Date().toISOString();
+        try { await atualizarFinanceiroDb(item); salvarFinanceiroLocal(); renderizarFinanceiro(); window.mostrarToast?.('Pagamento concluído.','bg-green-600 text-white'); } catch(err) { console.error(err); window.mostrarToast?.('Erro ao registrar pagamento.','bg-red-600 text-white'); }
+    };
+
+    function abrirSenhaFinanceiro(){
+        if(document.getElementById('modalSenhaFinanceiro')) return;
+        document.body.insertAdjacentHTML('beforeend',`<div id="modalSenhaFinanceiro" class="fixed inset-0 z-[270] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"><div class="admin-geral-card p-6 md:p-7 relative"><button onclick="document.getElementById('modalSenhaFinanceiro')?.remove()" class="absolute top-4 right-4 w-9 h-9 rounded-full border border-white/10 bg-white/5 text-gray-300">×</button><div class="w-12 h-12 rounded-2xl bg-[#baff18] text-[#111512] flex items-center justify-center font-black text-xl mb-5">$</div><p class="text-[10px] font-black uppercase tracking-[.18em] text-[#baff18]">Financeiro</p><h3 class="text-2xl font-black text-white mt-1">Acesso restrito</h3><p class="text-sm text-gray-400 mt-2">Informe a senha para acessar o financeiro proprietário.</p><input id="senhaFinanceiro" type="password" class="admin-geral-input mt-5" placeholder="Digite a senha" autocomplete="off"><p id="erroSenhaFinanceiro" class="hidden text-xs font-bold text-red-400 mt-2">Senha incorreta.</p><button onclick="window.verificarSenhaFinanceiro()" class="admin-geral-submit mt-4">Acessar Financeiro</button></div></div>`);
+        setTimeout(()=>document.getElementById('senhaFinanceiro')?.focus(),50);
+    }
+    window.abrirSenhaFinanceiro=abrirSenhaFinanceiro;
+    window.verificarSenhaFinanceiro=async()=>{
+        const input=document.getElementById('senhaFinanceiro'); if((input?.value||'')!==FINANCEIRO_SENHA){document.getElementById('erroSenhaFinanceiro')?.classList.remove('hidden');return;}
+        financeiroAutorizado=true; document.getElementById('modalSenhaFinanceiro')?.remove(); await window.carregarFinanceiroModulo?.(); renderizarFinanceiro();
+    };
+    function proximaDataRecorrente(data, frequencia) {
+        const d = new Date(`${data}T12:00:00`);
+        const dias = {diario:1,semanal:7,quinzenal:14};
+        if (dias[frequencia]) d.setDate(d.getDate()+dias[frequencia]);
+        else { const meses = {mensal:1,bimestral:2,trimestral:3,semestral:6,anual:12}; d.setMonth(d.getMonth()+(meses[frequencia]||1)); }
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    async function gerarRecorrenciasVencidas() {
+        if (!window.supabaseClient) return;
+        const hoje = hojeIsoFinanceiro();
+        const recorrentes = [...financeiroRecorrentes];
+        for (const r of recorrentes) {
+            if (!r.ativo || !r.proximo_vencimento || r.proximo_vencimento > hoje) continue;
+            let proxima = r.proximo_vencimento;
+            let ultimo = null;
+            let guard = 0;
+            while (proxima <= hoje && guard++ < 120) {
+                const item = {empresa_tipo:r.empresa_tipo,categoria:r.categoria,loja_slug:r.loja_slug||null,descricao:r.descricao,fornecedor:r.fornecedor||null,valor:Number(r.valor||0),vencimento:proxima,status:'pendente',pago_em:null,forma_pagamento:null,observacao:r.observacao||null};
+                const salvo = await inserirFinanceiroDb(item);
+                financeiroDados.push(salvo || item);
+                ultimo = proxima;
+                proxima = proximaDataRecorrente(proxima, r.frequencia);
+            }
+            if (ultimo) { r.proximo_vencimento = proxima; await atualizarRecorrenteDb(r); }
+        }
+        salvarFinanceiroLocal();
+    }
+    window.carregarFinanceiroModulo=async()=>{
+        carregarFinanceiroLocal();
+        try { await carregarFinanceiroRemoto(); await gerarRecorrenciasVencidas(); }
+        catch(e){ console.warn('Financeiro usando cache local:',e); }
+        renderizarFinanceiro();
+    };
+
+    const originalAbrir=window.abrirModuloGeral;
+    window.abrirModuloGeral=async(modulo)=>{
+        if(modulo==='financeiro') { if(!financeiroAutorizado){ abrirSenhaFinanceiro(); return; } document.querySelectorAll('#tela-geral-lojas .geral-modulo').forEach(x=>x.classList.add('hidden')); document.getElementById('geralModuloFinanceiro')?.classList.remove('hidden'); document.querySelectorAll('#tela-geral-lojas .geral-tab').forEach(x=>x.classList.remove('active')); document.getElementById('geralTabFinanceiro')?.classList.add('active'); await window.carregarFinanceiroModulo(); return; }
+        return originalAbrir ? originalAbrir(modulo) : undefined;
+    };
+    document.addEventListener('click',e=>{const b=e.target.closest('[data-fin-filter]'); if(!b)return; financeiroFiltro=b.dataset.finFilter; renderizarFinanceiro();});
+    window.addEventListener('load',()=>{ carregarFinanceiroLocal(); });
+})();
+</script>
 </body>
 </html>
