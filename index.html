@@ -83,6 +83,28 @@
                 radial-gradient(circle at 18% 0%, rgba(120,230,199,.07), transparent 28%),
                 #090c0a;
         }
+        /* Alternância exclusiva do fundo do Painel Geral. Não altera o restante do sistema. */
+        #tela-geral-lojas.geral-bg-preto {
+            background: #090c0a !important;
+        }
+        #tela-geral-lojas.geral-bg-branco {
+            background: #ffffff !important;
+        }
+        #tela-geral-lojas .geral-bg-toggle {
+            display: inline-flex; align-items: center; gap: 4px; padding: 4px;
+            border: 1px solid rgba(255,255,255,.14); border-radius: 14px;
+            background: rgba(0,0,0,.24); backdrop-filter: blur(10px);
+        }
+        #tela-geral-lojas .geral-bg-toggle button {
+            border: 0; border-radius: 10px; padding: 8px 11px; font-size: 11px; font-weight: 900;
+            cursor: pointer; transition: all .18s ease;
+        }
+        #tela-geral-lojas .geral-bg-toggle button.active {
+            background: #ffffff; color: #111512; box-shadow: 0 5px 14px rgba(0,0,0,.16);
+        }
+        #tela-geral-lojas .geral-bg-toggle button:not(.active) {
+            background: transparent; color: #ffffff;
+        }
         #tela-geral-lojas .geral-shell { max-width: 1440px; margin: 0 auto; }
         #tela-geral-lojas .geral-hero {
             position: relative; overflow: hidden; border-radius: 30px; padding: 28px;
@@ -566,7 +588,11 @@
                             <h1 class="text-3xl md:text-5xl font-black text-white mt-2 tracking-[-0.03em]">Painel Geral</h1>
                             <p class="text-sm md:text-base text-gray-300 mt-2 max-w-2xl">Visão consolidada das quatro lojas, com faturamento, meios de pagamento e movimentações.</p>
                         </div>
-                        <div class="flex items-center gap-3 self-start md:self-center">
+                        <div class="flex items-center gap-3 self-start md:self-center flex-wrap justify-end">
+                            <div class="geral-bg-toggle" aria-label="Cor de fundo do Painel Geral">
+                                <button type="button" id="geralBgPreto" onclick="window.alternarFundoPainelGeral('preto')" title="Fundo preto">PRETO</button>
+                                <button type="button" id="geralBgBranco" onclick="window.alternarFundoPainelGeral('branco')" title="Fundo branco">BRANCO</button>
+                            </div>
                             <span id="statusBancoMultiLoja" class="geral-status text-xs font-bold px-3.5 py-2.5 rounded-full">Banco: preparando</span>
                         </div>
                     </div>
@@ -2945,7 +2971,12 @@
         }
 
         window.salvarLembretesLocal = () => {
-            localStorage.setItem('lembretesSistemaCaixa', JSON.stringify(todosLembretesBanco));
+            const dados = JSON.stringify(todosLembretesBanco || []);
+            // Mantém a chave legada para compatibilidade e, principalmente,
+            // grava a cópia da loja ativa antes de o sincronizador consultar o cache.
+            const slug = window.lojaAtualSlug || 'real_papelaria';
+            localStorage.setItem(`lembretesSistemaCaixa__${slug}`, dados);
+            localStorage.setItem('lembretesSistemaCaixa', dados);
         };
 
         window.adicionarLembrete = () => {
@@ -6355,6 +6386,7 @@
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'vendas' }, tratarEvento)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'recebimentos' }, tratarEvento)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'sangrias' }, tratarEvento)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'lembretes' }, tratarEvento)
                 .subscribe((status) => {
                     if (status === 'SUBSCRIBED') console.info('Supabase Realtime conectado.');
                     else if (status === 'CHANNEL_ERROR') console.warn('Supabase Realtime indisponível; usando atualização automática de segurança.');
@@ -6756,7 +6788,25 @@
             };
         }
 
+        window.alternarFundoPainelGeral = (modo) => {
+            const painel = document.getElementById('tela-geral-lojas');
+            if (!painel || !['preto','branco'].includes(modo)) return;
+            painel.classList.toggle('geral-bg-preto', modo === 'preto');
+            painel.classList.toggle('geral-bg-branco', modo === 'branco');
+            localStorage.setItem('painelGeralFundo', modo);
+            const preto = document.getElementById('geralBgPreto');
+            const branco = document.getElementById('geralBgBranco');
+            preto?.classList.toggle('active', modo === 'preto');
+            branco?.classList.toggle('active', modo === 'branco');
+        };
+
+        function iniciarFundoPainelGeral() {
+            const salvo = localStorage.getItem('painelGeralFundo') || 'preto';
+            window.alternarFundoPainelGeral(salvo);
+        }
+
         function iniciar() {
+            iniciarFundoPainelGeral();
             prepararDadosLegados();
             aplicarContextoLoja(window.lojaAtualSlug);
             instalarObservadorLocalStorage();
