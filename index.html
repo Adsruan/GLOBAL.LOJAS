@@ -229,11 +229,6 @@
             transition: transform .15s ease, filter .15s ease;
         }
         #modalSenhaPainelGeral .admin-geral-submit:hover { filter: brightness(.96); transform: translateY(-1px); }
-        #modalSenhaFinanceiro .admin-geral-card { width: min(430px, calc(100vw - 32px)); background: #111512; border: 1px solid rgba(255,255,255,.09); border-radius: 26px; box-shadow: 0 30px 90px rgba(0,0,0,.42); }
-        #modalSenhaFinanceiro .admin-geral-input { width: 100%; background: #0b0f0c; color: #fff; border: 1px solid #303a31; border-radius: 15px; padding: 14px 15px; outline: none; font-weight: 800; letter-spacing: .08em; }
-        #modalSenhaFinanceiro .admin-geral-input:focus { border-color: #baff18; box-shadow: 0 0 0 3px rgba(186,255,24,.10); }
-        #modalSenhaFinanceiro .admin-geral-submit { width: 100%; background: #baff18; color: #111512; border-radius: 15px; padding: 13px 16px; font-weight: 900; transition: transform .15s ease, filter .15s ease; }
-        #modalSenhaFinanceiro .admin-geral-submit:hover { filter: brightness(.96); transform: translateY(-1px); }
         @media (max-width: 767px) {
             #tela-geral-lojas .geral-tabs { grid-template-columns: repeat(2,minmax(0,1fr)); }
             #tela-geral-lojas .geral-hero { padding: 22px; border-radius: 24px; }
@@ -3930,7 +3925,24 @@
             document.getElementById('filtroBackupDataFim').value = `${ano}-${String(mesNumero).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`;
         };
 
-        window.baixarBackupCSV = () => {
+        function normalizarDataIsoBackup(registro) {
+            if (!registro) return '';
+            if (registro.dataIso && /^\d{4}-\d{2}-\d{2}$/.test(String(registro.dataIso))) return String(registro.dataIso);
+            if (registro.dataBr && /^\d{2}\/\d{2}\/\d{4}$/.test(String(registro.dataBr))) {
+                const [dia, mes, ano] = String(registro.dataBr).split('/');
+                return `${ano}-${mes}-${dia}`;
+            }
+            const ts = Number(registro.timestamp);
+            if (Number.isFinite(ts) && ts > 0) {
+                const d = new Date(ts);
+                if (!Number.isNaN(d.getTime())) {
+                    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                }
+            }
+            return '';
+        }
+
+        window.baixarBackupCSV = async () => {
             const dtInicio = document.getElementById('filtroBackupDataInicio').value;
             const dtFim = document.getElementById('filtroBackupDataFim').value;
 
@@ -3939,13 +3951,27 @@
                 return;
             }
 
-            let vendasBackup = todasVendasBanco;
-            let despesasBackup = todasDespesasBanco;
+            // Antes de exportar, atualiza os dados da loja no Supabase.
+            // Assim o backup não depende apenas da cópia local deste dispositivo.
+            if (window.supabaseDisponivel && window.lojaAtualSlug) {
+                try {
+                    await sincronizarLoja(window.lojaAtualSlug);
+                    await baixarLojaDoSupabase(window.lojaAtualSlug);
+                } catch (e) {
+                    console.warn('Não foi possível atualizar o backup pelo Supabase; usando os dados locais.', e);
+                }
+            }
 
-            if (dtInicio) vendasBackup = vendasBackup.filter(v => v.dataIso >= dtInicio);
-            if (dtFim) vendasBackup = vendasBackup.filter(v => v.dataIso <= dtFim);
-            if (dtInicio) despesasBackup = despesasBackup.filter(d => d.dataIso >= dtInicio);
-            if (dtFim) despesasBackup = despesasBackup.filter(d => d.dataIso <= dtFim);
+            const vendasComData = (todasVendasBanco || []).map(v => ({ ...v, __dataBackup: normalizarDataIsoBackup(v) }));
+            const despesasComData = (todasDespesasBanco || []).map(d => ({ ...d, __dataBackup: normalizarDataIsoBackup(d) }));
+
+            let vendasBackup = vendasComData;
+            let despesasBackup = despesasComData;
+
+            if (dtInicio) vendasBackup = vendasBackup.filter(v => !v.__dataBackup || v.__dataBackup >= dtInicio);
+            if (dtFim) vendasBackup = vendasBackup.filter(v => !v.__dataBackup || v.__dataBackup <= dtFim);
+            if (dtInicio) despesasBackup = despesasBackup.filter(d => !d.__dataBackup || d.__dataBackup >= dtInicio);
+            if (dtFim) despesasBackup = despesasBackup.filter(d => !d.__dataBackup || d.__dataBackup <= dtFim);
 
             if (vendasBackup.length === 0 && despesasBackup.length === 0) {
                 mostrarToast("Nenhuma movimentação encontrada no período selecionado.", "bg-orange-500 text-white");
@@ -3956,11 +3982,15 @@
             csv += "TIPO;DADOS\n";
 
             vendasBackup.forEach(v => {
-                csv += `VENDA;${encodeURIComponent(JSON.stringify(v))}\n`;
+                const registro = { ...v };
+                delete registro.__dataBackup;
+                csv += `VENDA;${encodeURIComponent(JSON.stringify(registro))}\n`;
             });
 
             despesasBackup.forEach(d => {
-                csv += `SANGRIA;${encodeURIComponent(JSON.stringify(d))}\n`;
+                const registro = { ...d };
+                delete registro.__dataBackup;
+                csv += `SANGRIA;${encodeURIComponent(JSON.stringify(registro))}\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -7004,21 +7034,7 @@
 
     function abrirSenhaFinanceiro(){
         if(document.getElementById('modalSenhaFinanceiro')) return;
-        document.body.insertAdjacentHTML('beforeend',`<div id="modalSenhaFinanceiro" class="fixed inset-0 z-[240] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-            <div class="admin-geral-card p-6 md:p-7 relative">
-                <button type="button" onclick="document.getElementById('modalSenhaFinanceiro')?.remove()" aria-label="Fechar acesso ao financeiro" class="absolute top-4 right-4 w-9 h-9 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 flex items-center justify-center text-lg font-black">×</button>
-                <div class="w-12 h-12 rounded-2xl bg-[#baff18] text-[#111512] flex items-center justify-center font-black text-xl mb-5">⌁</div>
-                <p class="text-[10px] font-black uppercase tracking-[.18em] text-[#baff18]">Financeiro</p>
-                <h3 class="text-2xl font-black text-white mt-1">Acesso administrativo</h3>
-                <p class="text-sm text-gray-400 mt-2 pr-8">Informe a senha para acessar o financeiro proprietário.</p>
-                <div class="mt-6">
-                    <label for="senhaFinanceiro" class="block text-[10px] font-black uppercase tracking-[.15em] text-gray-500 mb-2">Senha de administrador</label>
-                    <input id="senhaFinanceiro" type="password" class="admin-geral-input" placeholder="Digite a senha" autocomplete="off" onkeydown="if(event.key==='Enter') window.verificarSenhaFinanceiro()">
-                    <p id="erroSenhaFinanceiro" class="hidden text-xs font-bold text-red-400 mt-2">Senha incorreta. Tente novamente.</p>
-                </div>
-                <button type="button" onclick="window.verificarSenhaFinanceiro()" class="admin-geral-submit mt-4">Acessar Financeiro</button>
-            </div>
-        </div>`);
+        document.body.insertAdjacentHTML('beforeend',`<div id="modalSenhaFinanceiro" class="fixed inset-0 z-[270] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"><div class="admin-geral-card p-6 md:p-7 relative"><button onclick="document.getElementById('modalSenhaFinanceiro')?.remove()" class="absolute top-4 right-4 w-9 h-9 rounded-full border border-white/10 bg-white/5 text-gray-300">×</button><div class="w-12 h-12 rounded-2xl bg-[#baff18] text-[#111512] flex items-center justify-center font-black text-xl mb-5">$</div><p class="text-[10px] font-black uppercase tracking-[.18em] text-[#baff18]">Financeiro</p><h3 class="text-2xl font-black text-white mt-1">Acesso restrito</h3><p class="text-sm text-gray-400 mt-2">Informe a senha para acessar o financeiro proprietário.</p><input id="senhaFinanceiro" type="password" class="admin-geral-input mt-5" placeholder="Digite a senha" autocomplete="off"><p id="erroSenhaFinanceiro" class="hidden text-xs font-bold text-red-400 mt-2">Senha incorreta.</p><button onclick="window.verificarSenhaFinanceiro()" class="admin-geral-submit mt-4">Acessar Financeiro</button></div></div>`);
         setTimeout(()=>document.getElementById('senhaFinanceiro')?.focus(),50);
     }
     window.abrirSenhaFinanceiro=abrirSenhaFinanceiro;
