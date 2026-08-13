@@ -2979,6 +2979,18 @@
             localStorage.setItem('lembretesSistemaCaixa', dados);
         };
 
+        window.sincronizarLembretesAgora = async () => {
+            const slug = window.lojaAtualSlug;
+            if (!slug || !window.supabaseDisponivel || typeof sincronizarColecao !== 'function') return;
+            try {
+                const registros = carregarArrayLoja(BASES_LOCAIS.lembretes, slug)
+                    .map(l => ({ ...l, lojaSlug: l.lojaSlug || slug }));
+                await sincronizarColecao('lembretes', registros, slug);
+            } catch (e) {
+                console.warn('Falha ao sincronizar lembretes:', e);
+            }
+        };
+
         window.adicionarLembrete = () => {
             const cliente = document.getElementById('lemCliente').value.trim();
             const produto = document.getElementById('lemProduto').value.trim();
@@ -3017,6 +3029,7 @@
 
             todosLembretesBanco.unshift(novoLembrete);
             window.salvarLembretesLocal();
+            window.sincronizarLembretesAgora();
 
             document.getElementById('lemCliente').value = '';
             document.getElementById('lemProduto').value = '';
@@ -3035,6 +3048,7 @@
             todosLembretesBanco[indice].status = 'concluido';
             todosLembretesBanco[indice].concluidoEm = new Date().toISOString();
             window.salvarLembretesLocal();
+            window.sincronizarLembretesAgora();
             window.atualizarLembretes();
             mostrarToast("Lembrete marcado como resolvido!", "bg-green-600 text-white");
         };
@@ -3047,8 +3061,15 @@
                 'Excluir lembrete?',
                 `O lembrete de ${lembrete.cliente} será removido.`,
                 () => {
+                    const slug = window.lojaAtualSlug || 'real_papelaria';
+                    const chaveExcluidos = `lembretesSistemaCaixaExcluidos__${slug}`;
+                    let excluidos = [];
+                    try { excluidos = JSON.parse(localStorage.getItem(chaveExcluidos) || '[]'); } catch (_) { excluidos = []; }
+                    if (!excluidos.some(x => String(x) === String(id))) excluidos.push(String(id));
+                    localStorage.setItem(chaveExcluidos, JSON.stringify(excluidos));
                     todosLembretesBanco = todosLembretesBanco.filter(l => String(l.id) !== String(id));
                     window.salvarLembretesLocal();
+                    window.sincronizarLembretesAgora();
                     window.atualizarLembretes();
                     mostrarToast("Lembrete excluído.", "bg-red-600 text-white");
                 }
@@ -3925,24 +3946,7 @@
             document.getElementById('filtroBackupDataFim').value = `${ano}-${String(mesNumero).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`;
         };
 
-        function normalizarDataIsoBackup(registro) {
-            if (!registro) return '';
-            if (registro.dataIso && /^\d{4}-\d{2}-\d{2}$/.test(String(registro.dataIso))) return String(registro.dataIso);
-            if (registro.dataBr && /^\d{2}\/\d{2}\/\d{4}$/.test(String(registro.dataBr))) {
-                const [dia, mes, ano] = String(registro.dataBr).split('/');
-                return `${ano}-${mes}-${dia}`;
-            }
-            const ts = Number(registro.timestamp);
-            if (Number.isFinite(ts) && ts > 0) {
-                const d = new Date(ts);
-                if (!Number.isNaN(d.getTime())) {
-                    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                }
-            }
-            return '';
-        }
-
-        window.baixarBackupCSV = async () => {
+        window.baixarBackupCSV = () => {
             const dtInicio = document.getElementById('filtroBackupDataInicio').value;
             const dtFim = document.getElementById('filtroBackupDataFim').value;
 
@@ -3951,27 +3955,13 @@
                 return;
             }
 
-            // Antes de exportar, atualiza os dados da loja no Supabase.
-            // Assim o backup não depende apenas da cópia local deste dispositivo.
-            if (window.supabaseDisponivel && window.lojaAtualSlug) {
-                try {
-                    await sincronizarLoja(window.lojaAtualSlug);
-                    await baixarLojaDoSupabase(window.lojaAtualSlug);
-                } catch (e) {
-                    console.warn('Não foi possível atualizar o backup pelo Supabase; usando os dados locais.', e);
-                }
-            }
+            let vendasBackup = todasVendasBanco;
+            let despesasBackup = todasDespesasBanco;
 
-            const vendasComData = (todasVendasBanco || []).map(v => ({ ...v, __dataBackup: normalizarDataIsoBackup(v) }));
-            const despesasComData = (todasDespesasBanco || []).map(d => ({ ...d, __dataBackup: normalizarDataIsoBackup(d) }));
-
-            let vendasBackup = vendasComData;
-            let despesasBackup = despesasComData;
-
-            if (dtInicio) vendasBackup = vendasBackup.filter(v => !v.__dataBackup || v.__dataBackup >= dtInicio);
-            if (dtFim) vendasBackup = vendasBackup.filter(v => !v.__dataBackup || v.__dataBackup <= dtFim);
-            if (dtInicio) despesasBackup = despesasBackup.filter(d => !d.__dataBackup || d.__dataBackup >= dtInicio);
-            if (dtFim) despesasBackup = despesasBackup.filter(d => !d.__dataBackup || d.__dataBackup <= dtFim);
+            if (dtInicio) vendasBackup = vendasBackup.filter(v => v.dataIso >= dtInicio);
+            if (dtFim) vendasBackup = vendasBackup.filter(v => v.dataIso <= dtFim);
+            if (dtInicio) despesasBackup = despesasBackup.filter(d => d.dataIso >= dtInicio);
+            if (dtFim) despesasBackup = despesasBackup.filter(d => d.dataIso <= dtFim);
 
             if (vendasBackup.length === 0 && despesasBackup.length === 0) {
                 mostrarToast("Nenhuma movimentação encontrada no período selecionado.", "bg-orange-500 text-white");
@@ -3982,15 +3972,11 @@
             csv += "TIPO;DADOS\n";
 
             vendasBackup.forEach(v => {
-                const registro = { ...v };
-                delete registro.__dataBackup;
-                csv += `VENDA;${encodeURIComponent(JSON.stringify(registro))}\n`;
+                csv += `VENDA;${encodeURIComponent(JSON.stringify(v))}\n`;
             });
 
             despesasBackup.forEach(d => {
-                const registro = { ...d };
-                delete registro.__dataBackup;
-                csv += `SANGRIA;${encodeURIComponent(JSON.stringify(registro))}\n`;
+                csv += `SANGRIA;${encodeURIComponent(JSON.stringify(d))}\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -6030,6 +6016,33 @@
         async function removerExcluidos(tabela, registros, slug, mapa) {
             const idCampo = campo(tabela,['id']);
             if (!idCampo) return;
+
+            // Lembretes não podem ser excluídos do Supabase apenas porque não
+            // existem no cache local. Isso acontecia quando outro dispositivo
+            // abria o sistema com localStorage vazio/desatualizado e fazia o
+            // sincronizador interpretar a ausência local como uma exclusão.
+            // Exclusões de lembretes são marcadas explicitamente pelo módulo.
+            if (tabela === 'lembretes') {
+                const chaveExcluidos = `lembretesSistemaCaixaExcluidos__${slug}`;
+                let excluidos = [];
+                try { excluidos = JSON.parse(localStorage.getItem(chaveExcluidos) || '[]'); } catch (_) { excluidos = []; }
+                const restantes = [];
+                for (const chave of excluidos) {
+                    const info = mapa[String(chave)];
+                    const dbId = info?.dbId;
+                    if (!dbId) continue;
+                    const { error } = await window.supabaseClient.from(tabela).delete().eq(idCampo, dbId);
+                    if (error) {
+                        console.warn(`Erro ao excluir ${tabela}:`, error);
+                        restantes.push(String(chave));
+                    } else {
+                        delete mapa[String(chave)];
+                    }
+                }
+                localStorage.setItem(chaveExcluidos, JSON.stringify(restantes));
+                return;
+            }
+
             const presentes = new Set(registros.map(r => String(r.id ?? assinatura(r))));
             const removidos = Object.keys(mapa).filter(k => !presentes.has(k));
             for (const chave of removidos) {
