@@ -229,6 +229,11 @@
             transition: transform .15s ease, filter .15s ease;
         }
         #modalSenhaPainelGeral .admin-geral-submit:hover { filter: brightness(.96); transform: translateY(-1px); }
+        #modalSenhaFinanceiro .admin-geral-card { width: min(430px, calc(100vw - 32px)); background: #111512; border: 1px solid rgba(255,255,255,.09); border-radius: 26px; box-shadow: 0 30px 90px rgba(0,0,0,.42); }
+        #modalSenhaFinanceiro .admin-geral-input { width: 100%; background: #0b0f0c; color: #fff; border: 1px solid #303a31; border-radius: 15px; padding: 14px 15px; outline: none; font-weight: 800; letter-spacing: .08em; }
+        #modalSenhaFinanceiro .admin-geral-input:focus { border-color: #baff18; box-shadow: 0 0 0 3px rgba(186,255,24,.10); }
+        #modalSenhaFinanceiro .admin-geral-submit { width: 100%; background: #baff18; color: #111512; border-radius: 15px; padding: 13px 16px; font-weight: 900; transition: transform .15s ease, filter .15s ease; }
+        #modalSenhaFinanceiro .admin-geral-submit:hover { filter: brightness(.96); transform: translateY(-1px); }
         @media (max-width: 767px) {
             #tela-geral-lojas .geral-tabs { grid-template-columns: repeat(2,minmax(0,1fr)); }
             #tela-geral-lojas .geral-hero { padding: 22px; border-radius: 24px; }
@@ -6999,7 +7004,7 @@
 
     function abrirSenhaFinanceiro(){
         if(document.getElementById('modalSenhaFinanceiro')) return;
-        document.body.insertAdjacentHTML('beforeend',`<div id="modalSenhaFinanceiro" class="fixed inset-0 z-[270] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        document.body.insertAdjacentHTML('beforeend',`<div id="modalSenhaFinanceiro" class="fixed inset-0 z-[240] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
             <div class="admin-geral-card p-6 md:p-7 relative">
                 <button type="button" onclick="document.getElementById('modalSenhaFinanceiro')?.remove()" aria-label="Fechar acesso ao financeiro" class="absolute top-4 right-4 w-9 h-9 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 flex items-center justify-center text-lg font-black">×</button>
                 <div class="w-12 h-12 rounded-2xl bg-[#baff18] text-[#111512] flex items-center justify-center font-black text-xl mb-5">⌁</div>
