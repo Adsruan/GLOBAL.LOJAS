@@ -3924,6 +3924,18 @@
             const daL = document.getElementById('dashAdminLiquido'); if(daL) daL.textContent = formataBRL(liquido);
             const daD = document.getElementById('dashAdminDigital'); if(daD) daD.textContent = formataBRL(sumPix + sumCartao);
 
+            // Resumo das formas de pagamento do dia selecionado.
+            // Os valores vêm de vendasFiltradas/detalhes, então vendas múltiplas
+            // também são distribuídas corretamente entre PIX, dinheiro, débito e crédito.
+            const pagamentoDinheiroEl = document.getElementById('dashPagamentoDinheiro');
+            const pagamentoPixEl = document.getElementById('dashPagamentoPix');
+            const pagamentoDebitoEl = document.getElementById('dashPagamentoDebito');
+            const pagamentoCreditoEl = document.getElementById('dashPagamentoCredito');
+            if (pagamentoDinheiroEl) pagamentoDinheiroEl.textContent = formataBRL(sumDinheiroBruto);
+            if (pagamentoPixEl) pagamentoPixEl.textContent = formataBRL(sumPix);
+            if (pagamentoDebitoEl) pagamentoDebitoEl.textContent = formataBRL(sumDebitoBruto);
+            if (pagamentoCreditoEl) pagamentoCreditoEl.textContent = formataBRL(sumCreditoBruto);
+
             const divLista = document.getElementById('listaVendasDashboard');
             if (feedMisto.length === 0) {
                 divLista.innerHTML = `<p class="text-sm md:text-base ${isDark ? 'text-gray-500 bg-[#161925] border-gray-800' : 'text-gray-400 bg-gray-50 border-gray-200'} italic text-center py-10 rounded-xl border">Nenhuma movimentação no dia.</p>`;
@@ -6852,15 +6864,6 @@
             if (!painelGeralAdminAutorizado) {
                 if (fatBox) fatBox.innerHTML = '';
                 if (sanBox) sanBox.innerHTML = '';
-                const pagamentoDinheiroEl = document.getElementById('dashPagamentoDinheiro');
-            const pagamentoPixEl = document.getElementById('dashPagamentoPix');
-            const pagamentoDebitoEl = document.getElementById('dashPagamentoDebito');
-            const pagamentoCreditoEl = document.getElementById('dashPagamentoCredito');
-            if (pagamentoDinheiroEl) pagamentoDinheiroEl.textContent = brl(sumDinheiroBruto);
-            if (pagamentoPixEl) pagamentoPixEl.textContent = brl(sumPix);
-            if (pagamentoDebitoEl) pagamentoDebitoEl.textContent = brl(sumDebitoBruto);
-            if (pagamentoCreditoEl) pagamentoCreditoEl.textContent = brl(sumCreditoBruto);
-
             const fatTotal = document.getElementById('geralFaturamentoTotal'); if (fatTotal) fatTotal.textContent = '••••••';
                 const sanTotal = document.getElementById('geralSangriasTotal'); if (sanTotal) sanTotal.textContent = '••••••';
                 const qtdEl = document.getElementById('geralQuantidadeVendas'); if (qtdEl) qtdEl.textContent = '••••';
