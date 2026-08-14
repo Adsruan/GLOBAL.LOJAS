@@ -633,7 +633,7 @@
                             <div>
                                 <p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Operação</p>
                                 <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white mt-1">Acesso às lojas</h2>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Escolha qual loja você deseja operar.</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Veja o movimento de hoje e o acumulado do mês antes de entrar em cada loja.</p>
                             </div>
                         </div>
                         <div id="listaAcessoLojas" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
@@ -1565,7 +1565,7 @@
                 <div class="flex flex-col md:flex-row md:justify-between md:items-end mb-6 md:mb-8 gap-4">
                     <div class="hidden md:block">
                         <h1 class="text-3xl font-bold text-gray-800 dark:text-white tracking-tight">Desempenho da Equipe</h1>
-                        <p class="text-gray-500 dark:text-gray-400 mt-1">Acompanhe as vendas por vendedor e emita relatórios detalhados.</p>
+                        <p class="text-gray-500 dark:text-gray-400 mt-1">Acompanhe o total vendido hoje e o acumulado do mês por vendedor.</p>
                     </div>
                     <div>
                         <button onclick="window.abrirModalRelatorioVendedor()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white font-bold py-3 px-6 rounded-xl transition-colors shadow-lg active:scale-95 flex items-center justify-center gap-2">
@@ -5359,47 +5359,127 @@
         };
 
         // RELATÓRIOS VENDEDOR E ADMIN
+        function obterDataIsoHojeLocal() {
+            const hoje = new Date();
+            return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+        }
+
+        function obterMesAtualIsoLocal() {
+            const hoje = new Date();
+            return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        function obterInicioMesIsoLocal() {
+            const hoje = new Date();
+            return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-01`;
+        }
+
+        function agendarAtualizacaoViradaDoDia() {
+            const agora = new Date();
+            const proximaVirada = new Date(agora);
+            proximaVirada.setHours(24, 0, 2, 0);
+            const atraso = Math.max(1000, proximaVirada.getTime() - agora.getTime());
+
+            setTimeout(() => {
+                const hojeIso = obterDataIsoHojeLocal();
+                const fatIni = document.getElementById('geralDataInicioFat');
+                const fatFim = document.getElementById('geralDataFimFat');
+                if (fatIni) fatIni.value = obterInicioMesIsoLocal();
+                if (fatFim) fatFim.value = hojeIso;
+
+                renderizarAcesso();
+                window.renderizarDashVendedores();
+                renderizarPainelGeralLocal();
+                agendarAtualizacaoViradaDoDia();
+            }, atraso);
+        }
+
         window.renderizarDashVendedores = () => {
             const container = document.getElementById('gridVendedoresRanking');
+            if (!container) return;
+
+            const hojeIso = obterDataIsoHojeLocal();
+            const mesAtual = obterMesAtualIsoLocal();
             const stats = {};
-            
+
+            // O ranking passa a ter como destaque o desempenho de HOJE.
+            // O mês continua disponível no mesmo card apenas como referência acumulada.
             todasVendasBanco.forEach(v => {
-                let nome = v.vendedor || 'Não informado';
-                if(!stats[nome]) { stats[nome] = { total: 0, qtd: 0, dinheiro: 0, pix: 0, cartoes: 0 }; }
-                stats[nome].total += v.total; stats[nome].qtd += v.qtd; 
-                
-                let formas = v.detalhes && v.detalhes.length > 0 ? v.detalhes : [{forma: v.formaPagamento, valor: v.total, tipoBase: v.formaPagamento.includes('Crédito') ? 'Crédito' : (v.formaPagamento.includes('Débito') ? 'Cartões' : v.formaPagamento)}];
+                const nome = v.vendedor || 'Não informado';
+                const dataVenda = String(v.dataIso || '');
+                if (!dataVenda.startsWith(mesAtual)) return;
+
+                if (!stats[nome]) {
+                    stats[nome] = {
+                        totalHoje: 0,
+                        qtdHoje: 0,
+                        dinheiroHoje: 0,
+                        pixHoje: 0,
+                        cartoesHoje: 0,
+                        totalMes: 0,
+                        qtdMes: 0
+                    };
+                }
+
+                const totalVenda = Number(v.total || 0);
+                const qtdVenda = Number(v.qtd || 0);
+                stats[nome].totalMes += totalVenda;
+                stats[nome].qtdMes += qtdVenda;
+
+                if (dataVenda !== hojeIso) return;
+
+                stats[nome].totalHoje += totalVenda;
+                stats[nome].qtdHoje += qtdVenda;
+
+                const formas = v.detalhes && v.detalhes.length > 0
+                    ? v.detalhes
+                    : [{
+                        forma: v.formaPagamento,
+                        valor: totalVenda,
+                        tipoBase: String(v.formaPagamento || '').includes('Crédito')
+                            ? 'Crédito'
+                            : (String(v.formaPagamento || '').includes('Débito') ? 'Cartões' : v.formaPagamento)
+                    }];
+
                 formas.forEach(p => {
-                    let b = p.tipoBase || p.forma;
-                    if(b.includes('Débito') || b.includes('Crédito') || b === 'Cartões') stats[nome].cartoes += p.valor;
-                    else if (b.includes('PIX')) stats[nome].pix += p.valor;
-                    else if (b.includes('Dinheiro')) stats[nome].dinheiro += p.valor;
+                    const b = p.tipoBase || p.forma || '';
+                    const valor = Number(p.valor || 0);
+                    if (b.includes('Débito') || b.includes('Crédito') || b === 'Cartões') stats[nome].cartoesHoje += valor;
+                    else if (b.includes('PIX')) stats[nome].pixHoje += valor;
+                    else if (b.includes('Dinheiro')) stats[nome].dinheiroHoje += valor;
                 });
             });
 
-            const arrayStats = Object.keys(stats).map(nome => ({ nome, ...stats[nome] })).sort((a, b) => b.total - a.total); 
-            if(arrayStats.length === 0) { container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500 dark:text-gray-400">Nenhum dado de venda encontrado.</div>`; return; }
+            const arrayStats = Object.keys(stats)
+                .map(nome => ({ nome, ...stats[nome] }))
+                .sort((a, b) => b.totalHoje - a.totalHoje || b.totalMes - a.totalMes);
+
+            if (arrayStats.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500 dark:text-gray-400">Nenhum dado de venda encontrado neste mês.</div>`;
+                return;
+            }
 
             container.innerHTML = arrayStats.map((s, index) => {
-                let rankColor = index === 0 ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30' : (index === 1 ? 'text-gray-400 bg-gray-200 dark:bg-gray-800' : (index === 2 ? 'text-orange-400 bg-orange-100 dark:bg-orange-900/30' : 'text-blue-600 bg-blue-100 dark:bg-blue-900/30'));
-                let rankBorder = index === 0 ? 'border-yellow-400' : (index === 1 ? 'border-gray-400' : (index === 2 ? 'border-orange-400' : 'border-transparent dark:border-gray-800'));
+                const rankColor = index === 0 ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30' : (index === 1 ? 'text-gray-400 bg-gray-200 dark:bg-gray-800' : (index === 2 ? 'text-orange-400 bg-orange-100 dark:bg-orange-900/30' : 'text-blue-600 bg-blue-100 dark:bg-blue-900/30'));
+                const rankBorder = index === 0 ? 'border-yellow-400' : (index === 1 ? 'border-gray-400' : (index === 2 ? 'border-orange-400' : 'border-transparent dark:border-gray-800'));
                 return `
                 <div class="bg-white dark:bg-[#161925] border-2 ${rankBorder} rounded-3xl p-6 shadow-sm md:shadow-lg flex flex-col gap-4 relative overflow-hidden transition-transform hover:scale-[1.02]">
                     ${index === 0 ? '<div class="absolute -right-6 -top-6 w-24 h-24 bg-yellow-400/20 rounded-full blur-2xl pointer-events-none"></div>' : ''}
                     <div class="flex justify-between items-start z-10">
                         <div>
                             <div class="flex items-center gap-2 mb-1"><span class="${rankColor} font-black text-xs px-2 py-1 rounded-lg">#${index + 1}</span><h3 class="font-bold text-gray-800 dark:text-gray-100 text-lg">${s.nome}</h3></div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">${s.qtd} produtos vendidos</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">${s.qtdHoje} produtos hoje <span class="mx-1 text-gray-300 dark:text-gray-700">•</span> ${s.qtdMes} no mês</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-bold mb-1">Total</p>
-                            <p class="text-xl font-black text-blue-600 dark:text-cyan-400">${formataBRL(s.total)}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-bold mb-1">Hoje</p>
+                            <p class="text-xl font-black text-blue-600 dark:text-cyan-400">${formataBRL(s.totalHoje)}</p>
+                            <p class="text-[10px] font-bold text-gray-400 dark:text-gray-500 mt-1">Mês: ${formataBRL(s.totalMes)}</p>
                         </div>
                     </div>
                     <div class="pt-4 border-t border-gray-100 dark:border-gray-800 flex justify-between text-xs font-medium z-10">
-                        <div class="flex flex-col gap-1 text-gray-600 dark:text-gray-300"><span class="text-green-600 dark:text-emerald-400">💵 Dinheiro</span> ${formataBRL(s.dinheiro)}</div>
-                        <div class="flex flex-col gap-1 text-gray-600 dark:text-gray-300"><span class="text-blue-500 dark:text-cyan-500">📱 PIX</span> ${formataBRL(s.pix)}</div>
-                        <div class="flex flex-col gap-1 text-gray-600 dark:text-gray-300"><span class="text-purple-500 dark:text-purple-400">💳 Cartões</span> ${formataBRL(s.cartoes)}</div>
+                        <div class="flex flex-col gap-1 text-gray-600 dark:text-gray-300"><span class="text-green-600 dark:text-emerald-400">💵 Dinheiro</span> ${formataBRL(s.dinheiroHoje)}</div>
+                        <div class="flex flex-col gap-1 text-gray-600 dark:text-gray-300"><span class="text-blue-500 dark:text-cyan-500">📱 PIX</span> ${formataBRL(s.pixHoje)}</div>
+                        <div class="flex flex-col gap-1 text-gray-600 dark:text-gray-300"><span class="text-purple-500 dark:text-purple-400">💳 Cartões</span> ${formataBRL(s.cartoesHoje)}</div>
                     </div>
                 </div>`;
             }).join('');
@@ -6604,14 +6684,36 @@
         function renderizarAcesso() {
             const box = document.getElementById('listaAcessoLojas');
             if (!box) return;
+            const hojeIso = obterDataIsoHojeLocal();
+            const mesAtual = obterMesAtualIsoLocal();
+
             box.innerHTML = LOJAS.map(loja => {
                 const vendas = carregarArrayLoja(BASES_LOCAIS.vendas, loja.slug);
                 const sangrias = carregarArrayLoja(BASES_LOCAIS.sangrias, loja.slug);
-                const faturamento = vendas.reduce((s,v) => s + Number(v.total || 0), 0);
-                const saidas = sangrias.reduce((s,d) => s + Number(d.valor || 0), 0);
+                const vendasHoje = vendas.filter(v => v.dataIso === hojeIso);
+                const sangriasHoje = sangrias.filter(d => d.dataIso === hojeIso);
+                const vendasMes = vendas.filter(v => String(v.dataIso || '').startsWith(mesAtual));
+                const sangriasMes = sangrias.filter(d => String(d.dataIso || '').startsWith(mesAtual));
+                const faturamentoHoje = vendasHoje.reduce((s,v) => s + Number(v.total || 0), 0);
+                const saidasHoje = sangriasHoje.reduce((s,d) => s + Number(d.valor || 0), 0);
+                const faturamentoMes = vendasMes.reduce((s,v) => s + Number(v.total || 0), 0);
+                const saidasMes = sangriasMes.reduce((s,d) => s + Number(d.valor || 0), 0);
+                const classeSensivel = painelGeralAdminAutorizado ? '' : 'geral-valor-borrado';
+
                 return `<button onclick="window.entrarNaLoja('${loja.slug}')" class="geral-shop-card group text-left">
                     <div class="flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[.16em] text-gray-400">Loja</p><h3 class="text-xl font-black text-gray-900 dark:text-white mt-1">${loja.nome}</h3></div><span class="w-10 h-10 rounded-full bg-[#baff18] text-[#111512] flex items-center justify-center text-base font-black transition-transform group-hover:translate-x-1">→</span></div>
-                    <div class="grid grid-cols-2 gap-3 mt-6"><div><p class="text-[10px] uppercase font-bold text-gray-400">Faturamento</p><p class="font-black text-gray-900 dark:text-white mt-1"><span class="geral-valor-sensivel ${painelGeralAdminAutorizado ? '' : 'geral-valor-borrado'}">${brl(faturamento)}</span></p></div><div><p class="text-[10px] uppercase font-bold text-gray-400">Sangrias</p><p class="font-black text-red-600 dark:text-red-400 mt-1"><span class="geral-valor-sensivel ${painelGeralAdminAutorizado ? '' : 'geral-valor-borrado'}">${brl(saidas)}</span></p></div></div>
+                    <div class="grid grid-cols-2 gap-3 mt-6">
+                        <div>
+                            <p class="text-[10px] uppercase font-bold text-gray-400">Faturamento hoje</p>
+                            <p class="font-black text-gray-900 dark:text-white mt-1"><span class="geral-valor-sensivel ${classeSensivel}">${brl(faturamentoHoje)}</span></p>
+                            <p class="text-[10px] text-gray-400 mt-1">Mês: <span class="geral-valor-sensivel ${classeSensivel}">${brl(faturamentoMes)}</span></p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] uppercase font-bold text-gray-400">Sangrias hoje</p>
+                            <p class="font-black text-red-600 dark:text-red-400 mt-1"><span class="geral-valor-sensivel ${classeSensivel}">${brl(saidasHoje)}</span></p>
+                            <p class="text-[10px] text-gray-400 mt-1">Mês: <span class="geral-valor-sensivel ${classeSensivel}">${brl(saidasMes)}</span></p>
+                        </div>
+                    </div>
                 </button>`;
             }).join('');
         }
@@ -6964,10 +7066,14 @@
             instalarExclusaoVendaSincronizada();
             const fatIni = document.getElementById('geralDataInicioFat'); const fatFim = document.getElementById('geralDataFimFat');
             const sanIni = document.getElementById('geralDataInicioSan'); const sanFim = document.getElementById('geralDataFimSan');
-            const hoje = new Date(); const iso = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${String(hoje.getDate()).padStart(2,'0')}`;
-            [fatIni,fatFim,sanIni,sanFim].forEach(el => { if (el) el.value = iso; });
+            const iso = obterDataIsoHojeLocal();
+            if (fatIni) fatIni.value = obterInicioMesIsoLocal();
+            if (fatFim) fatFim.value = iso;
+            if (sanIni) sanIni.value = iso;
+            if (sanFim) sanFim.value = iso;
             renderizarAcesso();
             renderizarPainelGeralLocal();
+            agendarAtualizacaoViradaDoDia();
             window.abrirModuloGeral('acesso');
             if (!painelGeralAdminAutorizado) setTimeout(() => window.abrirSenhaPainelGeral(), 140);
 
