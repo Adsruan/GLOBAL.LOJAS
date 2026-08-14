@@ -2134,7 +2134,7 @@
         window.verificarSenhaAdmin = (event) => {
             if (event && event.type === 'keydown' && event.key !== 'Enter') return;
             const senha = document.getElementById('inputSenhaAdmin').value;
-            if (senha === 'Ip4512$$' || senha === 'admin') { 
+            if (senha === '1234' || senha === 'admin') { 
                 window.fecharModalSenha();
                 window.abrirAdmin();
             } else {
@@ -6587,13 +6587,14 @@
             const lembretesRemotos = lLinhas.map(l => ({...lembreteDoDb(l), lojaSlug: slug}));
             const boletosRemotos = bLinhas.map(l => ({...boletoDoDb(l), lojaSlug: slug}));
 
-            // Supabase é a fonte de verdade para vendas/recebimentos depois da migração.
-            // Não fazemos merge com o localStorage aqui: um registro apagado em outro
+            // Supabase é a fonte de verdade para vendas/recebimentos/sangrias depois da migração.
+            // Não fazemos merge com o localStorage nessas coleções: um registro apagado em outro
             // dispositivo precisa desaparecer também deste aparelho, e não ser ressuscitado
             // por uma cópia local antiga.
             salvarArrayLoja(BASES_LOCAIS.vendas, slug, [...vendasRemotas, ...recebimentosRemotos]
                 .sort((a,b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)));
-            salvarArrayLoja(BASES_LOCAIS.sangrias, slug, mesclarRegistros(carregarArrayLoja(BASES_LOCAIS.sangrias, slug), sangriasRemotas));
+            salvarArrayLoja(BASES_LOCAIS.sangrias, slug, sangriasRemotas
+                .sort((a,b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)));
             salvarArrayLoja(BASES_LOCAIS.lembretes, slug, mesclarRegistros(carregarArrayLoja(BASES_LOCAIS.lembretes, slug), lembretesRemotos));
             salvarArrayLoja(BASES_LOCAIS.boletos, slug, mesclarRegistros(carregarArrayLoja(BASES_LOCAIS.boletos, slug), boletosRemotos));
         }
@@ -7103,6 +7104,92 @@
             };
         }
 
+        // Exclusão sincronizada de sangrias:
+        // espelha o fluxo já usado nas vendas e impede que uma sangria apagada
+        // reapareça ao atualizar a página ou ao receber dados do Supabase.
+        async function excluirSangriaDoSupabase(sangria, slug) {
+            if (!window.supabaseDisponivel || !window.supabaseClient || !COLUNAS.sangrias) return { remoto: false };
+
+            const lojaId = lojaIdPorSlug(slug);
+            if (!lojaId) throw new Error(`Loja sem id no Supabase: ${slug}`);
+
+            const idCampo = campo('sangrias', ['id']);
+            const lojaCampo = campo('sangrias', ['loja_id']);
+            const origemCampo = campo('sangrias', ['origem_id','local_id','id_local','legacy_id','legado_id']);
+            const chaveLocal = String(sangria?.id ?? assinatura(sangria || {}));
+            const mapa = carregarMapa('sangrias', slug);
+            let dbId = sangria?.supabaseId || mapa[chaveLocal]?.dbId || null;
+
+            // Em aparelhos que apenas baixaram a sangria, o mapa local pode não existir.
+            // Nesse caso localizamos a linha pelo id legado/origem + loja.
+            if (!dbId && origemCampo && sangria?.id != null) {
+                let consulta = window.supabaseClient.from('sangrias').select(idCampo || '*').eq(origemCampo, String(sangria.id));
+                if (lojaCampo && lojaId) consulta = consulta.eq(lojaCampo, lojaId);
+                const { data, error } = await consulta.limit(1);
+                if (error) throw error;
+                if (data?.length && idCampo) dbId = data[0][idCampo];
+            }
+
+            let exclusao;
+            if (dbId && idCampo) {
+                exclusao = window.supabaseClient.from('sangrias').delete().eq(idCampo, dbId);
+            } else if (origemCampo && sangria?.id != null) {
+                exclusao = window.supabaseClient.from('sangrias').delete().eq(origemCampo, String(sangria.id));
+                if (lojaCampo && lojaId) exclusao = exclusao.eq(lojaCampo, lojaId);
+            } else {
+                throw new Error('Não foi possível identificar a sangria no Supabase para exclusão.');
+            }
+
+            const { error } = await exclusao;
+            if (error) throw error;
+
+            delete mapa[chaveLocal];
+            salvarMapa('sangrias', slug, mapa);
+            return { remoto: true, dbId };
+        }
+
+        function instalarExclusaoSangriaSincronizada() {
+            window.apagarSangria = (idSangria) => {
+                const sangria = todasDespesasBanco.find(d => String(d.id) === String(idSangria));
+                if (!sangria) return;
+                const slug = window.lojaAtualSlug;
+
+                window.abrirModal(
+                    'Apagar Sangria?',
+                    'Tem certeza que deseja remover esta despesa/sangria? O saldo líquido, o Painel Geral e o banco de dados serão atualizados automaticamente.',
+                    async () => {
+                        todasDespesasBanco = todasDespesasBanco.filter(d => String(d.id) !== String(idSangria));
+
+                        // IMPORTANTE: grava também na chave exclusiva da loja.
+                        // Antes, a exclusão alterava apenas despesasSistemaCaixa e, ao recarregar,
+                        // carregarDadosLocaisDaLoja() restaurava a cópia antiga despesasSistemaCaixa__<loja>.
+                        salvarArrayLoja(BASES_LOCAIS.sangrias, slug, todasDespesasBanco);
+                        window.__ultimaMutacaoLocal = Date.now();
+
+                        filtrarEAtualizarDashboard();
+                        renderizarAcesso();
+                        renderizarPainelGeralLocal();
+
+                        try {
+                            if (window.supabaseDisponivel) {
+                                setStatusBanco('Banco: excluindo sangria', 'sync');
+                                await excluirSangriaDoSupabase(sangria, slug);
+                                // Mantém mapa/cache e os registros restantes consistentes.
+                                await sincronizarLoja(slug);
+                                setStatusBanco('Banco: sincronizado', 'ok');
+                            }
+                            mostrarToast('Sangria apagada do caixa, Painel Geral e banco de dados.', 'bg-gray-800 text-white');
+                        } catch (e) {
+                            const msg = formatarErroSupabase(e);
+                            console.error('Falha ao excluir sangria no Supabase:', e);
+                            setStatusBanco('Banco: erro ao excluir sangria', 'erro');
+                            mostrarToast(`Sangria removida localmente, mas o Supabase não confirmou a exclusão: ${msg}`.slice(0, 220), 'bg-red-600 text-white');
+                        }
+                    }
+                );
+            };
+        }
+
         window.alternarFundoPainelGeral = (modo) => {
             const painel = document.getElementById('tela-geral-lojas');
             if (!painel || !['preto','branco'].includes(modo)) return;
@@ -7126,6 +7213,7 @@
             aplicarContextoLoja(window.lojaAtualSlug);
             instalarObservadorLocalStorage();
             instalarExclusaoVendaSincronizada();
+            instalarExclusaoSangriaSincronizada();
             const fatIni = document.getElementById('geralDataInicioFat'); const fatFim = document.getElementById('geralDataFimFat');
             const sanIni = document.getElementById('geralDataInicioSan'); const sanFim = document.getElementById('geralDataFimSan');
             const iso = obterDataIsoHojeLocal();
