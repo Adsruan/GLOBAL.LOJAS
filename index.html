@@ -32,6 +32,12 @@
         }
         @layer components {
             .nav-btn { @apply flex flex-col items-center flex-1 py-3 transition-colors cursor-pointer select-none dark:text-gray-400; }
+        @media (max-width: 767px) {
+            nav .nav-btn { min-width: 72px; font-size: 10px; }
+            nav .nav-btn span { white-space: nowrap; }
+            nav > .flex.justify-around { overflow-x: auto; justify-content: flex-start; }
+        }
+
             .nav-btn svg { @apply mb-1 h-6 w-6 transition-transform; }
             .nav-btn.active { @apply text-blue-600 font-bold dark:text-cyan-400; }
             .nav-btn:not(.active) { @apply text-gray-400 font-medium hover:text-gray-600 dark:hover:text-gray-200; }
@@ -1016,6 +1022,16 @@
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                 <span>Equipe</span>
             </div>
+
+            <div onclick="window.mudarAba('orcamentos')" id="nav-orcamentos" class="nav-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m-7 4h8a2 2 0 002-2V6a2 2 0 00-2-2h-3.5A2.5 2.5 0 0010 2a2.5 2.5 0 00-2.5 2H4a2 2 0 00-2 2v14a2 2 0 002 2h1m0-16h10" /></svg>
+                <span>Orçamentos</span>
+            </div>
+
+            <div onclick="window.mudarAba('configLoja')" id="nav-configLoja" class="nav-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317a1 1 0 011.35 0l.9.9a1 1 0 001.6-.35l.36-1.1a1 1 0 011.91.62l-.36 1.1a1 1 0 001.1 1.3l1.1.36a1 1 0 01-.62 1.91l-1.1-.36a1 1 0 00-1.3 1.1l.36 1.1a1 1 0 01-1.91.62l-.36-1.1a1 1 0 00-1.6-.35l-.9.9a1 1 0 01-1.35 0l-.9-.9a1 1 0 00-1.6.35l-.36 1.1a1 1 0 01-1.91-.62l.36-1.1a1 1 0 00-1.1-1.3l-1.1-.36a1 1 0 01.62-1.91l1.1.36a1 1 0 001.3-1.1l-.36-1.1a1 1 0 011.91-.62l.36 1.1a1 1 0 001.6.35l.9-.9zM12 9a3 3 0 100 6 3 3 0 000-6z" /></svg>
+                <span>Config. Loja</span>
+            </div>
         </div>
 
         <div class="hidden md:flex items-center justify-center p-4 border-t border-gray-100 dark:border-gray-800">
@@ -1560,6 +1576,85 @@
                 </div>
 
                 <div id="gridVendedoresRanking" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+
+
+        <!-- TELA 2.6: ORÇAMENTOS -->
+        <div id="tela-orcamentos" class="fade-in hidden h-full flex flex-col bg-gray-100 dark:bg-[#0f111a] transition-colors duration-300">
+            <header class="md:hidden bg-gray-900 dark:bg-[#161925] text-white p-6 pb-6 rounded-b-3xl shadow-md z-10 relative flex-none border-b border-gray-800">
+                <h1 class="text-2xl font-bold text-center tracking-wide">Orçamentos</h1>
+                <p class="text-gray-300 dark:text-cyan-400 text-center text-sm mt-1 font-medium">Documentos comerciais profissionais da loja</p>
+            </header>
+            <div class="p-4 py-6 md:p-8 flex-1 w-full max-w-7xl mx-auto flex flex-col overflow-y-auto">
+                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Comercial</p>
+                        <h1 class="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Novo orçamento</h1>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Preencha o cliente e os itens. Os dados da loja são puxados automaticamente da configuração.</p>
+                    </div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button type="button" onclick="window.novoOrcamento()" class="px-4 py-3 rounded-xl bg-white dark:bg-[#161925] border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-200 font-bold text-sm">Novo</button>
+                        <button type="button" onclick="window.gerarOrcamentoPDF()" class="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white font-black text-sm shadow-lg active:scale-95">Gerar PDF</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                    <section class="xl:col-span-5 bg-white dark:bg-[#161925] rounded-3xl border border-gray-200 dark:border-gray-800 shadow-sm p-5 md:p-6">
+                        <div class="flex items-center justify-between gap-3 mb-5">
+                            <div><h2 class="text-xl font-black text-gray-900 dark:text-white">Dados do orçamento</h2><p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Campos vazios não impedem a emissão.</p></div>
+                            <span id="orcamentoLojaBadge" class="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-[#0f111a] text-gray-600 dark:text-gray-300 text-[10px] font-black uppercase">Loja</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="block sm:col-span-2"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Empresa / cliente solicitante</span><input id="orcClienteNome" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" placeholder="Nome da empresa ou cliente"></label>
+                            <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">CNPJ / CPF</span><input id="orcClienteDoc" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" placeholder="Opcional"></label>
+                            <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Telefone / WhatsApp</span><input id="orcClienteTelefone" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:bg-[#0f111a] dark:border-gray-700 dark:text-white" placeholder="Opcional"></label>
+                            <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Data</span><input id="orcData" type="date" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" style="color-scheme: light dark;"></label>
+                            <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Validade</span><input id="orcValidade" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" placeholder="Ex.: 10 dias"></label>
+                            <label class="block sm:col-span-2"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Observações / condições</span><textarea id="orcObservacoes" rows="3" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" placeholder="Prazo, condições comerciais, entrega, garantia..."></textarea></label>
+                        </div>
+                        <div class="mt-6 pt-5 border-t border-gray-100 dark:border-gray-800">
+                            <div class="flex items-center justify-between mb-4"><div><h3 class="font-black text-gray-900 dark:text-white">Itens</h3><p class="text-xs text-gray-500 dark:text-gray-400">Foto, descrição, quantidade e preço.</p></div><button type="button" onclick="window.adicionarItemOrcamento()" class="px-3 py-2 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black text-xs">+ Item</button></div>
+                            <div id="listaItensOrcamento" class="space-y-3"></div>
+                        </div>
+                    </section>
+                    <section class="xl:col-span-7 bg-gray-200/70 dark:bg-[#0b0d14] rounded-3xl border border-gray-200 dark:border-gray-800 p-3 md:p-5 shadow-inner">
+                        <div class="flex items-center justify-between gap-3 mb-3 px-1"><div><p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Pré-visualização</p><h2 class="text-xl font-black text-gray-900 dark:text-white">Documento</h2></div><span class="text-[10px] font-bold text-gray-500 dark:text-gray-400">A4 • pronto para PDF</span></div>
+                        <div id="orcamentoPreview" class="bg-white text-gray-900 rounded-2xl shadow-xl mx-auto max-w-[794px] min-h-[1123px] overflow-hidden"></div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- TELA 2.7: CONFIGURAÇÃO DA LOJA -->
+        <div id="tela-config-loja" class="fade-in hidden h-full flex flex-col bg-gray-100 dark:bg-[#0f111a] transition-colors duration-300">
+            <header class="md:hidden bg-gray-900 dark:bg-[#161925] text-white p-6 pb-6 rounded-b-3xl shadow-md z-10 relative flex-none border-b border-gray-800">
+                <h1 class="text-2xl font-bold text-center tracking-wide">Configuração da Loja</h1>
+                <p class="text-gray-300 dark:text-cyan-400 text-center text-sm mt-1 font-medium">Dados permanentes usados nos orçamentos</p>
+            </header>
+            <div class="p-4 py-6 md:p-8 flex-1 w-full max-w-5xl mx-auto flex flex-col overflow-y-auto">
+                <div class="mb-6"><p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Identidade comercial</p><h1 class="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Dados da loja</h1><p class="text-sm text-gray-500 dark:text-gray-400 mt-1">As informações ficam associadas à loja atual e são reutilizadas nos orçamentos.</p></div>
+                <section class="bg-white dark:bg-[#161925] rounded-3xl border border-gray-200 dark:border-gray-800 shadow-sm p-5 md:p-7">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="block md:col-span-2"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Nome / Razão Social</span><input id="cfgLojaNome" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white"></label>
+                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">CNPJ</span><input id="cfgLojaCnpj" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" placeholder="00.000.000/0000-00"></label>
+                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Inscrição Estadual</span><input id="cfgLojaIe" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" placeholder="Opcional"></label>
+                        <label class="block md:col-span-2"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Endereço</span><input id="cfgLojaEndereco" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" placeholder="Rua / Avenida"></label>
+                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Número</span><input id="cfgLojaNumero" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white"></label>
+                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Complemento</span><input id="cfgLojaComplemento" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white"></label>
+                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Bairro</span><input id="cfgLojaBairro" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white"></label>
+                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Cidade</span><input id="cfgLojaCidade" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white"></label>
+                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">UF</span><input id="cfgLojaUf" maxlength="2" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" placeholder="SC"></label>
+                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">CEP</span><input id="cfgLojaCep" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white"></label>
+                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Telefone / WhatsApp</span><input id="cfgLojaTelefone" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white"></label>
+                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">E-mail</span><input id="cfgLojaEmail" type="email" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white"></label>
+                        <label class="block md:col-span-2"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Logo da loja</span><input id="cfgLojaLogo" type="file" accept="image/*" class="w-full mt-1 p-3 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-gray-300"><span class="block text-[11px] text-gray-400 mt-1">Opcional. A logo será usada no cabeçalho dos orçamentos.</span></label>
+                    </div>
+                    <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                        <button type="button" onclick="window.salvarConfiguracaoLoja()" class="flex-1 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black py-3.5 rounded-xl active:scale-95">Salvar configuração da loja</button>
+                        <button type="button" onclick="window.abrirModuloAjudaOrcamentos?.()" class="px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-bold">Como usar</button>
+                    </div>
+                    <p id="cfgLojaStatus" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-3 hidden"></p>
+                </section>
             </div>
         </div>
 
@@ -2468,21 +2563,22 @@
             const tRec = document.getElementById('tela-recebimentos');
             const tDash = document.getElementById('tela-dashboard');
             const tVend = document.getElementById('tela-vendedores');
-            
+            const tOrc = document.getElementById('tela-orcamentos');
+            const tCfg = document.getElementById('tela-config-loja');
+
             const btnCaixa = document.getElementById('nav-caixa');
             const btnRec = document.getElementById('nav-recebimentos');
             const btnDash = document.getElementById('nav-dashboard');
             const btnVend = document.getElementById('nav-vendedores');
+            const btnOrc = document.getElementById('nav-orcamentos');
+            const btnCfg = document.getElementById('nav-configLoja');
 
-            tCaixa.classList.remove('flex', 'block'); tCaixa.classList.add('hidden');
-            tRec.classList.remove('flex', 'block'); tRec.classList.add('hidden');
-            tDash.classList.remove('flex', 'block'); tDash.classList.add('hidden');
-            tVend.classList.remove('flex', 'block'); tVend.classList.add('hidden');
-            
-            btnCaixa.classList.remove('active');
-            btnRec.classList.remove('active');
-            btnDash.classList.remove('active');
-            btnVend.classList.remove('active');
+            [tCaixa,tRec,tDash,tVend,tOrc,tCfg].forEach(t => {
+                if (!t) return;
+                t.classList.remove('flex','block');
+                t.classList.add('hidden');
+            });
+            [btnCaixa,btnRec,btnDash,btnVend,btnOrc,btnCfg].forEach(b => b?.classList.remove('active'));
 
             if (aba === 'caixa') {
                 tCaixa.classList.remove('hidden'); tCaixa.classList.add('flex');
@@ -2499,6 +2595,14 @@
                 tVend.classList.remove('hidden'); tVend.classList.add('flex');
                 btnVend.classList.add('active');
                 window.renderizarDashVendedores();
+            } else if (aba === 'orcamentos') {
+                tOrc?.classList.remove('hidden'); tOrc?.classList.add('flex');
+                btnOrc?.classList.add('active');
+                window.inicializarModuloOrcamentos?.();
+            } else if (aba === 'configLoja') {
+                tCfg?.classList.remove('hidden'); tCfg?.classList.add('flex');
+                btnCfg?.classList.add('active');
+                window.carregarConfiguracaoLoja?.();
             }
         };
 
@@ -2884,6 +2988,7 @@
             };
 
             todasVendasBanco.unshift(novaVenda);
+            window.__ultimaMutacaoLocal = Date.now();
             localStorage.setItem('vendasSistemaCaixa', JSON.stringify(todasVendasBanco));
             mostrarToast("Venda registrada!", "bg-green-600 text-white");
 
@@ -2984,22 +3089,10 @@
             localStorage.setItem('lembretesSistemaCaixa', dados);
         };
 
-        window.sincronizarLembretesAgora = async () => {
-            const slug = window.lojaAtualSlug;
-            if (!slug || !window.supabaseDisponivel || typeof sincronizarColecao !== 'function') return;
-            try {
-                const registros = carregarArrayLoja(BASES_LOCAIS.lembretes, slug)
-                    .map(l => ({ ...l, lojaSlug: l.lojaSlug || slug }));
-                await sincronizarColecao('lembretes', registros, slug);
-            } catch (e) {
-                console.warn('Falha ao sincronizar lembretes:', e);
-            }
-        };
-
         window.adicionarLembrete = () => {
             const cliente = document.getElementById('lemCliente').value.trim();
             const produto = document.getElementById('lemProduto').value.trim();
-            const telefone = document.getElementById('lemTelefone').value.trim();
+            const telefone = document.getElementById('lemTelefone')?.value.trim() || '';
             const valorInput = document.getElementById('lemValor');
             const valor = parseFloat(valorInput.dataset.rawValue || 0);
             const dataVencimento = document.getElementById('lemData').value;
@@ -3036,11 +3129,10 @@
 
             todosLembretesBanco.unshift(novoLembrete);
             window.salvarLembretesLocal();
-            window.sincronizarLembretesAgora();
 
             document.getElementById('lemCliente').value = '';
             document.getElementById('lemProduto').value = '';
-            document.getElementById('lemTelefone').value = '';
+            if (document.getElementById('lemTelefone')) document.getElementById('lemTelefone').value = '';
             valorInput.value = '';
             valorInput.dataset.rawValue = 0;
             document.getElementById('lemData').value = '';
@@ -3052,33 +3144,22 @@
         window.abrirWhatsAppLembrete = (id) => {
             const lembrete = todosLembretesBanco.find(l => String(l.id) === String(id));
             if (!lembrete) return;
-
-            const telefoneBruto = String(lembrete.telefone || '').trim();
-            const digits = telefoneBruto.replace(/\D/g, '');
-
+            const digits = String(lembrete.telefone || '').replace(/\D/g, '');
             if (!digits) {
-                mostrarToast("Este cliente não possui WhatsApp cadastrado.", "bg-orange-500 text-white");
+                mostrarToast('Este cliente não possui WhatsApp cadastrado.', 'bg-orange-500 text-white');
                 return;
             }
-
             let numero = digits;
-            if (numero.length === 10 || numero.length === 11) {
-                numero = `55${numero}`;
-            }
-
+            if (numero.length === 10 || numero.length === 11) numero = `55${numero}`;
             if (!/^55\d{10,11}$/.test(numero)) {
-                mostrarToast("O número de WhatsApp cadastrado é inválido.", "bg-orange-500 text-white");
+                mostrarToast('O número de WhatsApp cadastrado é inválido.', 'bg-orange-500 text-white');
                 return;
             }
-
             const nome = String(lembrete.cliente || 'cliente').trim();
             const valor = formataBRL(Number(lembrete.valor || 0));
             const vencimento = lembrete.dataVencimento ? formatarDataIsoBr(lembrete.dataVencimento) : 'a data combinada';
-
             const mensagem = `Olá, ${nome}! Tudo bem? Estou entrando em contato para lembrar que ficou pendente o pagamento de ${valor}, com vencimento em ${vencimento}. Se precisar de alguma informação, estou à disposição.`;
-
-            const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
-            window.open(url, '_blank', 'noopener,noreferrer');
+            window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`, '_blank', 'noopener,noreferrer');
         };
 
         window.concluirLembrete = (id) => {
@@ -3088,7 +3169,6 @@
             todosLembretesBanco[indice].status = 'concluido';
             todosLembretesBanco[indice].concluidoEm = new Date().toISOString();
             window.salvarLembretesLocal();
-            window.sincronizarLembretesAgora();
             window.atualizarLembretes();
             mostrarToast("Lembrete marcado como resolvido!", "bg-green-600 text-white");
         };
@@ -3101,15 +3181,8 @@
                 'Excluir lembrete?',
                 `O lembrete de ${lembrete.cliente} será removido.`,
                 () => {
-                    const slug = window.lojaAtualSlug || 'real_papelaria';
-                    const chaveExcluidos = `lembretesSistemaCaixaExcluidos__${slug}`;
-                    let excluidos = [];
-                    try { excluidos = JSON.parse(localStorage.getItem(chaveExcluidos) || '[]'); } catch (_) { excluidos = []; }
-                    if (!excluidos.some(x => String(x) === String(id))) excluidos.push(String(id));
-                    localStorage.setItem(chaveExcluidos, JSON.stringify(excluidos));
                     todosLembretesBanco = todosLembretesBanco.filter(l => String(l.id) !== String(id));
                     window.salvarLembretesLocal();
-                    window.sincronizarLembretesAgora();
                     window.atualizarLembretes();
                     mostrarToast("Lembrete excluído.", "bg-red-600 text-white");
                 }
@@ -3311,7 +3384,6 @@
                                     <div class="min-w-0">
                                         <p class="font-black text-gray-900 dark:text-white truncate">${escaparHtmlLembrete(lembrete.cliente)}</p>
                                         <p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">${escaparHtmlLembrete(lembrete.produto)}</p>
-                                        ${lembrete.telefone ? `<p class="text-[10px] text-green-600 dark:text-green-400 truncate mt-0.5">${escaparHtmlLembrete(lembrete.telefone)}</p>` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -3331,9 +3403,9 @@
                                 <span class="${classesStatus} inline-flex items-center border text-[9px] font-black uppercase tracking-normal px-2 py-1 rounded-full whitespace-nowrap">${statusTexto}</span>
                             </div>
 
-                            <div class="md:col-span-3 flex flex-wrap md:flex-nowrap items-center md:justify-end gap-3 md:pl-4">
+                            <div class="md:col-span-3 flex flex-wrap md:flex-nowrap items-center md:justify-end gap-2 md:pl-4">
                                 ${lembrete.telefone ? `
-                                    <button onclick="window.abrirWhatsAppLembrete(${JSON.stringify(lembrete.id)})" class="shrink-0 min-w-[86px] bg-green-600 hover:bg-green-700 text-white font-bold text-xs px-4 py-2.5 rounded-lg active:scale-95 transition-all" title="Abrir WhatsApp do cliente">
+                                    <button onclick="window.abrirWhatsAppLembrete(${JSON.stringify(lembrete.id)})" class="shrink-0 min-w-[92px] bg-green-600 hover:bg-green-700 text-white font-bold text-xs px-3 py-2.5 rounded-lg active:scale-95 transition-all" title="Abrir WhatsApp do cliente">
                                         WhatsApp
                                     </button>
                                 ` : ''}
@@ -3722,8 +3794,8 @@
                         badgesHtml = `<span class="${isDark ? 'text-gray-300 bg-[#0f111a] border-gray-800' : 'text-gray-600 bg-gray-100 border-gray-200'} text-xs md:text-sm font-medium border px-3 py-2 rounded-lg flex items-center gap-2 shadow-inner max-w-[180px] md:max-w-xs overflow-hidden" title="${v.formaPagamento}"><span class="text-base flex-shrink-0">${ic}</span> <span class="hidden md:block truncate">${v.formaPagamento}</span></span>`;
                     }
 
-                    let corBarra = isMultiplo ? (isDark ? 'bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.8)]' : 'bg-orange-500') : (v.formaPagamento.includes('Dinheiro') ? (isDark ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-green-500') : (v.formaPagamento.includes('PIX') ? (isDark ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'bg-blue-500') : (isDark ? 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]' : 'bg-purple-600')));
-                    let corBgItem = isDark ? 'bg-[#1c2033] hover:bg-[#23283f] border-gray-800' : 'bg-white hover:bg-gray-50 border-gray-200';
+                    let corBarra = isMultiplo ? (isDark ? 'bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.8)]' : 'bg-orange-500') : (v.formaPagamento.includes('Dinheiro') ? (isDark ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-green-500') : (v.formaPagamento.includes('PIX') ? (isDark ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'bg-blue-500') : (isDark ? 'bg-[#baff18] shadow-[0_0_8px_rgba(186,255,24,0.45)]' : 'bg-[#8bb81c]')));
+                    let corBgItem = isDark ? 'bg-[#161925] hover:bg-[#1c201b] border-gray-800' : 'bg-white hover:bg-gray-50 border-gray-200';
                     
                     return `
                     <div class="shrink-0 text-sm ${corBgItem} transition-colors border rounded-xl p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden group">
@@ -3804,7 +3876,7 @@
 
             const divLista = document.getElementById('listaVendasDashboard');
             if (feedMisto.length === 0) {
-                divLista.innerHTML = `<p class="text-sm md:text-base ${isDark ? 'text-gray-500 bg-[#1c2033] border-gray-800' : 'text-gray-400 bg-gray-50 border-gray-200'} italic text-center py-10 rounded-xl border">Nenhuma movimentação no dia.</p>`;
+                divLista.innerHTML = `<p class="text-sm md:text-base ${isDark ? 'text-gray-500 bg-[#161925] border-gray-800' : 'text-gray-400 bg-gray-50 border-gray-200'} italic text-center py-10 rounded-xl border">Nenhuma movimentação no dia.</p>`;
             } else {
                 divLista.innerHTML = htmlLista;
             }
@@ -5607,6 +5679,7 @@
         const TABELAS_SYNC = ['vendas', 'venda_itens', 'sangrias', 'recebimentos', 'lembretes', 'boletos'];
         const COLUNAS = {};
         const LOJAS_DB = new Map();
+        window.LOJAS_DB = LOJAS_DB;
         let bloqueioPersistencia = false;
         let timerSync = null;
         let syncEmAndamento = false;
@@ -6063,33 +6136,6 @@
         async function removerExcluidos(tabela, registros, slug, mapa) {
             const idCampo = campo(tabela,['id']);
             if (!idCampo) return;
-
-            // Lembretes não podem ser excluídos do Supabase apenas porque não
-            // existem no cache local. Isso acontecia quando outro dispositivo
-            // abria o sistema com localStorage vazio/desatualizado e fazia o
-            // sincronizador interpretar a ausência local como uma exclusão.
-            // Exclusões de lembretes são marcadas explicitamente pelo módulo.
-            if (tabela === 'lembretes') {
-                const chaveExcluidos = `lembretesSistemaCaixaExcluidos__${slug}`;
-                let excluidos = [];
-                try { excluidos = JSON.parse(localStorage.getItem(chaveExcluidos) || '[]'); } catch (_) { excluidos = []; }
-                const restantes = [];
-                for (const chave of excluidos) {
-                    const info = mapa[String(chave)];
-                    const dbId = info?.dbId;
-                    if (!dbId) continue;
-                    const { error } = await window.supabaseClient.from(tabela).delete().eq(idCampo, dbId);
-                    if (error) {
-                        console.warn(`Erro ao excluir ${tabela}:`, error);
-                        restantes.push(String(chave));
-                    } else {
-                        delete mapa[String(chave)];
-                    }
-                }
-                localStorage.setItem(chaveExcluidos, JSON.stringify(restantes));
-                return;
-            }
-
             const presentes = new Set(registros.map(r => String(r.id ?? assinatura(r))));
             const removidos = Object.keys(mapa).filter(k => !presentes.has(k));
             for (const chave of removidos) {
@@ -6437,6 +6483,15 @@
 
         async function aplicarAtualizacaoRemota(slug = null) {
             if (!window.supabaseDisponivel || !window.supabaseClient) return;
+
+            // Evita que uma atualização remota sobrescreva uma venda recém-lançada
+            // antes de a sincronização local terminar.
+            const ultimaMutacao = Number(window.__ultimaMutacaoLocal || 0);
+            if (ultimaMutacao && (Date.now() - ultimaMutacao) < 3000) {
+                agendarAtualizacaoRemota(slug, 900);
+                return;
+            }
+
             if (atualizacaoRemotaEmAndamento || window.sincronizandoSupabase) {
                 agendarAtualizacaoRemota(slug, 500);
                 return;
@@ -6932,6 +6987,192 @@
 
 <script>
 (() => {
+    const CONFIG_LOJA_PREFIX = 'configLojaOrcamento__';
+    let orcamentoItens = [];
+    let logoConfigPendente = null;
+    let orcamentoNumeroAtual = '';
+
+    const hojeIsoOrc = () => {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    };
+    const escOrc = v => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const brlOrc = v => Number(v || 0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    const dataBrOrc = iso => iso ? new Date(`${iso}T12:00:00`).toLocaleDateString('pt-BR') : '';
+    const lojaAtualOrc = () => (window.LOJAS_SISTEMA || []).find(l => l.slug === window.lojaAtualSlug) || (window.LOJAS_SISTEMA || [])[0] || {};
+    const configKeyOrc = () => `${CONFIG_LOJA_PREFIX}${window.lojaAtualSlug || 'real_papelaria'}`;
+
+    function configLojaPadraoOrc() {
+        const loja = lojaAtualOrc();
+        return { nome: loja.nome || '', cnpj:'', ie:'', endereco:'', numero:'', complemento:'', bairro:'', cidade:'', uf:'', cep:'', telefone:'', email:'', logo:'' };
+    }
+    function lerConfigLojaLocal() {
+        try {
+            const salvo = JSON.parse(localStorage.getItem(configKeyOrc()) || 'null');
+            return { ...configLojaPadraoOrc(), ...(salvo || {}) };
+        } catch { return configLojaPadraoOrc(); }
+    }
+    function salvarConfigLojaLocal(config) { localStorage.setItem(configKeyOrc(), JSON.stringify(config)); }
+
+    function detectarCampoPayloadLoja(remoto) {
+        return ['payload','dados','configuracao','config','metadata','meta'].find(c => remoto && Object.prototype.hasOwnProperty.call(remoto,c)) || null;
+    }
+    async function salvarConfigLojaRemota(config) {
+        try {
+            if (!window.supabaseDisponivel || !window.supabaseClient) return;
+            const remoto = window.LOJAS_DB?.get?.(window.lojaAtualSlug);
+            if (!remoto?.id) return;
+            const campo = detectarCampoPayloadLoja(remoto);
+            if (!campo) return;
+            const valorAtual = remoto[campo];
+            const payload = typeof valorAtual === 'object' && valorAtual !== null ? { ...valorAtual, orcamento_config: config } : JSON.stringify({ ...(JSON.parse(valorAtual || '{}') || {}), orcamento_config: config });
+            const { data, error } = await window.supabaseClient.from('lojas').update({ [campo]: payload }).eq('id', remoto.id).select('*').maybeSingle();
+            if (error) throw error;
+            if (data) window.LOJAS_DB?.set?.(window.lojaAtualSlug, data);
+        } catch (e) { console.warn('Configuração da loja mantida localmente; sincronização remota indisponível:', e); }
+    }
+    async function carregarConfigLojaRemota() {
+        try {
+            const remoto = window.LOJAS_DB?.get?.(window.lojaAtualSlug);
+            if (!remoto) return null;
+            const campo = detectarCampoPayloadLoja(remoto);
+            if (!campo || !remoto[campo]) return null;
+            const raw = remoto[campo];
+            const obj = typeof raw === 'object' ? raw : JSON.parse(raw);
+            return obj?.orcamento_config || null;
+        } catch { return null; }
+    }
+    function preencherCampo(id, valor) { const el=document.getElementById(id); if(el) el.value=valor ?? ''; }
+
+    window.carregarConfiguracaoLoja = async () => {
+        const base = lerConfigLojaLocal();
+        const remoto = await carregarConfigLojaRemota();
+        const cfg = { ...base, ...(remoto || {}) };
+        ['nome','cnpj','ie','endereco','numero','complemento','bairro','cidade','uf','cep','telefone','email'].forEach(k => preencherCampo(`cfgLoja${k.charAt(0).toUpperCase()+k.slice(1)}`, cfg[k]));
+        logoConfigPendente = cfg.logo || '';
+        const input=document.getElementById('cfgLojaLogo'); if(input) input.value='';
+        const status=document.getElementById('cfgLojaStatus');
+        if(status){ status.textContent = cfg.logo ? 'Logo cadastrada.' : 'Preencha os dados e salve a configuração.'; status.classList.remove('hidden'); }
+    };
+
+    function lerConfigDoForm() {
+        const get=id=>document.getElementById(id)?.value.trim()||'';
+        return { nome:get('cfgLojaNome'), cnpj:get('cfgLojaCnpj'), ie:get('cfgLojaIe'), endereco:get('cfgLojaEndereco'), numero:get('cfgLojaNumero'), complemento:get('cfgLojaComplemento'), bairro:get('cfgLojaBairro'), cidade:get('cfgLojaCidade'), uf:get('cfgLojaUf').toUpperCase(), cep:get('cfgLojaCep'), telefone:get('cfgLojaTelefone'), email:get('cfgLojaEmail'), logo: logoConfigPendente ?? lerConfigLojaLocal().logo ?? '' };
+    }
+
+    window.salvarConfiguracaoLoja = async () => {
+        const cfg=lerConfigDoForm();
+        salvarConfigLojaLocal(cfg);
+        await salvarConfigLojaRemota(cfg);
+        const status=document.getElementById('cfgLojaStatus');
+        if(status){status.textContent='Configuração salva para esta loja.';status.classList.remove('hidden');}
+        window.mostrarToast?.('Configuração da loja salva.', 'bg-emerald-600 text-white');
+    };
+
+    document.addEventListener('change', e => {
+        if(e.target?.id!=='cfgLojaLogo') return;
+        const file=e.target.files?.[0]; if(!file) return;
+        if(!file.type.startsWith('image/')){window.mostrarToast?.('Selecione uma imagem válida.','bg-red-600 text-white');return;}
+        const reader=new FileReader();
+        reader.onload=()=>{logoConfigPendente=String(reader.result||'');const s=document.getElementById('cfgLojaStatus');if(s){s.textContent='Logo carregada. Clique em salvar configuração da loja.';s.classList.remove('hidden');}};
+        reader.readAsDataURL(file);
+    });
+
+    function novoItemOrcamento(){return{id:`item-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,foto:'',descricao:'',detalhe:'',qtd:1,unitario:0};}
+    window.adicionarItemOrcamento=()=>{orcamentoItens.push(novoItemOrcamento());renderizarItensOrcamento();};
+    window.removerItemOrcamento=id=>{orcamentoItens=orcamentoItens.filter(i=>i.id!==id);renderizarItensOrcamento();};
+    window.atualizarItemOrcamento=(id,campo,valor)=>{const i=orcamentoItens.find(x=>x.id===id);if(!i)return;i[campo]=(campo==='qtd'||campo==='unitario')?Number(valor||0):valor;atualizarPreviewOrcamento();};
+    window.carregarFotoItemOrcamento=(id,input)=>{
+        const file=input.files?.[0];if(!file||!file.type.startsWith('image/'))return;
+        const reader=new FileReader();reader.onload=()=>{const i=orcamentoItens.find(x=>x.id===id);if(!i)return;i.foto=String(reader.result||'');renderizarItensOrcamento();};reader.readAsDataURL(file);
+    };
+
+    function renderizarItensOrcamento(){
+        const lista=document.getElementById('listaItensOrcamento');if(!lista)return;
+        if(!orcamentoItens.length){lista.innerHTML='<div class="p-4 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 text-center text-xs text-gray-400">Nenhum item adicionado. Clique em + Item.</div>';atualizarPreviewOrcamento();return;}
+        lista.innerHTML=orcamentoItens.map((item,idx)=>`
+            <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] p-3">
+                <div class="flex items-center justify-between gap-2 mb-3"><span class="text-xs font-black text-gray-700 dark:text-gray-200">Item ${idx+1}</span><button type="button" onclick="window.removerItemOrcamento('${item.id}')" class="text-red-600 text-xs font-black">Remover</button></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input type="file" accept="image/*" onchange="window.carregarFotoItemOrcamento('${item.id}',this)" class="sm:col-span-2 w-full p-2.5 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 text-xs dark:text-gray-300">
+                    <input value="${escOrc(item.descricao)}" oninput="window.atualizarItemOrcamento('${item.id}','descricao',this.value)" class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#161925] text-sm dark:text-white" placeholder="Descrição do produto / serviço">
+                    <input value="${escOrc(item.detalhe)}" oninput="window.atualizarItemOrcamento('${item.id}','detalhe',this.value)" class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#161925] text-sm dark:text-white" placeholder="Detalhe / especificação">
+                    <input type="number" min="0" step="0.01" value="${Number(item.qtd||1)}" oninput="window.atualizarItemOrcamento('${item.id}','qtd',this.value)" class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#161925] text-sm dark:text-white" placeholder="Qtd.">
+                    <input type="number" min="0" step="0.01" value="${Number(item.unitario||0)}" oninput="window.atualizarItemOrcamento('${item.id}','unitario',this.value)" class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#161925] text-sm dark:text-white" placeholder="Preço unitário">
+                </div>
+                ${item.foto?`<img src="${item.foto}" class="mt-2 w-20 h-20 object-cover rounded-xl border border-gray-200 dark:border-gray-700">`:''}
+            </div>`).join('');
+        atualizarPreviewOrcamento();
+    }
+
+    function coletarDadosOrcamento(){
+        const cfg=lerConfigLojaLocal(), get=id=>document.getElementById(id)?.value.trim()||'';
+        return {cfg,cliente:get('orcClienteNome'),doc:get('orcClienteDoc'),tel:get('orcClienteTelefone'),data:document.getElementById('orcData')?.value||hojeIsoOrc(),validade:get('orcValidade'),observacoes:get('orcObservacoes'),itens:orcamentoItens.slice()};
+    }
+    function numeroOrcamento(){if(orcamentoNumeroAtual)return orcamentoNumeroAtual;const d=new Date();orcamentoNumeroAtual=`ORC-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;return orcamentoNumeroAtual;}
+
+    function montarHtmlOrcamento(d){
+        const {cfg,cliente,doc,tel,data,validade,observacoes,itens}=d;
+        const total=itens.reduce((s,i)=>s+Number(i.qtd||0)*Number(i.unitario||0),0);
+        const endereco=[cfg.endereco,cfg.numero].filter(Boolean).join(', ')+(cfg.complemento?` • ${cfg.complemento}`:'');
+        const local=[cfg.bairro,cfg.cidade,cfg.uf].filter(Boolean).join(' • ');
+        const contato=[cfg.telefone,cfg.email].filter(Boolean).join(' • ');
+        const linhas=itens.length?itens.map(i=>`<tr><td style="padding:10px;border-bottom:1px solid #e5e7eb;width:64px;">${i.foto?`<img src="${i.foto}" style="width:52px;height:52px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;">`:'<div style="width:52px;height:52px;border-radius:8px;background:#f3f4f6;"></div>'}</td><td style="padding:10px;border-bottom:1px solid #e5e7eb;"><b>${escOrc(i.descricao||'Item não informado')}</b>${i.detalhe?`<div style="font-size:10px;color:#6b7280;margin-top:3px;">${escOrc(i.detalhe)}</div>`:''}</td><td style="padding:10px;border-bottom:1px solid #e5e7eb;text-align:center;">${Number(i.qtd||0).toLocaleString('pt-BR')}</td><td style="padding:10px;border-bottom:1px solid #e5e7eb;text-align:right;">${brlOrc(i.unitario)}</td><td style="padding:10px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:800;">${brlOrc(Number(i.qtd||0)*Number(i.unitario||0))}</td></tr>`).join(''):'<tr><td colspan="5" style="padding:22px;text-align:center;color:#9ca3af;">Nenhum item informado.</td></tr>';
+        return `<div style="font-family:Arial,Helvetica,sans-serif;color:#111827;background:#fff;width:100%;min-height:1123px;padding:46px 48px;box-sizing:border-box;">
+            <div style="display:flex;justify-content:space-between;gap:30px;border-bottom:3px solid #111827;padding-bottom:22px;">
+                <div style="display:flex;gap:16px;align-items:center;">${cfg.logo?`<img src="${cfg.logo}" style="width:78px;height:78px;object-fit:contain;border-radius:10px;">`:''}<div>
+                    <div style="font-size:25px;font-weight:900;letter-spacing:-.03em;">${escOrc(cfg.nome||lojaAtualOrc().nome||'LOJA')}</div>
+                    <div style="font-size:10px;color:#4b5563;margin-top:6px;line-height:1.55;">${escOrc(cfg.cnpj?`CNPJ ${cfg.cnpj}`:'')}${cfg.ie?` • IE ${escOrc(cfg.ie)}`:''}</div>
+                    ${endereco?`<div style="font-size:10px;color:#4b5563;margin-top:2px;">${escOrc(endereco)}</div>`:''}
+                    ${local?`<div style="font-size:10px;color:#4b5563;margin-top:2px;">${escOrc(local)}${cfg.cep?` • CEP ${escOrc(cfg.cep)}`:''}</div>`:''}
+                    ${contato?`<div style="font-size:10px;color:#4b5563;margin-top:2px;">${escOrc(contato)}</div>`:''}
+                </div></div>
+                <div style="text-align:right;min-width:160px;"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.14em;font-weight:800;">Orçamento</div><div style="font-size:22px;font-weight:900;margin-top:4px;">${escOrc(numeroOrcamento())}</div><div style="font-size:11px;color:#6b7280;margin-top:6px;">Data: ${escOrc(dataBrOrc(data)||'—')}</div>${validade?`<div style="font-size:11px;color:#6b7280;margin-top:2px;">Validade: ${escOrc(validade)}</div>`:''}</div>
+            </div>
+            <div style="margin-top:28px;padding:16px 18px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#6b7280;font-weight:800;">Solicitante</div><div style="font-size:16px;font-weight:900;margin-top:5px;">${escOrc(cliente||'Cliente não informado')}</div>${doc?`<div style="font-size:10px;color:#4b5563;margin-top:4px;">Documento: ${escOrc(doc)}</div>`:''}${tel?`<div style="font-size:10px;color:#4b5563;margin-top:2px;">Contato: ${escOrc(tel)}</div>`:''}</div>
+            <div style="margin-top:26px;"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:#6b7280;font-weight:800;margin-bottom:8px;">Itens e condições comerciais</div><table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="background:#111827;color:#fff;"><th style="padding:10px;text-align:left;width:64px;">Foto</th><th style="padding:10px;text-align:left;">Descrição</th><th style="padding:10px;text-align:center;">Qtd.</th><th style="padding:10px;text-align:right;">Unitário</th><th style="padding:10px;text-align:right;">Total</th></tr></thead><tbody>${linhas}</tbody></table></div>
+            <div style="display:flex;justify-content:flex-end;margin-top:18px;"><div style="width:250px;padding:16px 18px;border-radius:12px;background:#111827;color:#fff;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.14em;opacity:.7;">Valor total</div><div style="font-size:25px;font-weight:900;margin-top:4px;">${brlOrc(total)}</div></div></div>
+            ${observacoes?`<div style="margin-top:26px;padding-top:16px;border-top:1px solid #e5e7eb;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#6b7280;font-weight:800;">Observações</div><div style="font-size:10px;color:#374151;white-space:pre-line;line-height:1.6;margin-top:6px;">${escOrc(observacoes)}</div></div>`:''}
+            <div style="margin-top:54px;border-top:1px solid #e5e7eb;padding-top:12px;display:flex;justify-content:space-between;gap:20px;font-size:9px;color:#9ca3af;"><span>Documento comercial — não substitui documento fiscal.</span><span>${escOrc(cfg.nome||lojaAtualOrc().nome||'')}</span></div>
+        </div>`;
+    }
+
+    function atualizarPreviewOrcamento(){const p=document.getElementById('orcamentoPreview');if(!p)return;p.innerHTML=montarHtmlOrcamento(coletarDadosOrcamento());}
+    window.atualizarPreviewOrcamento=atualizarPreviewOrcamento;
+
+    window.inicializarModuloOrcamentos=()=>{
+        const cfg=lerConfigLojaLocal(), badge=document.getElementById('orcamentoLojaBadge');
+        if(badge)badge.textContent=cfg.nome||lojaAtualOrc().nome||'Loja';
+        if(!document.getElementById('orcData')?.value)document.getElementById('orcData').value=hojeIsoOrc();
+        if(!orcamentoItens.length)orcamentoItens=[novoItemOrcamento()];
+        renderizarItensOrcamento();
+        ['orcClienteNome','orcClienteDoc','orcClienteTelefone','orcValidade','orcObservacoes'].forEach(id=>{const e=document.getElementById(id);if(e&&!e.dataset.orcBound){e.dataset.orcBound='1';e.addEventListener('input',atualizarPreviewOrcamento);}});
+        const data=document.getElementById('orcData');if(data&&!data.dataset.orcBound){data.dataset.orcBound='1';data.addEventListener('change',atualizarPreviewOrcamento);}
+        atualizarPreviewOrcamento();
+    };
+    window.novoOrcamento=()=>{
+        orcamentoNumeroAtual='';
+        orcamentoItens=[novoItemOrcamento()];
+        ['orcClienteNome','orcClienteDoc','orcClienteTelefone','orcValidade','orcObservacoes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+        const d=document.getElementById('orcData');if(d)d.value=hojeIsoOrc();
+        renderizarItensOrcamento();
+    };
+    window.gerarOrcamentoPDF=async()=>{
+        const element=document.getElementById('orcamentoPreview');
+        if(!element||typeof html2pdf!=='function'){window.mostrarToast?.('Não foi possível gerar o PDF.','bg-red-600 text-white');return;}
+        const loja=lojaAtualOrc(), nomeArquivo=`Orcamento_${String(loja.nome||'Loja').replace(/[^a-z0-9]+/gi,'_')}_${Date.now()}.pdf`;
+        try{
+            window.mostrarToast?.('Preparando orçamento em PDF...','bg-blue-600 text-white');
+            await html2pdf().set({margin:0,filename:nomeArquivo,image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#fff'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(element).save();
+            window.mostrarToast?.('Orçamento gerado com sucesso.','bg-emerald-600 text-white');
+        }catch(e){console.error(e);window.mostrarToast?.('Erro ao gerar o orçamento.','bg-red-600 text-white');}
+    };
+    window.abrirModuloAjudaOrcamentos=()=>window.mostrarToast?.('Configure os dados da loja uma vez. Depois informe cliente e itens no módulo Orçamentos e gere o PDF.','bg-gray-900 text-white');
+})();
+</script>
+
+<script>
+(() => {
     const FINANCEIRO_SENHA = '739184';
     let financeiroAutorizado = false;
     let financeiroDados = [];
@@ -7095,7 +7336,21 @@
 
     function abrirSenhaFinanceiro(){
         if(document.getElementById('modalSenhaFinanceiro')) return;
-        document.body.insertAdjacentHTML('beforeend',`<div id="modalSenhaFinanceiro" class="fixed inset-0 z-[270] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"><div class="admin-geral-card p-6 md:p-7 relative"><button onclick="document.getElementById('modalSenhaFinanceiro')?.remove()" class="absolute top-4 right-4 w-9 h-9 rounded-full border border-white/10 bg-white/5 text-gray-300">×</button><div class="w-12 h-12 rounded-2xl bg-[#baff18] text-[#111512] flex items-center justify-center font-black text-xl mb-5">$</div><p class="text-[10px] font-black uppercase tracking-[.18em] text-[#baff18]">Financeiro</p><h3 class="text-2xl font-black text-white mt-1">Acesso restrito</h3><p class="text-sm text-gray-400 mt-2">Informe a senha para acessar o financeiro proprietário.</p><input id="senhaFinanceiro" type="password" class="admin-geral-input mt-5" placeholder="Digite a senha" autocomplete="off"><p id="erroSenhaFinanceiro" class="hidden text-xs font-bold text-red-400 mt-2">Senha incorreta.</p><button onclick="window.verificarSenhaFinanceiro()" class="admin-geral-submit mt-4">Acessar Financeiro</button></div></div>`);
+        document.body.insertAdjacentHTML('beforeend',`<div id="modalSenhaFinanceiro" class="fixed inset-0 z-[270] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+            <div class="admin-geral-card p-6 md:p-7 relative">
+                <button type="button" onclick="document.getElementById('modalSenhaFinanceiro')?.remove()" aria-label="Fechar acesso ao financeiro" class="absolute top-4 right-4 w-9 h-9 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 flex items-center justify-center text-lg font-black">×</button>
+                <div class="w-12 h-12 rounded-2xl bg-[#baff18] text-[#111512] flex items-center justify-center font-black text-xl mb-5">⌁</div>
+                <p class="text-[10px] font-black uppercase tracking-[.18em] text-[#baff18]">Financeiro</p>
+                <h3 class="text-2xl font-black text-white mt-1">Acesso administrativo</h3>
+                <p class="text-sm text-gray-400 mt-2 pr-8">Informe a senha para acessar o financeiro proprietário.</p>
+                <div class="mt-6">
+                    <label for="senhaFinanceiro" class="block text-[10px] font-black uppercase tracking-[.15em] text-gray-500 mb-2">Senha de administrador</label>
+                    <input id="senhaFinanceiro" type="password" class="admin-geral-input" placeholder="Digite a senha" autocomplete="off" onkeydown="if(event.key==='Enter') window.verificarSenhaFinanceiro()">
+                    <p id="erroSenhaFinanceiro" class="hidden text-xs font-bold text-red-400 mt-2">Senha incorreta. Tente novamente.</p>
+                </div>
+                <button type="button" onclick="window.verificarSenhaFinanceiro()" class="admin-geral-submit mt-4">Acessar Financeiro</button>
+            </div>
+        </div>`);
         setTimeout(()=>document.getElementById('senhaFinanceiro')?.focus(),50);
     }
     window.abrirSenhaFinanceiro=abrirSenhaFinanceiro;
