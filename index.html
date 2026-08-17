@@ -32,12 +32,6 @@
         }
         @layer components {
             .nav-btn { @apply flex flex-col items-center flex-1 py-3 transition-colors cursor-pointer select-none dark:text-gray-400; }
-        @media (max-width: 767px) {
-            nav .nav-btn { min-width: 72px; font-size: 10px; }
-            nav .nav-btn span { white-space: nowrap; }
-            nav > .flex.justify-around { overflow-x: auto; justify-content: flex-start; }
-        }
-
             .nav-btn svg { @apply mb-1 h-6 w-6 transition-transform; }
             .nav-btn.active { @apply text-blue-600 font-bold dark:text-cyan-400; }
             .nav-btn:not(.active) { @apply text-gray-400 font-medium hover:text-gray-600 dark:hover:text-gray-200; }
@@ -88,28 +82,6 @@
                 radial-gradient(circle at 82% 10%, rgba(186,255,24,.08), transparent 24%),
                 radial-gradient(circle at 18% 0%, rgba(120,230,199,.07), transparent 28%),
                 #090c0a;
-        }
-        /* Alternância exclusiva do fundo do Painel Geral. Não altera o restante do sistema. */
-        #tela-geral-lojas.geral-bg-preto {
-            background: #090c0a !important;
-        }
-        #tela-geral-lojas.geral-bg-branco {
-            background: #ffffff !important;
-        }
-        #tela-geral-lojas .geral-bg-toggle {
-            display: inline-flex; align-items: center; gap: 4px; padding: 4px;
-            border: 1px solid rgba(255,255,255,.14); border-radius: 14px;
-            background: rgba(0,0,0,.24); backdrop-filter: blur(10px);
-        }
-        #tela-geral-lojas .geral-bg-toggle button {
-            border: 0; border-radius: 10px; padding: 8px 11px; font-size: 11px; font-weight: 900;
-            cursor: pointer; transition: all .18s ease;
-        }
-        #tela-geral-lojas .geral-bg-toggle button.active {
-            background: #ffffff; color: #111512; box-shadow: 0 5px 14px rgba(0,0,0,.16);
-        }
-        #tela-geral-lojas .geral-bg-toggle button:not(.active) {
-            background: transparent; color: #ffffff;
         }
         #tela-geral-lojas .geral-shell { max-width: 1440px; margin: 0 auto; }
         #tela-geral-lojas .geral-hero {
@@ -594,11 +566,7 @@
                             <h1 class="text-3xl md:text-5xl font-black text-white mt-2 tracking-[-0.03em]">Painel Geral</h1>
                             <p class="text-sm md:text-base text-gray-300 mt-2 max-w-2xl">Visão consolidada das quatro lojas, com faturamento, meios de pagamento e movimentações.</p>
                         </div>
-                        <div class="flex items-center gap-3 self-start md:self-center flex-wrap justify-end">
-                            <div class="geral-bg-toggle" aria-label="Cor de fundo do Painel Geral">
-                                <button type="button" id="geralBgPreto" onclick="window.alternarFundoPainelGeral('preto')" title="Fundo preto">PRETO</button>
-                                <button type="button" id="geralBgBranco" onclick="window.alternarFundoPainelGeral('branco')" title="Fundo branco">BRANCO</button>
-                            </div>
+                        <div class="flex items-center gap-3 self-start md:self-center">
                             <span id="statusBancoMultiLoja" class="geral-status text-xs font-bold px-3.5 py-2.5 rounded-full">Banco: preparando</span>
                         </div>
                     </div>
@@ -621,10 +589,6 @@
                         <span class="text-[10px] font-black uppercase tracking-[.16em] text-purple-600">04 • Relatórios</span>
                         <span class="block font-black text-gray-800 mt-1 text-sm md:text-base">Análise consolidada</span>
                     </button>
-                    <button id="geralTabFinanceiro" onclick="window.abrirModuloGeral('financeiro')" class="geral-tab text-left">
-                        <span class="text-[10px] font-black uppercase tracking-[.16em] text-amber-600">05 • Financeiro</span>
-                        <span class="block font-black text-gray-800 mt-1 text-sm md:text-base">Contas e compromissos</span>
-                    </button>
                 </div>
 
                 <section id="geralModuloAcesso" class="geral-modulo">
@@ -633,7 +597,7 @@
                             <div>
                                 <p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Operação</p>
                                 <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white mt-1">Acesso às lojas</h2>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Veja o movimento de hoje e o acumulado do mês antes de entrar em cada loja.</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Escolha qual loja você deseja operar.</p>
                             </div>
                         </div>
                         <div id="listaAcessoLojas" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
@@ -712,46 +676,6 @@
                     <div class="geral-panel">
                         <div class="mb-6"><p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Resumo executivo</p><h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white mt-1">Relatórios</h2><p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Resumo consolidado para análise rápida.</p></div>
                         <div id="geralRelatoriosConteudo" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-                    </div>
-                </section>
-
-                <section id="geralModuloFinanceiro" class="geral-modulo hidden">
-                    <div class="geral-panel">
-                        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-6">
-                            <div>
-                                <p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Gestão proprietária</p>
-                                <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white mt-1">Financeiro</h2>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Contas a pagar, despesas, impostos e gastos recorrentes.</p>
-                            </div>
-                            <div class="flex flex-wrap gap-2">
-                                <button type="button" class="geral-apply" onclick="window.abrirFormularioFinanceiro('lancamento')">+ Nova conta</button>
-                                <button type="button" class="geral-apply" onclick="window.abrirFormularioFinanceiro('recorrente')">+ Gasto recorrente</button>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
-                            <div class="geral-dark-card p-5"><p class="text-[10px] uppercase tracking-[.16em] text-gray-500 font-black">Vencido</p><p id="financeiroTotalVencido" class="text-2xl font-black text-red-500 mt-2">R$ 0,00</p></div>
-                            <div class="geral-dark-card p-5"><p class="text-[10px] uppercase tracking-[.16em] text-gray-500 font-black">Vence hoje</p><p id="financeiroTotalHoje" class="text-2xl font-black text-amber-400 mt-2">R$ 0,00</p></div>
-                            <div class="geral-dark-card p-5"><p class="text-[10px] uppercase tracking-[.16em] text-gray-500 font-black">A vencer</p><p id="financeiroTotalFuturo" class="text-2xl font-black text-white mt-2">R$ 0,00</p></div>
-                            <div class="geral-dark-card p-5"><p class="text-[10px] uppercase tracking-[.16em] text-gray-500 font-black">Total pendente</p><p id="financeiroTotalPendente" class="text-2xl font-black text-[#baff18] mt-2">R$ 0,00</p></div>
-                        </div>
-                        <div class="flex flex-wrap gap-2 mb-5" id="financeiroFiltros">
-                            <button type="button" class="geral-apply" data-fin-filter="todos">Todos</button>
-                            <button type="button" class="geral-apply" data-fin-filter="loja">Lojas</button>
-                            <button type="button" class="geral-apply" data-fin-filter="pessoal">Pessoal</button>
-                            <button type="button" class="geral-apply" data-fin-filter="conta_pagar">Contas a pagar</button>
-                            <button type="button" class="geral-apply" data-fin-filter="despesa">Despesas</button>
-                            <button type="button" class="geral-apply" data-fin-filter="imposto">Impostos</button>
-                        </div>
-                        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                            <div class="border border-gray-200 dark:border-gray-800 rounded-3xl p-5">
-                                <div class="flex items-center justify-between gap-3 mb-4"><div><p class="text-[10px] uppercase tracking-[.16em] font-black text-gray-400">Prioridade automática</p><h3 class="text-xl font-black text-gray-900 dark:text-white">Contas pendentes</h3></div><span id="financeiroQtdPendentes" class="text-xs font-black px-3 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">0</span></div>
-                                <div id="financeiroListaPendentes" class="space-y-2"></div>
-                            </div>
-                            <div class="border border-gray-200 dark:border-gray-800 rounded-3xl p-5">
-                                <div class="flex items-center justify-between gap-3 mb-4"><div><p class="text-[10px] uppercase tracking-[.16em] font-black text-gray-400">Programados</p><h3 class="text-xl font-black text-gray-900 dark:text-white">Gastos recorrentes</h3></div><span id="financeiroQtdRecorrentes" class="text-xs font-black px-3 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">0</span></div>
-                                <div id="financeiroListaRecorrentes" class="space-y-2"></div>
-                            </div>
-                        </div>
                     </div>
                 </section>
             </div>
@@ -1021,16 +945,6 @@
             <div onclick="window.mudarAba('vendedores')" id="nav-vendedores" class="nav-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                 <span>Equipe</span>
-            </div>
-
-            <div onclick="window.mudarAba('orcamentos')" id="nav-orcamentos" class="nav-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m-7 4h8a2 2 0 002-2V6a2 2 0 00-2-2h-3.5A2.5 2.5 0 0010 2a2.5 2.5 0 00-2.5 2H4a2 2 0 00-2 2v14a2 2 0 002 2h1m0-16h10" /></svg>
-                <span>Orçamentos</span>
-            </div>
-
-            <div onclick="window.mudarAba('configLoja')" id="nav-configLoja" class="nav-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317a1 1 0 011.35 0l.9.9a1 1 0 001.6-.35l.36-1.1a1 1 0 011.91.62l-.36 1.1a1 1 0 001.1 1.3l1.1.36a1 1 0 01-.62 1.91l-1.1-.36a1 1 0 00-1.3 1.1l.36 1.1a1 1 0 01-1.91.62l-.36-1.1a1 1 0 00-1.6-.35l-.9.9a1 1 0 01-1.35 0l-.9-.9a1 1 0 00-1.6.35l-.36 1.1a1 1 0 01-1.91-.62l.36-1.1a1 1 0 00-1.1-1.3l-1.1-.36a1 1 0 01.62-1.91l1.1.36a1 1 0 001.3-1.1l-.36-1.1a1 1 0 011.91-.62l.36 1.1a1 1 0 001.6.35l.9-.9zM12 9a3 3 0 100 6 3 3 0 000-6z" /></svg>
-                <span>Config. Loja</span>
             </div>
         </div>
 
@@ -1400,11 +1314,6 @@
                                 </div>
 
                                 <div>
-                                    <label for="lemTelefone" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">WhatsApp do cliente</label>
-                                    <input type="tel" inputmode="tel" id="lemTelefone" placeholder="Ex: (47) 99999-9999" class="w-full bg-gray-50 dark:bg-[#0f111a] dark:text-gray-100 border border-gray-200 dark:border-gray-700 p-3.5 rounded-xl focus:outline-none focus:border-indigo-500 dark:focus:border-cyan-500 transition-colors">
-                                </div>
-
-                                <div>
                                     <label for="lemValor" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Valor a pagar</label>
                                     <input type="tel" inputmode="numeric" id="lemValor" placeholder="R$ 0,00" class="w-full bg-gray-50 dark:bg-[#0f111a] dark:text-white border-2 border-gray-200 dark:border-gray-700 text-xl font-bold p-3.5 rounded-xl focus:outline-none focus:border-indigo-500 dark:focus:border-cyan-500 transition-colors" oninput="window.formatarEntradaGenerica(this)">
                                 </div>
@@ -1528,37 +1437,6 @@
                     </div>
                 </div>
 
-                <div id="dashResumoPagamentos" class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-                    <div class="bg-white dark:bg-[#161925] border border-gray-200 dark:border-gray-800 p-4 rounded-2xl shadow-sm">
-                        <div class="flex items-center gap-2 mb-1.5">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400"></span>
-                            <p class="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-black uppercase tracking-wider">Dinheiro</p>
-                        </div>
-                        <p id="dashPagamentoDinheiro" class="text-lg md:text-xl font-black text-gray-800 dark:text-white">R$ 0,00</p>
-                    </div>
-                    <div class="bg-white dark:bg-[#161925] border border-gray-200 dark:border-gray-800 p-4 rounded-2xl shadow-sm">
-                        <div class="flex items-center gap-2 mb-1.5">
-                            <span class="w-2 h-2 rounded-full bg-cyan-500 dark:bg-cyan-400"></span>
-                            <p class="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-black uppercase tracking-wider">PIX</p>
-                        </div>
-                        <p id="dashPagamentoPix" class="text-lg md:text-xl font-black text-gray-800 dark:text-white">R$ 0,00</p>
-                    </div>
-                    <div class="bg-white dark:bg-[#161925] border border-gray-200 dark:border-gray-800 p-4 rounded-2xl shadow-sm">
-                        <div class="flex items-center gap-2 mb-1.5">
-                            <span class="w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400"></span>
-                            <p class="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-black uppercase tracking-wider">Débito</p>
-                        </div>
-                        <p id="dashPagamentoDebito" class="text-lg md:text-xl font-black text-gray-800 dark:text-white">R$ 0,00</p>
-                    </div>
-                    <div class="bg-white dark:bg-[#161925] border border-gray-200 dark:border-gray-800 p-4 rounded-2xl shadow-sm">
-                        <div class="flex items-center gap-2 mb-1.5">
-                            <span class="w-2 h-2 rounded-full bg-[#baff18]"></span>
-                            <p class="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-black uppercase tracking-wider">Crédito</p>
-                        </div>
-                        <p id="dashPagamentoCredito" class="text-lg md:text-xl font-black text-gray-800 dark:text-white">R$ 0,00</p>
-                    </div>
-                </div>
-
                 <div class="flex flex-col lg:flex-row gap-6 md:gap-8 flex-1 min-h-0">
                     <div class="flex-1 bg-white dark:bg-[#161925] border border-gray-200 dark:border-gray-800 rounded-3xl p-6 shadow-sm md:shadow-lg min-h-[300px] flex flex-col">
                         <div class="flex justify-between items-center mb-6 border-b border-gray-100 dark:border-gray-800 pb-3">
@@ -1596,7 +1474,7 @@
                 <div class="flex flex-col md:flex-row md:justify-between md:items-end mb-6 md:mb-8 gap-4">
                     <div class="hidden md:block">
                         <h1 class="text-3xl font-bold text-gray-800 dark:text-white tracking-tight">Desempenho da Equipe</h1>
-                        <p class="text-gray-500 dark:text-gray-400 mt-1">Acompanhe o total vendido hoje e o acumulado do mês por vendedor.</p>
+                        <p class="text-gray-500 dark:text-gray-400 mt-1">Acompanhe as vendas por vendedor e emita relatórios detalhados.</p>
                     </div>
                     <div>
                         <button onclick="window.abrirModalRelatorioVendedor()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white font-bold py-3 px-6 rounded-xl transition-colors shadow-lg active:scale-95 flex items-center justify-center gap-2">
@@ -1607,85 +1485,6 @@
                 </div>
 
                 <div id="gridVendedoresRanking" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-            </div>
-        </div>
-
-
-        <!-- TELA 2.6: ORÇAMENTOS -->
-        <div id="tela-orcamentos" class="fade-in hidden h-full flex flex-col bg-gray-100 dark:bg-[#0f111a] transition-colors duration-300">
-            <header class="md:hidden bg-gray-900 dark:bg-[#161925] text-white p-6 pb-6 rounded-b-3xl shadow-md z-10 relative flex-none border-b border-gray-800">
-                <h1 class="text-2xl font-bold text-center tracking-wide">Orçamentos</h1>
-                <p class="text-gray-300 dark:text-cyan-400 text-center text-sm mt-1 font-medium">Documentos comerciais profissionais da loja</p>
-            </header>
-            <div class="p-4 py-6 md:p-8 flex-1 w-full max-w-7xl mx-auto flex flex-col overflow-y-auto">
-                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
-                    <div>
-                        <p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Comercial</p>
-                        <h1 class="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Novo orçamento</h1>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Preencha o cliente e os itens. Os dados da loja são puxados automaticamente da configuração.</p>
-                    </div>
-                    <div class="flex gap-2 flex-wrap">
-                        <button type="button" onclick="window.novoOrcamento()" class="px-4 py-3 rounded-xl bg-white dark:bg-[#161925] border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-200 font-bold text-sm">Novo</button>
-                        <button type="button" onclick="window.gerarOrcamentoPDF()" class="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white font-black text-sm shadow-lg active:scale-95">Gerar PDF</button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
-                    <section class="xl:col-span-5 bg-white dark:bg-[#161925] rounded-3xl border border-gray-200 dark:border-gray-800 shadow-sm p-5 md:p-6">
-                        <div class="flex items-center justify-between gap-3 mb-5">
-                            <div><h2 class="text-xl font-black text-gray-900 dark:text-white">Dados do orçamento</h2><p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Campos vazios não impedem a emissão.</p></div>
-                            <span id="orcamentoLojaBadge" class="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-[#0f111a] text-gray-600 dark:text-gray-300 text-[10px] font-black uppercase">Loja</span>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <label class="block sm:col-span-2"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Empresa / cliente solicitante</span><input id="orcClienteNome" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" placeholder="Nome da empresa ou cliente"></label>
-                            <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">CNPJ / CPF</span><input id="orcClienteDoc" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" placeholder="Opcional"></label>
-                            <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Telefone / WhatsApp</span><input id="orcClienteTelefone" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:bg-[#0f111a] dark:border-gray-700 dark:text-white" placeholder="Opcional"></label>
-                            <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Data</span><input id="orcData" type="date" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" style="color-scheme: light dark;"></label>
-                            <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Validade</span><input id="orcValidade" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" placeholder="Ex.: 10 dias"></label>
-                            <label class="block sm:col-span-2"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Observações / condições</span><textarea id="orcObservacoes" rows="3" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" placeholder="Prazo, condições comerciais, entrega, garantia..."></textarea></label>
-                        </div>
-                        <div class="mt-6 pt-5 border-t border-gray-100 dark:border-gray-800">
-                            <div class="flex items-center justify-between mb-4"><div><h3 class="font-black text-gray-900 dark:text-white">Itens</h3><p class="text-xs text-gray-500 dark:text-gray-400">Foto, descrição, quantidade e preço.</p></div><button type="button" onclick="window.adicionarItemOrcamento()" class="px-3 py-2 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black text-xs">+ Item</button></div>
-                            <div id="listaItensOrcamento" class="space-y-3"></div>
-                        </div>
-                    </section>
-                    <section class="xl:col-span-7 bg-gray-200/70 dark:bg-[#0b0d14] rounded-3xl border border-gray-200 dark:border-gray-800 p-3 md:p-5 shadow-inner">
-                        <div class="flex items-center justify-between gap-3 mb-3 px-1"><div><p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Pré-visualização</p><h2 class="text-xl font-black text-gray-900 dark:text-white">Documento</h2></div><span class="text-[10px] font-bold text-gray-500 dark:text-gray-400">A4 • pronto para PDF</span></div>
-                        <div id="orcamentoPreview" class="bg-white text-gray-900 rounded-2xl shadow-xl mx-auto max-w-[794px] min-h-[1123px] overflow-hidden"></div>
-                    </section>
-                </div>
-            </div>
-        </div>
-
-        <!-- TELA 2.7: CONFIGURAÇÃO DA LOJA -->
-        <div id="tela-config-loja" class="fade-in hidden h-full flex flex-col bg-gray-100 dark:bg-[#0f111a] transition-colors duration-300">
-            <header class="md:hidden bg-gray-900 dark:bg-[#161925] text-white p-6 pb-6 rounded-b-3xl shadow-md z-10 relative flex-none border-b border-gray-800">
-                <h1 class="text-2xl font-bold text-center tracking-wide">Configuração da Loja</h1>
-                <p class="text-gray-300 dark:text-cyan-400 text-center text-sm mt-1 font-medium">Dados permanentes usados nos orçamentos</p>
-            </header>
-            <div class="p-4 py-6 md:p-8 flex-1 w-full max-w-5xl mx-auto flex flex-col overflow-y-auto">
-                <div class="mb-6"><p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Identidade comercial</p><h1 class="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Dados da loja</h1><p class="text-sm text-gray-500 dark:text-gray-400 mt-1">As informações ficam associadas à loja atual e são reutilizadas nos orçamentos.</p></div>
-                <section class="bg-white dark:bg-[#161925] rounded-3xl border border-gray-200 dark:border-gray-800 shadow-sm p-5 md:p-7">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label class="block md:col-span-2"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Nome / Razão Social</span><input id="cfgLojaNome" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white"></label>
-                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">CNPJ</span><input id="cfgLojaCnpj" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" placeholder="00.000.000/0000-00"></label>
-                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Inscrição Estadual</span><input id="cfgLojaIe" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" placeholder="Opcional"></label>
-                        <label class="block md:col-span-2"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Endereço</span><input id="cfgLojaEndereco" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" placeholder="Rua / Avenida"></label>
-                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Número</span><input id="cfgLojaNumero" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white"></label>
-                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Complemento</span><input id="cfgLojaComplemento" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white"></label>
-                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Bairro</span><input id="cfgLojaBairro" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white"></label>
-                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Cidade</span><input id="cfgLojaCidade" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white"></label>
-                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">UF</span><input id="cfgLojaUf" maxlength="2" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white" placeholder="SC"></label>
-                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">CEP</span><input id="cfgLojaCep" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white"></label>
-                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Telefone / WhatsApp</span><input id="cfgLojaTelefone" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white"></label>
-                        <label class="block"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">E-mail</span><input id="cfgLojaEmail" type="email" class="w-full mt-1 p-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-white"></label>
-                        <label class="block md:col-span-2"><span class="text-[10px] font-black uppercase tracking-wider text-gray-400">Logo da loja</span><input id="cfgLojaLogo" type="file" accept="image/*" class="w-full mt-1 p-3 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] dark:text-gray-300"><span class="block text-[11px] text-gray-400 mt-1">Opcional. A logo será usada no cabeçalho dos orçamentos.</span></label>
-                    </div>
-                    <div class="mt-6 flex flex-col sm:flex-row gap-3">
-                        <button type="button" onclick="window.salvarConfiguracaoLoja()" class="flex-1 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black py-3.5 rounded-xl active:scale-95">Salvar configuração da loja</button>
-                        <button type="button" onclick="window.abrirModuloAjudaOrcamentos?.()" class="px-5 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-bold">Como usar</button>
-                    </div>
-                    <p id="cfgLojaStatus" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-3 hidden"></p>
-                </section>
             </div>
         </div>
 
@@ -2134,7 +1933,7 @@
         window.verificarSenhaAdmin = (event) => {
             if (event && event.type === 'keydown' && event.key !== 'Enter') return;
             const senha = document.getElementById('inputSenhaAdmin').value;
-            if (senha === '1234' || senha === 'admin') { 
+            if (senha === 'Ip4512$$' || senha === 'admin') { 
                 window.fecharModalSenha();
                 window.abrirAdmin();
             } else {
@@ -2594,22 +2393,21 @@
             const tRec = document.getElementById('tela-recebimentos');
             const tDash = document.getElementById('tela-dashboard');
             const tVend = document.getElementById('tela-vendedores');
-            const tOrc = document.getElementById('tela-orcamentos');
-            const tCfg = document.getElementById('tela-config-loja');
-
+            
             const btnCaixa = document.getElementById('nav-caixa');
             const btnRec = document.getElementById('nav-recebimentos');
             const btnDash = document.getElementById('nav-dashboard');
             const btnVend = document.getElementById('nav-vendedores');
-            const btnOrc = document.getElementById('nav-orcamentos');
-            const btnCfg = document.getElementById('nav-configLoja');
 
-            [tCaixa,tRec,tDash,tVend,tOrc,tCfg].forEach(t => {
-                if (!t) return;
-                t.classList.remove('flex','block');
-                t.classList.add('hidden');
-            });
-            [btnCaixa,btnRec,btnDash,btnVend,btnOrc,btnCfg].forEach(b => b?.classList.remove('active'));
+            tCaixa.classList.remove('flex', 'block'); tCaixa.classList.add('hidden');
+            tRec.classList.remove('flex', 'block'); tRec.classList.add('hidden');
+            tDash.classList.remove('flex', 'block'); tDash.classList.add('hidden');
+            tVend.classList.remove('flex', 'block'); tVend.classList.add('hidden');
+            
+            btnCaixa.classList.remove('active');
+            btnRec.classList.remove('active');
+            btnDash.classList.remove('active');
+            btnVend.classList.remove('active');
 
             if (aba === 'caixa') {
                 tCaixa.classList.remove('hidden'); tCaixa.classList.add('flex');
@@ -2626,14 +2424,6 @@
                 tVend.classList.remove('hidden'); tVend.classList.add('flex');
                 btnVend.classList.add('active');
                 window.renderizarDashVendedores();
-            } else if (aba === 'orcamentos') {
-                tOrc?.classList.remove('hidden'); tOrc?.classList.add('flex');
-                btnOrc?.classList.add('active');
-                window.inicializarModuloOrcamentos?.();
-            } else if (aba === 'configLoja') {
-                tCfg?.classList.remove('hidden'); tCfg?.classList.add('flex');
-                btnCfg?.classList.add('active');
-                window.carregarConfiguracaoLoja?.();
             }
         };
 
@@ -3019,7 +2809,7 @@
             };
 
             todasVendasBanco.unshift(novaVenda);
-            window.__ultimaMutacaoLocal = Date.now();
+            marcarVendaPendenteSync(window.lojaAtualSlug, novaVenda);
             localStorage.setItem('vendasSistemaCaixa', JSON.stringify(todasVendasBanco));
             mostrarToast("Venda registrada!", "bg-green-600 text-white");
 
@@ -3112,18 +2902,12 @@
         }
 
         window.salvarLembretesLocal = () => {
-            const dados = JSON.stringify(todosLembretesBanco || []);
-            // Mantém a chave legada para compatibilidade e, principalmente,
-            // grava a cópia da loja ativa antes de o sincronizador consultar o cache.
-            const slug = window.lojaAtualSlug || 'real_papelaria';
-            localStorage.setItem(`lembretesSistemaCaixa__${slug}`, dados);
-            localStorage.setItem('lembretesSistemaCaixa', dados);
+            localStorage.setItem('lembretesSistemaCaixa', JSON.stringify(todosLembretesBanco));
         };
 
         window.adicionarLembrete = () => {
             const cliente = document.getElementById('lemCliente').value.trim();
             const produto = document.getElementById('lemProduto').value.trim();
-            const telefone = document.getElementById('lemTelefone')?.value.trim() || '';
             const valorInput = document.getElementById('lemValor');
             const valor = parseFloat(valorInput.dataset.rawValue || 0);
             const dataVencimento = document.getElementById('lemData').value;
@@ -3150,7 +2934,6 @@
                 id: Date.now(),
                 timestamp: agora.getTime(),
                 cliente: cliente,
-                telefone: telefone,
                 produto: produto,
                 valor: valor,
                 dataVencimento: dataVencimento,
@@ -3163,34 +2946,12 @@
 
             document.getElementById('lemCliente').value = '';
             document.getElementById('lemProduto').value = '';
-            if (document.getElementById('lemTelefone')) document.getElementById('lemTelefone').value = '';
             valorInput.value = '';
             valorInput.dataset.rawValue = 0;
             document.getElementById('lemData').value = '';
 
             window.atualizarLembretes();
             mostrarToast("Lembrete adicionado!", "bg-green-600 text-white");
-        };
-
-        window.abrirWhatsAppLembrete = (id) => {
-            const lembrete = todosLembretesBanco.find(l => String(l.id) === String(id));
-            if (!lembrete) return;
-            const digits = String(lembrete.telefone || '').replace(/\D/g, '');
-            if (!digits) {
-                mostrarToast('Este cliente não possui WhatsApp cadastrado.', 'bg-orange-500 text-white');
-                return;
-            }
-            let numero = digits;
-            if (numero.length === 10 || numero.length === 11) numero = `55${numero}`;
-            if (!/^55\d{10,11}$/.test(numero)) {
-                mostrarToast('O número de WhatsApp cadastrado é inválido.', 'bg-orange-500 text-white');
-                return;
-            }
-            const nome = String(lembrete.cliente || 'cliente').trim();
-            const valor = formataBRL(Number(lembrete.valor || 0));
-            const vencimento = lembrete.dataVencimento ? formatarDataIsoBr(lembrete.dataVencimento) : 'a data combinada';
-            const mensagem = `Olá, ${nome}! Tudo bem? Estou entrando em contato para lembrar que ficou pendente o pagamento de ${valor}, com vencimento em ${vencimento}. Se precisar de alguma informação, estou à disposição.`;
-            window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`, '_blank', 'noopener,noreferrer');
         };
 
         window.concluirLembrete = (id) => {
@@ -3407,7 +3168,7 @@
                 return `
                     <div class="${classesLinha} px-5 md:px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#1c2033] transition-colors">
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-3 md:items-center">
-                            <div class="md:col-span-2 min-w-0">
+                            <div class="md:col-span-3 min-w-0">
                                 <div class="flex items-center gap-2">
                                     <div class="w-9 h-9 rounded-xl ${concluido ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'bg-indigo-50 dark:bg-cyan-900/20 text-indigo-600 dark:text-cyan-400'} flex items-center justify-center shrink-0 font-black text-xs">
                                         ${escaparHtmlLembrete(String(lembrete.cliente || '?').trim().charAt(0).toUpperCase() || '?')}
@@ -3430,22 +3191,17 @@
                                 <p class="text-sm md:text-base font-black ${concluido ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-white'} mt-0.5 md:mt-0">${formataBRL(Number(lembrete.valor || 0))}</p>
                             </div>
 
-                            <div class="md:col-span-1 flex items-center md:pr-2">
+                            <div class="md:col-span-2 flex items-center md:pr-3">
                                 <span class="${classesStatus} inline-flex items-center border text-[9px] font-black uppercase tracking-normal px-2 py-1 rounded-full whitespace-nowrap">${statusTexto}</span>
                             </div>
 
-                            <div class="md:col-span-5 flex flex-wrap md:flex-nowrap items-center md:justify-start gap-2 md:pl-2 min-w-0">
-                                ${lembrete.telefone ? `
-                                    <button onclick="window.abrirWhatsAppLembrete(${JSON.stringify(lembrete.id)})" class="shrink-0 min-w-[82px] bg-green-600 hover:bg-green-700 text-white font-bold text-xs px-2.5 py-2.5 rounded-lg active:scale-95 transition-all" title="Abrir WhatsApp do cliente">
-                                        WhatsApp
-                                    </button>
-                                ` : ''}
+                            <div class="md:col-span-3 flex flex-wrap md:flex-nowrap items-center md:justify-end gap-3 md:pl-4">
                                 ${!concluido ? `
-                                    <button onclick="window.concluirLembrete(${JSON.stringify(lembrete.id)})" class="shrink-0 min-w-[72px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-2.5 rounded-lg active:scale-95 transition-all" title="Marcar como concluído">
+                                    <button onclick="window.concluirLembrete(${JSON.stringify(lembrete.id)})" class="shrink-0 min-w-[82px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-lg active:scale-95 transition-all" title="Marcar como concluído">
                                         Concluir
                                     </button>
                                 ` : ''}
-                                <button onclick="window.excluirLembrete(${JSON.stringify(lembrete.id)})" class="shrink-0 min-w-[65px] bg-white dark:bg-[#0f111a] hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 font-bold text-xs px-3 py-2.5 rounded-lg active:scale-95 transition-all" title="Excluir lembrete">
+                                <button onclick="window.excluirLembrete(${JSON.stringify(lembrete.id)})" class="shrink-0 min-w-[72px] bg-white dark:bg-[#0f111a] hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 font-bold text-xs px-4 py-2.5 rounded-lg active:scale-95 transition-all" title="Excluir lembrete">
                                     Excluir
                                 </button>
                             </div>
@@ -3791,7 +3547,6 @@
             despesasFiltradas = todasDespesasBanco.filter(d => d.dataIso === dataEscolhida);
 
             let sumTotalBruto = 0, sumDinheiroBruto = 0, sumPix = 0, sumCartao = 0;
-            let sumDebitoBruto = 0, sumCreditoBruto = 0;
             const isDark = document.documentElement.classList.contains('dark');
 
             let feedMisto = [
@@ -3806,28 +3561,10 @@
                     
                     let formasPag = v.detalhes && v.detalhes.length > 0 ? v.detalhes : [{forma: v.formaPagamento, valor: v.total}];
                     formasPag.forEach(pag => {
-                        const formaTexto = String(pag.forma || pag.tipoBase || '').trim();
-                        const formaNormalizada = formaTexto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                        const valorPag = Number(pag.valor || 0);
-
-                        if (formaNormalizada.includes('dinheiro')) {
-                            sumDinheiroBruto += valorPag;
-                        } else if (formaNormalizada.includes('pix')) {
-                            sumPix += valorPag;
-                        } else if (formaNormalizada.includes('debito')) {
-                            sumDebitoBruto += valorPag;
-                            sumCartao += valorPag;
-                        } else if (formaNormalizada.includes('credito')) {
-                            sumCreditoBruto += valorPag;
-                            sumCartao += valorPag;
-                        } else if (formaNormalizada === 'cartoes' || formaNormalizada === 'cartao') {
-                            // Registros antigos que só informam "Cartões" continuam
-                            // no total de cartões sem serem atribuídos artificialmente
-                            // a Débito ou Crédito.
-                            sumCartao += valorPag;
-                        } else {
-                            sumCartao += valorPag;
-                        }
+                        let m = pag.tipoBase || pag.forma;
+                        if (m === 'Dinheiro') sumDinheiroBruto += pag.valor;
+                        else if (m === 'PIX') sumPix += pag.valor;
+                        else sumCartao += pag.valor; 
                     });
 
                     let isMultiplo = formasPag.length > 1;
@@ -3844,8 +3581,8 @@
                         badgesHtml = `<span class="${isDark ? 'text-gray-300 bg-[#0f111a] border-gray-800' : 'text-gray-600 bg-gray-100 border-gray-200'} text-xs md:text-sm font-medium border px-3 py-2 rounded-lg flex items-center gap-2 shadow-inner max-w-[180px] md:max-w-xs overflow-hidden" title="${v.formaPagamento}"><span class="text-base flex-shrink-0">${ic}</span> <span class="hidden md:block truncate">${v.formaPagamento}</span></span>`;
                     }
 
-                    let corBarra = isMultiplo ? (isDark ? 'bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.8)]' : 'bg-orange-500') : (v.formaPagamento.includes('Dinheiro') ? (isDark ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-green-500') : (v.formaPagamento.includes('PIX') ? (isDark ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'bg-blue-500') : (isDark ? 'bg-[#baff18] shadow-[0_0_8px_rgba(186,255,24,0.45)]' : 'bg-[#8bb81c]')));
-                    let corBgItem = isDark ? 'bg-[#161925] hover:bg-[#1c201b] border-gray-800' : 'bg-white hover:bg-gray-50 border-gray-200';
+                    let corBarra = isMultiplo ? (isDark ? 'bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.8)]' : 'bg-orange-500') : (v.formaPagamento.includes('Dinheiro') ? (isDark ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-green-500') : (v.formaPagamento.includes('PIX') ? (isDark ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]' : 'bg-blue-500') : (isDark ? 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]' : 'bg-purple-600')));
+                    let corBgItem = isDark ? 'bg-[#1c2033] hover:bg-[#23283f] border-gray-800' : 'bg-white hover:bg-gray-50 border-gray-200';
                     
                     return `
                     <div class="shrink-0 text-sm ${corBgItem} transition-colors border rounded-xl p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden group">
@@ -3924,21 +3661,9 @@
             const daL = document.getElementById('dashAdminLiquido'); if(daL) daL.textContent = formataBRL(liquido);
             const daD = document.getElementById('dashAdminDigital'); if(daD) daD.textContent = formataBRL(sumPix + sumCartao);
 
-            // Resumo das formas de pagamento do dia selecionado.
-            // Os valores vêm de vendasFiltradas/detalhes, então vendas múltiplas
-            // também são distribuídas corretamente entre PIX, dinheiro, débito e crédito.
-            const pagamentoDinheiroEl = document.getElementById('dashPagamentoDinheiro');
-            const pagamentoPixEl = document.getElementById('dashPagamentoPix');
-            const pagamentoDebitoEl = document.getElementById('dashPagamentoDebito');
-            const pagamentoCreditoEl = document.getElementById('dashPagamentoCredito');
-            if (pagamentoDinheiroEl) pagamentoDinheiroEl.textContent = formataBRL(sumDinheiroBruto);
-            if (pagamentoPixEl) pagamentoPixEl.textContent = formataBRL(sumPix);
-            if (pagamentoDebitoEl) pagamentoDebitoEl.textContent = formataBRL(sumDebitoBruto);
-            if (pagamentoCreditoEl) pagamentoCreditoEl.textContent = formataBRL(sumCreditoBruto);
-
             const divLista = document.getElementById('listaVendasDashboard');
             if (feedMisto.length === 0) {
-                divLista.innerHTML = `<p class="text-sm md:text-base ${isDark ? 'text-gray-500 bg-[#161925] border-gray-800' : 'text-gray-400 bg-gray-50 border-gray-200'} italic text-center py-10 rounded-xl border">Nenhuma movimentação no dia.</p>`;
+                divLista.innerHTML = `<p class="text-sm md:text-base ${isDark ? 'text-gray-500 bg-[#1c2033] border-gray-800' : 'text-gray-400 bg-gray-50 border-gray-200'} italic text-center py-10 rounded-xl border">Nenhuma movimentação no dia.</p>`;
             } else {
                 divLista.innerHTML = htmlLista;
             }
@@ -3948,9 +3673,33 @@
 
         window.apagarSangria = (idSangria) => {
             window.abrirModal("Apagar Sangria?", "Tem certeza que deseja remover esta despesa/sangria? O saldo líquido será recalculado.", () => {
-                todasDespesasBanco = todasDespesasBanco.filter(d => d.id !== idSangria);
-                localStorage.setItem('despesasSistemaCaixa', JSON.stringify(todasDespesasBanco));
+                const slug = window.lojaAtualSlug;
+
+                // Remove da memória da loja e, principalmente, da chave de
+                // localStorage específica da loja. A versão anterior removia
+                // apenas a chave legada, por isso a sangria reaparecia após
+                // recarregar os dados da loja.
+                todasDespesasBanco = todasDespesasBanco.filter(d => String(d.id) !== String(idSangria));
+                salvarArrayLoja(BASES_LOCAIS.sangrias, slug, todasDespesasBanco);
+
+                // Mantém o cache legado sincronizado para o dispositivo atual.
+                bloqueioPersistencia = true;
+                try {
+                    localStorage.setItem('despesasSistemaCaixa', JSON.stringify(todasDespesasBanco));
+                } finally {
+                    bloqueioPersistencia = false;
+                }
+
                 filtrarEAtualizarDashboard();
+                window.renderizarPainelGeralLocal?.();
+                window.renderizarAcesso?.();
+
+                // A sincronização já possui a rotina removerExcluidos(), que
+                // compara o conteúdo local com o mapa do Supabase e exclui do
+                // banco aquilo que não existe mais localmente.
+                window.__ultimaMutacaoLocal = Date.now();
+                if (window.supabaseDisponivel) agendarSincronizacao(slug);
+
                 mostrarToast("Sangria apagada com sucesso", "bg-gray-800 text-white");
             });
         };
@@ -5421,127 +5170,47 @@
         };
 
         // RELATÓRIOS VENDEDOR E ADMIN
-        function obterDataIsoHojeLocal() {
-            const hoje = new Date();
-            return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
-        }
-
-        function obterMesAtualIsoLocal() {
-            const hoje = new Date();
-            return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
-        }
-
-        function obterInicioMesIsoLocal() {
-            const hoje = new Date();
-            return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-01`;
-        }
-
-        function agendarAtualizacaoViradaDoDia() {
-            const agora = new Date();
-            const proximaVirada = new Date(agora);
-            proximaVirada.setHours(24, 0, 2, 0);
-            const atraso = Math.max(1000, proximaVirada.getTime() - agora.getTime());
-
-            setTimeout(() => {
-                const hojeIso = obterDataIsoHojeLocal();
-                const fatIni = document.getElementById('geralDataInicioFat');
-                const fatFim = document.getElementById('geralDataFimFat');
-                if (fatIni) fatIni.value = obterInicioMesIsoLocal();
-                if (fatFim) fatFim.value = hojeIso;
-
-                renderizarAcesso();
-                window.renderizarDashVendedores();
-                renderizarPainelGeralLocal();
-                agendarAtualizacaoViradaDoDia();
-            }, atraso);
-        }
-
         window.renderizarDashVendedores = () => {
             const container = document.getElementById('gridVendedoresRanking');
-            if (!container) return;
-
-            const hojeIso = obterDataIsoHojeLocal();
-            const mesAtual = obterMesAtualIsoLocal();
             const stats = {};
-
-            // O ranking passa a ter como destaque o desempenho de HOJE.
-            // O mês continua disponível no mesmo card apenas como referência acumulada.
+            
             todasVendasBanco.forEach(v => {
-                const nome = v.vendedor || 'Não informado';
-                const dataVenda = String(v.dataIso || '');
-                if (!dataVenda.startsWith(mesAtual)) return;
-
-                if (!stats[nome]) {
-                    stats[nome] = {
-                        totalHoje: 0,
-                        qtdHoje: 0,
-                        dinheiroHoje: 0,
-                        pixHoje: 0,
-                        cartoesHoje: 0,
-                        totalMes: 0,
-                        qtdMes: 0
-                    };
-                }
-
-                const totalVenda = Number(v.total || 0);
-                const qtdVenda = Number(v.qtd || 0);
-                stats[nome].totalMes += totalVenda;
-                stats[nome].qtdMes += qtdVenda;
-
-                if (dataVenda !== hojeIso) return;
-
-                stats[nome].totalHoje += totalVenda;
-                stats[nome].qtdHoje += qtdVenda;
-
-                const formas = v.detalhes && v.detalhes.length > 0
-                    ? v.detalhes
-                    : [{
-                        forma: v.formaPagamento,
-                        valor: totalVenda,
-                        tipoBase: String(v.formaPagamento || '').includes('Crédito')
-                            ? 'Crédito'
-                            : (String(v.formaPagamento || '').includes('Débito') ? 'Cartões' : v.formaPagamento)
-                    }];
-
+                let nome = v.vendedor || 'Não informado';
+                if(!stats[nome]) { stats[nome] = { total: 0, qtd: 0, dinheiro: 0, pix: 0, cartoes: 0 }; }
+                stats[nome].total += v.total; stats[nome].qtd += v.qtd; 
+                
+                let formas = v.detalhes && v.detalhes.length > 0 ? v.detalhes : [{forma: v.formaPagamento, valor: v.total, tipoBase: v.formaPagamento.includes('Crédito') ? 'Crédito' : (v.formaPagamento.includes('Débito') ? 'Cartões' : v.formaPagamento)}];
                 formas.forEach(p => {
-                    const b = p.tipoBase || p.forma || '';
-                    const valor = Number(p.valor || 0);
-                    if (b.includes('Débito') || b.includes('Crédito') || b === 'Cartões') stats[nome].cartoesHoje += valor;
-                    else if (b.includes('PIX')) stats[nome].pixHoje += valor;
-                    else if (b.includes('Dinheiro')) stats[nome].dinheiroHoje += valor;
+                    let b = p.tipoBase || p.forma;
+                    if(b.includes('Débito') || b.includes('Crédito') || b === 'Cartões') stats[nome].cartoes += p.valor;
+                    else if (b.includes('PIX')) stats[nome].pix += p.valor;
+                    else if (b.includes('Dinheiro')) stats[nome].dinheiro += p.valor;
                 });
             });
 
-            const arrayStats = Object.keys(stats)
-                .map(nome => ({ nome, ...stats[nome] }))
-                .sort((a, b) => b.totalHoje - a.totalHoje || b.totalMes - a.totalMes);
-
-            if (arrayStats.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500 dark:text-gray-400">Nenhum dado de venda encontrado neste mês.</div>`;
-                return;
-            }
+            const arrayStats = Object.keys(stats).map(nome => ({ nome, ...stats[nome] })).sort((a, b) => b.total - a.total); 
+            if(arrayStats.length === 0) { container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500 dark:text-gray-400">Nenhum dado de venda encontrado.</div>`; return; }
 
             container.innerHTML = arrayStats.map((s, index) => {
-                const rankColor = index === 0 ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30' : (index === 1 ? 'text-gray-400 bg-gray-200 dark:bg-gray-800' : (index === 2 ? 'text-orange-400 bg-orange-100 dark:bg-orange-900/30' : 'text-blue-600 bg-blue-100 dark:bg-blue-900/30'));
-                const rankBorder = index === 0 ? 'border-yellow-400' : (index === 1 ? 'border-gray-400' : (index === 2 ? 'border-orange-400' : 'border-transparent dark:border-gray-800'));
+                let rankColor = index === 0 ? 'text-yellow-500 bg-yellow-100 dark:bg-yellow-900/30' : (index === 1 ? 'text-gray-400 bg-gray-200 dark:bg-gray-800' : (index === 2 ? 'text-orange-400 bg-orange-100 dark:bg-orange-900/30' : 'text-blue-600 bg-blue-100 dark:bg-blue-900/30'));
+                let rankBorder = index === 0 ? 'border-yellow-400' : (index === 1 ? 'border-gray-400' : (index === 2 ? 'border-orange-400' : 'border-transparent dark:border-gray-800'));
                 return `
                 <div class="bg-white dark:bg-[#161925] border-2 ${rankBorder} rounded-3xl p-6 shadow-sm md:shadow-lg flex flex-col gap-4 relative overflow-hidden transition-transform hover:scale-[1.02]">
                     ${index === 0 ? '<div class="absolute -right-6 -top-6 w-24 h-24 bg-yellow-400/20 rounded-full blur-2xl pointer-events-none"></div>' : ''}
                     <div class="flex justify-between items-start z-10">
                         <div>
                             <div class="flex items-center gap-2 mb-1"><span class="${rankColor} font-black text-xs px-2 py-1 rounded-lg">#${index + 1}</span><h3 class="font-bold text-gray-800 dark:text-gray-100 text-lg">${s.nome}</h3></div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">${s.qtdHoje} produtos hoje <span class="mx-1 text-gray-300 dark:text-gray-700">•</span> ${s.qtdMes} no mês</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">${s.qtd} produtos vendidos</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-bold mb-1">Hoje</p>
-                            <p class="text-xl font-black text-blue-600 dark:text-cyan-400">${formataBRL(s.totalHoje)}</p>
-                            <p class="text-[10px] font-bold text-gray-400 dark:text-gray-500 mt-1">Mês: ${formataBRL(s.totalMes)}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-bold mb-1">Total</p>
+                            <p class="text-xl font-black text-blue-600 dark:text-cyan-400">${formataBRL(s.total)}</p>
                         </div>
                     </div>
                     <div class="pt-4 border-t border-gray-100 dark:border-gray-800 flex justify-between text-xs font-medium z-10">
-                        <div class="flex flex-col gap-1 text-gray-600 dark:text-gray-300"><span class="text-green-600 dark:text-emerald-400">💵 Dinheiro</span> ${formataBRL(s.dinheiroHoje)}</div>
-                        <div class="flex flex-col gap-1 text-gray-600 dark:text-gray-300"><span class="text-blue-500 dark:text-cyan-500">📱 PIX</span> ${formataBRL(s.pixHoje)}</div>
-                        <div class="flex flex-col gap-1 text-gray-600 dark:text-gray-300"><span class="text-purple-500 dark:text-purple-400">💳 Cartões</span> ${formataBRL(s.cartoesHoje)}</div>
+                        <div class="flex flex-col gap-1 text-gray-600 dark:text-gray-300"><span class="text-green-600 dark:text-emerald-400">💵 Dinheiro</span> ${formataBRL(s.dinheiro)}</div>
+                        <div class="flex flex-col gap-1 text-gray-600 dark:text-gray-300"><span class="text-blue-500 dark:text-cyan-500">📱 PIX</span> ${formataBRL(s.pix)}</div>
+                        <div class="flex flex-col gap-1 text-gray-600 dark:text-gray-300"><span class="text-purple-500 dark:text-purple-400">💳 Cartões</span> ${formataBRL(s.cartoes)}</div>
                     </div>
                 </div>`;
             }).join('');
@@ -5811,6 +5480,60 @@
             { slug: 'biber_moda_2', nome: 'Biber Moda 2', cupom: 'BIBER MODA 2' }
         ];
 
+        
+        // Protege vendas recém-lançadas contra uma leitura remota antes da confirmação no Supabase.
+        const CHAVE_VENDAS_PENDENTES_SYNC = 'vendasPendentesSincronizacao';
+
+        function carregarVendasPendentesSync(slug) {
+            try {
+                const mapa = JSON.parse(localStorage.getItem(CHAVE_VENDAS_PENDENTES_SYNC) || '{}');
+                return Array.isArray(mapa[slug]) ? mapa[slug].map(String) : [];
+            } catch { return []; }
+        }
+
+        function salvarVendasPendentesSync(slug, ids) {
+            try {
+                const mapa = JSON.parse(localStorage.getItem(CHAVE_VENDAS_PENDENTES_SYNC) || '{}');
+                mapa[slug] = [...new Set((ids || []).map(String))];
+                localStorage.setItem(CHAVE_VENDAS_PENDENTES_SYNC, JSON.stringify(mapa));
+            } catch (e) { console.warn('Falha ao salvar pendências de vendas:', e); }
+        }
+
+        function marcarVendaPendenteSync(slug, venda) {
+            if (!slug || !venda?.id) return;
+            const ids = carregarVendasPendentesSync(slug);
+            if (!ids.includes(String(venda.id))) {
+                ids.push(String(venda.id));
+                salvarVendasPendentesSync(slug, ids);
+            }
+        }
+
+        function confirmarVendaSincronizada(slug, id) {
+            if (!slug || id == null) return;
+            salvarVendasPendentesSync(slug, carregarVendasPendentesSync(slug).filter(x => x !== String(id)));
+        }
+
+        function mesclarVendasRemotasComPendentes(slug, remotas) {
+            const listaRemota = Array.isArray(remotas) ? remotas : [];
+            const pendentes = carregarVendasPendentesSync(slug);
+            const locais = Array.isArray(todasVendasBanco) ? todasVendasBanco : [];
+            const mapa = new Map();
+
+            listaRemota.forEach(v => {
+                if (v?.id != null) mapa.set(String(v.id), v);
+            });
+
+            // Enquanto o Supabase não confirmou a venda, a cópia local é preservada.
+            locais.forEach(v => {
+                if (v?.id != null && pendentes.includes(String(v.id))) {
+                    mapa.set(String(v.id), v);
+                }
+            });
+
+            return Array.from(mapa.values())
+                .sort((a,b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
+        }
+
         const BASES_LOCAIS = {
             vendas: 'vendasSistemaCaixa',
             sangrias: 'despesasSistemaCaixa',
@@ -5821,7 +5544,6 @@
         const TABELAS_SYNC = ['vendas', 'venda_itens', 'sangrias', 'recebimentos', 'lembretes', 'boletos'];
         const COLUNAS = {};
         const LOJAS_DB = new Map();
-        window.LOJAS_DB = LOJAS_DB;
         let bloqueioPersistencia = false;
         let timerSync = null;
         let syncEmAndamento = false;
@@ -5834,7 +5556,7 @@
 
         // Acesso administrativo exclusivo do Painel Geral.
         // Não altera a senha/fluxo do Painel Admin interno das lojas.
-        const SENHA_ADMIN_PAINEL_GERAL = '1234';
+        const SENHA_ADMIN_PAINEL_GERAL = 'Ip4512$$';
         let painelGeralAdminAutorizado = false;
         let moduloGeralPendente = null;
 
@@ -6153,7 +5875,6 @@
             const out = payloadBase('lembretes', l, lojaIdPorSlug(l.lojaSlug || window.lojaAtualSlug));
             definir(out,'lembretes',['timestamp','timestamp_ms'],l.timestamp);
             definir(out,'lembretes',['cliente','cliente_nome'],l.cliente);
-            definir(out,'lembretes',['telefone','phone','whatsapp','numero_whatsapp'],l.telefone);
             definir(out,'lembretes',['produto','descricao'],l.produto);
             definir(out,'lembretes',['valor','total'],l.valor);
             definir(out,'lembretes',['data_vencimento','vencimento','data'],l.dataVencimento);
@@ -6273,6 +5994,7 @@
 
             mapa[chaveLocal] = { dbId: dbId || null, hash, atualizadoEm: Date.now() };
             if (tabela === 'vendas' && dbId) await sincronizarItensVenda(registro, dbId, lojaId);
+            return dbId || null;
         }
 
         async function removerExcluidos(tabela, registros, slug, mapa) {
@@ -6296,7 +6018,14 @@
             await removerExcluidos(tabela, registros, slug, mapa);
             const lotes = [];
             for (let i = 0; i < registros.length; i += 5) lotes.push(registros.slice(i, i + 5));
-            for (const lote of lotes) await Promise.all(lote.map(r => sincronizarRegistro(tabela, r, slug, mapa)));
+            for (const lote of lotes) {
+                await Promise.all(lote.map(async r => {
+                    const dbId = await sincronizarRegistro(tabela, r, slug, mapa);
+                    if (tabela === 'vendas' && dbId) {
+                        confirmarVendaSincronizada(slug, r.id);
+                    }
+                }));
+            }
             salvarMapa(tabela, slug, mapa);
         }
 
@@ -6481,7 +6210,6 @@
             l.supabaseId = lerCampo(linha,['id']);
             l.timestamp ??= Number(lerCampo(linha,['timestamp','timestamp_ms'])) || Date.parse(lerCampo(linha,['created_at','criado_em'])) || Date.now();
             l.cliente ??= lerCampo(linha,['cliente','cliente_nome']) || '';
-            l.telefone ??= lerCampo(linha,['telefone','phone','whatsapp','numero_whatsapp']) || '';
             l.produto ??= lerCampo(linha,['produto','descricao']) || '';
             l.valor ??= Number(lerCampo(linha,['valor','total']) || 0);
             l.dataVencimento ??= lerCampo(linha,['data_vencimento','vencimento','data']) || '';
@@ -6587,14 +6315,14 @@
             const lembretesRemotos = lLinhas.map(l => ({...lembreteDoDb(l), lojaSlug: slug}));
             const boletosRemotos = bLinhas.map(l => ({...boletoDoDb(l), lojaSlug: slug}));
 
-            // Supabase é a fonte de verdade para vendas/recebimentos/sangrias depois da migração.
-            // Não fazemos merge com o localStorage nessas coleções: um registro apagado em outro
+            // Supabase é a fonte de verdade para vendas/recebimentos depois da migração.
+            // Não fazemos merge com o localStorage aqui: um registro apagado em outro
             // dispositivo precisa desaparecer também deste aparelho, e não ser ressuscitado
             // por uma cópia local antiga.
-            salvarArrayLoja(BASES_LOCAIS.vendas, slug, [...vendasRemotas, ...recebimentosRemotos]
+            const vendasSeguras = mesclarVendasRemotasComPendentes(slug, vendasRemotas);
+            salvarArrayLoja(BASES_LOCAIS.vendas, slug, [...vendasSeguras, ...recebimentosRemotos]
                 .sort((a,b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)));
-            salvarArrayLoja(BASES_LOCAIS.sangrias, slug, sangriasRemotas
-                .sort((a,b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)));
+            salvarArrayLoja(BASES_LOCAIS.sangrias, slug, mesclarRegistros(carregarArrayLoja(BASES_LOCAIS.sangrias, slug), sangriasRemotas));
             salvarArrayLoja(BASES_LOCAIS.lembretes, slug, mesclarRegistros(carregarArrayLoja(BASES_LOCAIS.lembretes, slug), lembretesRemotos));
             salvarArrayLoja(BASES_LOCAIS.boletos, slug, mesclarRegistros(carregarArrayLoja(BASES_LOCAIS.boletos, slug), boletosRemotos));
         }
@@ -6626,15 +6354,6 @@
 
         async function aplicarAtualizacaoRemota(slug = null) {
             if (!window.supabaseDisponivel || !window.supabaseClient) return;
-
-            // Evita que uma atualização remota sobrescreva uma venda recém-lançada
-            // antes de a sincronização local terminar.
-            const ultimaMutacao = Number(window.__ultimaMutacaoLocal || 0);
-            if (ultimaMutacao && (Date.now() - ultimaMutacao) < 3000) {
-                agendarAtualizacaoRemota(slug, 900);
-                return;
-            }
-
             if (atualizacaoRemotaEmAndamento || window.sincronizandoSupabase) {
                 agendarAtualizacaoRemota(slug, 500);
                 return;
@@ -6680,7 +6399,6 @@
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'vendas' }, tratarEvento)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'recebimentos' }, tratarEvento)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'sangrias' }, tratarEvento)
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'lembretes' }, tratarEvento)
                 .subscribe((status) => {
                     if (status === 'SUBSCRIBED') console.info('Supabase Realtime conectado.');
                     else if (status === 'CHANNEL_ERROR') console.warn('Supabase Realtime indisponível; usando atualização automática de segurança.');
@@ -6747,36 +6465,14 @@
         function renderizarAcesso() {
             const box = document.getElementById('listaAcessoLojas');
             if (!box) return;
-            const hojeIso = obterDataIsoHojeLocal();
-            const mesAtual = obterMesAtualIsoLocal();
-
             box.innerHTML = LOJAS.map(loja => {
                 const vendas = carregarArrayLoja(BASES_LOCAIS.vendas, loja.slug);
                 const sangrias = carregarArrayLoja(BASES_LOCAIS.sangrias, loja.slug);
-                const vendasHoje = vendas.filter(v => v.dataIso === hojeIso);
-                const sangriasHoje = sangrias.filter(d => d.dataIso === hojeIso);
-                const vendasMes = vendas.filter(v => String(v.dataIso || '').startsWith(mesAtual));
-                const sangriasMes = sangrias.filter(d => String(d.dataIso || '').startsWith(mesAtual));
-                const faturamentoHoje = vendasHoje.reduce((s,v) => s + Number(v.total || 0), 0);
-                const saidasHoje = sangriasHoje.reduce((s,d) => s + Number(d.valor || 0), 0);
-                const faturamentoMes = vendasMes.reduce((s,v) => s + Number(v.total || 0), 0);
-                const saidasMes = sangriasMes.reduce((s,d) => s + Number(d.valor || 0), 0);
-                const classeSensivel = painelGeralAdminAutorizado ? '' : 'geral-valor-borrado';
-
+                const faturamento = vendas.reduce((s,v) => s + Number(v.total || 0), 0);
+                const saidas = sangrias.reduce((s,d) => s + Number(d.valor || 0), 0);
                 return `<button onclick="window.entrarNaLoja('${loja.slug}')" class="geral-shop-card group text-left">
                     <div class="flex items-start justify-between gap-4"><div><p class="text-[10px] font-black uppercase tracking-[.16em] text-gray-400">Loja</p><h3 class="text-xl font-black text-gray-900 dark:text-white mt-1">${loja.nome}</h3></div><span class="w-10 h-10 rounded-full bg-[#baff18] text-[#111512] flex items-center justify-center text-base font-black transition-transform group-hover:translate-x-1">→</span></div>
-                    <div class="grid grid-cols-2 gap-3 mt-6">
-                        <div>
-                            <p class="text-[10px] uppercase font-bold text-gray-400">Faturamento hoje</p>
-                            <p class="font-black text-gray-900 dark:text-white mt-1"><span class="geral-valor-sensivel ${classeSensivel}">${brl(faturamentoHoje)}</span></p>
-                            <p class="text-[10px] text-gray-400 mt-1">Mês: <span class="geral-valor-sensivel ${classeSensivel}">${brl(faturamentoMes)}</span></p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] uppercase font-bold text-gray-400">Sangrias hoje</p>
-                            <p class="font-black text-red-600 dark:text-red-400 mt-1"><span class="geral-valor-sensivel ${classeSensivel}">${brl(saidasHoje)}</span></p>
-                            <p class="text-[10px] text-gray-400 mt-1">Mês: <span class="geral-valor-sensivel ${classeSensivel}">${brl(saidasMes)}</span></p>
-                        </div>
-                    </div>
+                    <div class="grid grid-cols-2 gap-3 mt-6"><div><p class="text-[10px] uppercase font-bold text-gray-400">Faturamento</p><p class="font-black text-gray-900 dark:text-white mt-1"><span class="geral-valor-sensivel ${painelGeralAdminAutorizado ? '' : 'geral-valor-borrado'}">${brl(faturamento)}</span></p></div><div><p class="text-[10px] uppercase font-bold text-gray-400">Sangrias</p><p class="font-black text-red-600 dark:text-red-400 mt-1"><span class="geral-valor-sensivel ${painelGeralAdminAutorizado ? '' : 'geral-valor-borrado'}">${brl(saidas)}</span></p></div></div>
                 </button>`;
             }).join('');
         }
@@ -6865,7 +6561,7 @@
             if (!painelGeralAdminAutorizado) {
                 if (fatBox) fatBox.innerHTML = '';
                 if (sanBox) sanBox.innerHTML = '';
-            const fatTotal = document.getElementById('geralFaturamentoTotal'); if (fatTotal) fatTotal.textContent = '••••••';
+                const fatTotal = document.getElementById('geralFaturamentoTotal'); if (fatTotal) fatTotal.textContent = '••••••';
                 const sanTotal = document.getElementById('geralSangriasTotal'); if (sanTotal) sanTotal.textContent = '••••••';
                 const qtdEl = document.getElementById('geralQuantidadeVendas'); if (qtdEl) qtdEl.textContent = '••••';
                 const ticketEl = document.getElementById('geralTicketMedio'); if (ticketEl) ticketEl.textContent = '••••••';
@@ -7104,126 +6800,17 @@
             };
         }
 
-        // Exclusão sincronizada de sangrias:
-        // espelha o fluxo já usado nas vendas e impede que uma sangria apagada
-        // reapareça ao atualizar a página ou ao receber dados do Supabase.
-        async function excluirSangriaDoSupabase(sangria, slug) {
-            if (!window.supabaseDisponivel || !window.supabaseClient || !COLUNAS.sangrias) return { remoto: false };
-
-            const lojaId = lojaIdPorSlug(slug);
-            if (!lojaId) throw new Error(`Loja sem id no Supabase: ${slug}`);
-
-            const idCampo = campo('sangrias', ['id']);
-            const lojaCampo = campo('sangrias', ['loja_id']);
-            const origemCampo = campo('sangrias', ['origem_id','local_id','id_local','legacy_id','legado_id']);
-            const chaveLocal = String(sangria?.id ?? assinatura(sangria || {}));
-            const mapa = carregarMapa('sangrias', slug);
-            let dbId = sangria?.supabaseId || mapa[chaveLocal]?.dbId || null;
-
-            // Em aparelhos que apenas baixaram a sangria, o mapa local pode não existir.
-            // Nesse caso localizamos a linha pelo id legado/origem + loja.
-            if (!dbId && origemCampo && sangria?.id != null) {
-                let consulta = window.supabaseClient.from('sangrias').select(idCampo || '*').eq(origemCampo, String(sangria.id));
-                if (lojaCampo && lojaId) consulta = consulta.eq(lojaCampo, lojaId);
-                const { data, error } = await consulta.limit(1);
-                if (error) throw error;
-                if (data?.length && idCampo) dbId = data[0][idCampo];
-            }
-
-            let exclusao;
-            if (dbId && idCampo) {
-                exclusao = window.supabaseClient.from('sangrias').delete().eq(idCampo, dbId);
-            } else if (origemCampo && sangria?.id != null) {
-                exclusao = window.supabaseClient.from('sangrias').delete().eq(origemCampo, String(sangria.id));
-                if (lojaCampo && lojaId) exclusao = exclusao.eq(lojaCampo, lojaId);
-            } else {
-                throw new Error('Não foi possível identificar a sangria no Supabase para exclusão.');
-            }
-
-            const { error } = await exclusao;
-            if (error) throw error;
-
-            delete mapa[chaveLocal];
-            salvarMapa('sangrias', slug, mapa);
-            return { remoto: true, dbId };
-        }
-
-        function instalarExclusaoSangriaSincronizada() {
-            window.apagarSangria = (idSangria) => {
-                const sangria = todasDespesasBanco.find(d => String(d.id) === String(idSangria));
-                if (!sangria) return;
-                const slug = window.lojaAtualSlug;
-
-                window.abrirModal(
-                    'Apagar Sangria?',
-                    'Tem certeza que deseja remover esta despesa/sangria? O saldo líquido, o Painel Geral e o banco de dados serão atualizados automaticamente.',
-                    async () => {
-                        todasDespesasBanco = todasDespesasBanco.filter(d => String(d.id) !== String(idSangria));
-
-                        // IMPORTANTE: grava também na chave exclusiva da loja.
-                        // Antes, a exclusão alterava apenas despesasSistemaCaixa e, ao recarregar,
-                        // carregarDadosLocaisDaLoja() restaurava a cópia antiga despesasSistemaCaixa__<loja>.
-                        salvarArrayLoja(BASES_LOCAIS.sangrias, slug, todasDespesasBanco);
-                        window.__ultimaMutacaoLocal = Date.now();
-
-                        filtrarEAtualizarDashboard();
-                        renderizarAcesso();
-                        renderizarPainelGeralLocal();
-
-                        try {
-                            if (window.supabaseDisponivel) {
-                                setStatusBanco('Banco: excluindo sangria', 'sync');
-                                await excluirSangriaDoSupabase(sangria, slug);
-                                // Mantém mapa/cache e os registros restantes consistentes.
-                                await sincronizarLoja(slug);
-                                setStatusBanco('Banco: sincronizado', 'ok');
-                            }
-                            mostrarToast('Sangria apagada do caixa, Painel Geral e banco de dados.', 'bg-gray-800 text-white');
-                        } catch (e) {
-                            const msg = formatarErroSupabase(e);
-                            console.error('Falha ao excluir sangria no Supabase:', e);
-                            setStatusBanco('Banco: erro ao excluir sangria', 'erro');
-                            mostrarToast(`Sangria removida localmente, mas o Supabase não confirmou a exclusão: ${msg}`.slice(0, 220), 'bg-red-600 text-white');
-                        }
-                    }
-                );
-            };
-        }
-
-        window.alternarFundoPainelGeral = (modo) => {
-            const painel = document.getElementById('tela-geral-lojas');
-            if (!painel || !['preto','branco'].includes(modo)) return;
-            painel.classList.toggle('geral-bg-preto', modo === 'preto');
-            painel.classList.toggle('geral-bg-branco', modo === 'branco');
-            localStorage.setItem('painelGeralFundo', modo);
-            const preto = document.getElementById('geralBgPreto');
-            const branco = document.getElementById('geralBgBranco');
-            preto?.classList.toggle('active', modo === 'preto');
-            branco?.classList.toggle('active', modo === 'branco');
-        };
-
-        function iniciarFundoPainelGeral() {
-            const salvo = localStorage.getItem('painelGeralFundo') || 'preto';
-            window.alternarFundoPainelGeral(salvo);
-        }
-
         function iniciar() {
-            iniciarFundoPainelGeral();
             prepararDadosLegados();
             aplicarContextoLoja(window.lojaAtualSlug);
             instalarObservadorLocalStorage();
             instalarExclusaoVendaSincronizada();
-            instalarExclusaoSangriaSincronizada();
             const fatIni = document.getElementById('geralDataInicioFat'); const fatFim = document.getElementById('geralDataFimFat');
             const sanIni = document.getElementById('geralDataInicioSan'); const sanFim = document.getElementById('geralDataFimSan');
-            const iso = obterDataIsoHojeLocal();
-            if (fatIni) fatIni.value = obterInicioMesIsoLocal();
-            if (fatFim) fatFim.value = iso;
-            if (sanIni) sanIni.value = iso;
-            if (sanFim) sanFim.value = iso;
+            const hoje = new Date(); const iso = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${String(hoje.getDate()).padStart(2,'0')}`;
+            [fatIni,fatFim,sanIni,sanFim].forEach(el => { if (el) el.value = iso; });
             renderizarAcesso();
             renderizarPainelGeralLocal();
-            agendarAtualizacaoViradaDoDia();
             window.abrirModuloGeral('acesso');
             if (!painelGeralAdminAutorizado) setTimeout(() => window.abrirSenhaPainelGeral(), 140);
 
@@ -7241,421 +6828,5 @@
     })();
     </script>
 
-<script>
-(() => {
-    const CONFIG_LOJA_PREFIX = 'configLojaOrcamento__';
-    let orcamentoItens = [];
-    let logoConfigPendente = null;
-    let orcamentoNumeroAtual = '';
-
-    const hojeIsoOrc = () => {
-        const d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    };
-    const escOrc = v => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-    const brlOrc = v => Number(v || 0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-    const dataBrOrc = iso => iso ? new Date(`${iso}T12:00:00`).toLocaleDateString('pt-BR') : '';
-    const lojaAtualOrc = () => (window.LOJAS_SISTEMA || []).find(l => l.slug === window.lojaAtualSlug) || (window.LOJAS_SISTEMA || [])[0] || {};
-    const configKeyOrc = () => `${CONFIG_LOJA_PREFIX}${window.lojaAtualSlug || 'real_papelaria'}`;
-
-    function configLojaPadraoOrc() {
-        const loja = lojaAtualOrc();
-        return { nome: loja.nome || '', cnpj:'', ie:'', endereco:'', numero:'', complemento:'', bairro:'', cidade:'', uf:'', cep:'', telefone:'', email:'', logo:'' };
-    }
-    function lerConfigLojaLocal() {
-        try {
-            const salvo = JSON.parse(localStorage.getItem(configKeyOrc()) || 'null');
-            return { ...configLojaPadraoOrc(), ...(salvo || {}) };
-        } catch { return configLojaPadraoOrc(); }
-    }
-    function salvarConfigLojaLocal(config) { localStorage.setItem(configKeyOrc(), JSON.stringify(config)); }
-
-    function detectarCampoPayloadLoja(remoto) {
-        return ['payload','dados','configuracao','config','metadata','meta'].find(c => remoto && Object.prototype.hasOwnProperty.call(remoto,c)) || null;
-    }
-    async function salvarConfigLojaRemota(config) {
-        try {
-            if (!window.supabaseDisponivel || !window.supabaseClient) return;
-            const remoto = window.LOJAS_DB?.get?.(window.lojaAtualSlug);
-            if (!remoto?.id) return;
-            const campo = detectarCampoPayloadLoja(remoto);
-            if (!campo) return;
-            const valorAtual = remoto[campo];
-            const payload = typeof valorAtual === 'object' && valorAtual !== null ? { ...valorAtual, orcamento_config: config } : JSON.stringify({ ...(JSON.parse(valorAtual || '{}') || {}), orcamento_config: config });
-            const { data, error } = await window.supabaseClient.from('lojas').update({ [campo]: payload }).eq('id', remoto.id).select('*').maybeSingle();
-            if (error) throw error;
-            if (data) window.LOJAS_DB?.set?.(window.lojaAtualSlug, data);
-        } catch (e) { console.warn('Configuração da loja mantida localmente; sincronização remota indisponível:', e); }
-    }
-    async function carregarConfigLojaRemota() {
-        try {
-            const remoto = window.LOJAS_DB?.get?.(window.lojaAtualSlug);
-            if (!remoto) return null;
-            const campo = detectarCampoPayloadLoja(remoto);
-            if (!campo || !remoto[campo]) return null;
-            const raw = remoto[campo];
-            const obj = typeof raw === 'object' ? raw : JSON.parse(raw);
-            return obj?.orcamento_config || null;
-        } catch { return null; }
-    }
-    function preencherCampo(id, valor) { const el=document.getElementById(id); if(el) el.value=valor ?? ''; }
-
-    window.carregarConfiguracaoLoja = async () => {
-        const base = lerConfigLojaLocal();
-        const remoto = await carregarConfigLojaRemota();
-        const cfg = { ...base, ...(remoto || {}) };
-        ['nome','cnpj','ie','endereco','numero','complemento','bairro','cidade','uf','cep','telefone','email'].forEach(k => preencherCampo(`cfgLoja${k.charAt(0).toUpperCase()+k.slice(1)}`, cfg[k]));
-        logoConfigPendente = cfg.logo || '';
-        const input=document.getElementById('cfgLojaLogo'); if(input) input.value='';
-        const status=document.getElementById('cfgLojaStatus');
-        if(status){ status.textContent = cfg.logo ? 'Logo cadastrada.' : 'Preencha os dados e salve a configuração.'; status.classList.remove('hidden'); }
-    };
-
-    function lerConfigDoForm() {
-        const get=id=>document.getElementById(id)?.value.trim()||'';
-        return { nome:get('cfgLojaNome'), cnpj:get('cfgLojaCnpj'), ie:get('cfgLojaIe'), endereco:get('cfgLojaEndereco'), numero:get('cfgLojaNumero'), complemento:get('cfgLojaComplemento'), bairro:get('cfgLojaBairro'), cidade:get('cfgLojaCidade'), uf:get('cfgLojaUf').toUpperCase(), cep:get('cfgLojaCep'), telefone:get('cfgLojaTelefone'), email:get('cfgLojaEmail'), logo: logoConfigPendente ?? lerConfigLojaLocal().logo ?? '' };
-    }
-
-    window.salvarConfiguracaoLoja = async () => {
-        const cfg=lerConfigDoForm();
-        salvarConfigLojaLocal(cfg);
-        await salvarConfigLojaRemota(cfg);
-        const status=document.getElementById('cfgLojaStatus');
-        if(status){status.textContent='Configuração salva para esta loja.';status.classList.remove('hidden');}
-        window.mostrarToast?.('Configuração da loja salva.', 'bg-emerald-600 text-white');
-    };
-
-    document.addEventListener('change', e => {
-        if(e.target?.id!=='cfgLojaLogo') return;
-        const file=e.target.files?.[0]; if(!file) return;
-        if(!file.type.startsWith('image/')){window.mostrarToast?.('Selecione uma imagem válida.','bg-red-600 text-white');return;}
-        const reader=new FileReader();
-        reader.onload=()=>{logoConfigPendente=String(reader.result||'');const s=document.getElementById('cfgLojaStatus');if(s){s.textContent='Logo carregada. Clique em salvar configuração da loja.';s.classList.remove('hidden');}};
-        reader.readAsDataURL(file);
-    });
-
-    function novoItemOrcamento(){return{id:`item-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,foto:'',descricao:'',detalhe:'',qtd:1,unitario:0};}
-    window.adicionarItemOrcamento=()=>{orcamentoItens.push(novoItemOrcamento());renderizarItensOrcamento();};
-    window.removerItemOrcamento=id=>{orcamentoItens=orcamentoItens.filter(i=>i.id!==id);renderizarItensOrcamento();};
-    window.atualizarItemOrcamento=(id,campo,valor)=>{const i=orcamentoItens.find(x=>x.id===id);if(!i)return;i[campo]=(campo==='qtd'||campo==='unitario')?Number(valor||0):valor;atualizarPreviewOrcamento();};
-    window.carregarFotoItemOrcamento=(id,input)=>{
-        const file=input.files?.[0];if(!file||!file.type.startsWith('image/'))return;
-        const reader=new FileReader();reader.onload=()=>{const i=orcamentoItens.find(x=>x.id===id);if(!i)return;i.foto=String(reader.result||'');renderizarItensOrcamento();};reader.readAsDataURL(file);
-    };
-
-    function renderizarItensOrcamento(){
-        const lista=document.getElementById('listaItensOrcamento');if(!lista)return;
-        if(!orcamentoItens.length){lista.innerHTML='<div class="p-4 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 text-center text-xs text-gray-400">Nenhum item adicionado. Clique em + Item.</div>';atualizarPreviewOrcamento();return;}
-        lista.innerHTML=orcamentoItens.map((item,idx)=>`
-            <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] p-3">
-                <div class="flex items-center justify-between gap-2 mb-3"><span class="text-xs font-black text-gray-700 dark:text-gray-200">Item ${idx+1}</span><button type="button" onclick="window.removerItemOrcamento('${item.id}')" class="text-red-600 text-xs font-black">Remover</button></div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <input type="file" accept="image/*" onchange="window.carregarFotoItemOrcamento('${item.id}',this)" class="sm:col-span-2 w-full p-2.5 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 text-xs dark:text-gray-300">
-                    <input value="${escOrc(item.descricao)}" oninput="window.atualizarItemOrcamento('${item.id}','descricao',this.value)" class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#161925] text-sm dark:text-white" placeholder="Descrição do produto / serviço">
-                    <input value="${escOrc(item.detalhe)}" oninput="window.atualizarItemOrcamento('${item.id}','detalhe',this.value)" class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#161925] text-sm dark:text-white" placeholder="Detalhe / especificação">
-                    <input type="number" min="0" step="0.01" value="${Number(item.qtd||1)}" oninput="window.atualizarItemOrcamento('${item.id}','qtd',this.value)" class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#161925] text-sm dark:text-white" placeholder="Qtd.">
-                    <input type="number" min="0" step="0.01" value="${Number(item.unitario||0)}" oninput="window.atualizarItemOrcamento('${item.id}','unitario',this.value)" class="w-full p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#161925] text-sm dark:text-white" placeholder="Preço unitário">
-                </div>
-                ${item.foto?`<img src="${item.foto}" class="mt-2 w-20 h-20 object-cover rounded-xl border border-gray-200 dark:border-gray-700">`:''}
-            </div>`).join('');
-        atualizarPreviewOrcamento();
-    }
-
-    function coletarDadosOrcamento(){
-        const cfg=lerConfigLojaLocal(), get=id=>document.getElementById(id)?.value.trim()||'';
-        return {cfg,cliente:get('orcClienteNome'),doc:get('orcClienteDoc'),tel:get('orcClienteTelefone'),data:document.getElementById('orcData')?.value||hojeIsoOrc(),validade:get('orcValidade'),observacoes:get('orcObservacoes'),itens:orcamentoItens.slice()};
-    }
-    function numeroOrcamento(){if(orcamentoNumeroAtual)return orcamentoNumeroAtual;const d=new Date();orcamentoNumeroAtual=`ORC-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;return orcamentoNumeroAtual;}
-
-    function montarHtmlOrcamento(d){
-        const {cfg,cliente,doc,tel,data,validade,observacoes,itens}=d;
-        const total=itens.reduce((s,i)=>s+Number(i.qtd||0)*Number(i.unitario||0),0);
-        const endereco=[cfg.endereco,cfg.numero].filter(Boolean).join(', ')+(cfg.complemento?` • ${cfg.complemento}`:'');
-        const local=[cfg.bairro,cfg.cidade,cfg.uf].filter(Boolean).join(' • ');
-        const contato=[cfg.telefone,cfg.email].filter(Boolean).join(' • ');
-        const linhas=itens.length?itens.map(i=>`<tr><td style="padding:10px;border-bottom:1px solid #e5e7eb;width:64px;">${i.foto?`<img src="${i.foto}" style="width:52px;height:52px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;">`:'<div style="width:52px;height:52px;border-radius:8px;background:#f3f4f6;"></div>'}</td><td style="padding:10px;border-bottom:1px solid #e5e7eb;"><b>${escOrc(i.descricao||'Item não informado')}</b>${i.detalhe?`<div style="font-size:10px;color:#6b7280;margin-top:3px;">${escOrc(i.detalhe)}</div>`:''}</td><td style="padding:10px;border-bottom:1px solid #e5e7eb;text-align:center;">${Number(i.qtd||0).toLocaleString('pt-BR')}</td><td style="padding:10px;border-bottom:1px solid #e5e7eb;text-align:right;">${brlOrc(i.unitario)}</td><td style="padding:10px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:800;">${brlOrc(Number(i.qtd||0)*Number(i.unitario||0))}</td></tr>`).join(''):'<tr><td colspan="5" style="padding:22px;text-align:center;color:#9ca3af;">Nenhum item informado.</td></tr>';
-        return `<div style="font-family:Arial,Helvetica,sans-serif;color:#111827;background:#fff;width:100%;min-height:1123px;padding:46px 48px;box-sizing:border-box;">
-            <div style="display:flex;justify-content:space-between;gap:30px;border-bottom:3px solid #111827;padding-bottom:22px;">
-                <div style="display:flex;gap:16px;align-items:center;">${cfg.logo?`<img src="${cfg.logo}" style="width:78px;height:78px;object-fit:contain;border-radius:10px;">`:''}<div>
-                    <div style="font-size:25px;font-weight:900;letter-spacing:-.03em;">${escOrc(cfg.nome||lojaAtualOrc().nome||'LOJA')}</div>
-                    <div style="font-size:10px;color:#4b5563;margin-top:6px;line-height:1.55;">${escOrc(cfg.cnpj?`CNPJ ${cfg.cnpj}`:'')}${cfg.ie?` • IE ${escOrc(cfg.ie)}`:''}</div>
-                    ${endereco?`<div style="font-size:10px;color:#4b5563;margin-top:2px;">${escOrc(endereco)}</div>`:''}
-                    ${local?`<div style="font-size:10px;color:#4b5563;margin-top:2px;">${escOrc(local)}${cfg.cep?` • CEP ${escOrc(cfg.cep)}`:''}</div>`:''}
-                    ${contato?`<div style="font-size:10px;color:#4b5563;margin-top:2px;">${escOrc(contato)}</div>`:''}
-                </div></div>
-                <div style="text-align:right;min-width:160px;"><div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.14em;font-weight:800;">Orçamento</div><div style="font-size:22px;font-weight:900;margin-top:4px;">${escOrc(numeroOrcamento())}</div><div style="font-size:11px;color:#6b7280;margin-top:6px;">Data: ${escOrc(dataBrOrc(data)||'—')}</div>${validade?`<div style="font-size:11px;color:#6b7280;margin-top:2px;">Validade: ${escOrc(validade)}</div>`:''}</div>
-            </div>
-            <div style="margin-top:28px;padding:16px 18px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#6b7280;font-weight:800;">Solicitante</div><div style="font-size:16px;font-weight:900;margin-top:5px;">${escOrc(cliente||'Cliente não informado')}</div>${doc?`<div style="font-size:10px;color:#4b5563;margin-top:4px;">Documento: ${escOrc(doc)}</div>`:''}${tel?`<div style="font-size:10px;color:#4b5563;margin-top:2px;">Contato: ${escOrc(tel)}</div>`:''}</div>
-            <div style="margin-top:26px;"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:#6b7280;font-weight:800;margin-bottom:8px;">Itens e condições comerciais</div><table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="background:#111827;color:#fff;"><th style="padding:10px;text-align:left;width:64px;">Foto</th><th style="padding:10px;text-align:left;">Descrição</th><th style="padding:10px;text-align:center;">Qtd.</th><th style="padding:10px;text-align:right;">Unitário</th><th style="padding:10px;text-align:right;">Total</th></tr></thead><tbody>${linhas}</tbody></table></div>
-            <div style="display:flex;justify-content:flex-end;margin-top:18px;"><div style="width:250px;padding:16px 18px;border-radius:12px;background:#111827;color:#fff;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.14em;opacity:.7;">Valor total</div><div style="font-size:25px;font-weight:900;margin-top:4px;">${brlOrc(total)}</div></div></div>
-            ${observacoes?`<div style="margin-top:26px;padding-top:16px;border-top:1px solid #e5e7eb;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#6b7280;font-weight:800;">Observações</div><div style="font-size:10px;color:#374151;white-space:pre-line;line-height:1.6;margin-top:6px;">${escOrc(observacoes)}</div></div>`:''}
-            <div style="margin-top:54px;border-top:1px solid #e5e7eb;padding-top:12px;display:flex;justify-content:space-between;gap:20px;font-size:9px;color:#9ca3af;"><span>Documento comercial — não substitui documento fiscal.</span><span>${escOrc(cfg.nome||lojaAtualOrc().nome||'')}</span></div>
-        </div>`;
-    }
-
-    function atualizarPreviewOrcamento(){const p=document.getElementById('orcamentoPreview');if(!p)return;p.innerHTML=montarHtmlOrcamento(coletarDadosOrcamento());}
-    window.atualizarPreviewOrcamento=atualizarPreviewOrcamento;
-
-    window.inicializarModuloOrcamentos=()=>{
-        const cfg=lerConfigLojaLocal(), badge=document.getElementById('orcamentoLojaBadge');
-        if(badge)badge.textContent=cfg.nome||lojaAtualOrc().nome||'Loja';
-        if(!document.getElementById('orcData')?.value)document.getElementById('orcData').value=hojeIsoOrc();
-        if(!orcamentoItens.length)orcamentoItens=[novoItemOrcamento()];
-        renderizarItensOrcamento();
-        ['orcClienteNome','orcClienteDoc','orcClienteTelefone','orcValidade','orcObservacoes'].forEach(id=>{const e=document.getElementById(id);if(e&&!e.dataset.orcBound){e.dataset.orcBound='1';e.addEventListener('input',atualizarPreviewOrcamento);}});
-        const data=document.getElementById('orcData');if(data&&!data.dataset.orcBound){data.dataset.orcBound='1';data.addEventListener('change',atualizarPreviewOrcamento);}
-        atualizarPreviewOrcamento();
-    };
-    window.novoOrcamento=()=>{
-        orcamentoNumeroAtual='';
-        orcamentoItens=[novoItemOrcamento()];
-        ['orcClienteNome','orcClienteDoc','orcClienteTelefone','orcValidade','orcObservacoes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-        const d=document.getElementById('orcData');if(d)d.value=hojeIsoOrc();
-        renderizarItensOrcamento();
-    };
-    window.gerarOrcamentoPDF=async()=>{
-        const element=document.getElementById('orcamentoPreview');
-        if(!element||typeof html2pdf!=='function'){window.mostrarToast?.('Não foi possível gerar o PDF.','bg-red-600 text-white');return;}
-        const loja=lojaAtualOrc(), nomeArquivo=`Orcamento_${String(loja.nome||'Loja').replace(/[^a-z0-9]+/gi,'_')}_${Date.now()}.pdf`;
-        try{
-            window.mostrarToast?.('Preparando orçamento em PDF...','bg-blue-600 text-white');
-            await html2pdf().set({margin:0,filename:nomeArquivo,image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#fff'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}}).from(element).save();
-            window.mostrarToast?.('Orçamento gerado com sucesso.','bg-emerald-600 text-white');
-        }catch(e){console.error(e);window.mostrarToast?.('Erro ao gerar o orçamento.','bg-red-600 text-white');}
-    };
-    window.abrirModuloAjudaOrcamentos=()=>window.mostrarToast?.('Configure os dados da loja uma vez. Depois informe cliente e itens no módulo Orçamentos e gere o PDF.','bg-gray-900 text-white');
-})();
-</script>
-
-<script>
-(() => {
-    const FINANCEIRO_SENHA = '739184';
-    let financeiroAutorizado = false;
-    let financeiroDados = [];
-    let financeiroRecorrentes = [];
-    let financeiroFiltro = 'todos';
-
-    const lojaFinanceiro = () => {
-        const lojas = window.LOJAS_SISTEMA || [];
-        return lojas.find(l => l.slug === (window.lojaAtualSlug || '')) || lojas[0] || null;
-    };
-    const hojeIsoFinanceiro = () => {
-        const d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    };
-    const brlFin = v => Number(v || 0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-    const escFin = s => String(s ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-    const dataBrFin = iso => iso ? new Date(`${iso}T12:00:00`).toLocaleDateString('pt-BR') : '-';
-    const empresaTexto = x => x.empresa_tipo === 'pessoal' ? 'Pessoal' : ((window.LOJAS_SISTEMA || []).find(l => l.slug === x.loja_slug)?.nome || x.loja_nome || 'Loja');
-
-    function financeiroLocalKey(sufixo) { return `financeiro_${sufixo}`; }
-    function salvarFinanceiroLocal() {
-        localStorage.setItem(financeiroLocalKey('lancamentos'), JSON.stringify(financeiroDados));
-        localStorage.setItem(financeiroLocalKey('recorrentes'), JSON.stringify(financeiroRecorrentes));
-    }
-    function carregarFinanceiroLocal() {
-        try { financeiroDados = JSON.parse(localStorage.getItem(financeiroLocalKey('lancamentos')) || '[]') || []; } catch { financeiroDados = []; }
-        try { financeiroRecorrentes = JSON.parse(localStorage.getItem(financeiroLocalKey('recorrentes')) || '[]') || []; } catch { financeiroRecorrentes = []; }
-    }
-
-    async function carregarFinanceiroRemoto() {
-        carregarFinanceiroLocal();
-        if (!window.supabaseClient) return;
-        const [{data:lanc,error:e1},{data:rec,error:e2},{data:lojas,error:e3}] = await Promise.all([
-            window.supabaseClient.from('finance_lancamentos').select('*').order('vencimento',{ascending:true}),
-            window.supabaseClient.from('finance_recorrentes').select('*').order('proximo_vencimento',{ascending:true}),
-            window.supabaseClient.from('lojas').select('id,slug,nome')
-        ]);
-        if (e1) throw e1;
-        if (e2) throw e2;
-        if (e3) throw e3;
-        const mapaLojas = new Map((lojas || []).map(l => [String(l.id), l]));
-        financeiroDados = (lanc || []).map(r => financeiroDbParaLocal({...r, loja_slug: mapaLojas.get(String(r.loja_id))?.slug || null, loja_nome: mapaLojas.get(String(r.loja_id))?.nome || null}));
-        financeiroRecorrentes = (rec || []).map(r => recorrenteDbParaLocal({...r, loja_slug: mapaLojas.get(String(r.loja_id))?.slug || null, loja_nome: mapaLojas.get(String(r.loja_id))?.nome || null}));
-        salvarFinanceiroLocal();
-    }
-    function financeiroDbParaLocal(r) {
-        const loja = (window.LOJAS_SISTEMA || []).find(l => l.slug && r.loja_id && l.slug === r.loja_slug);
-        return {...r, supabaseId:r.id, loja_slug:r.loja_slug || loja?.slug || null, loja_nome:r.loja_nome || loja?.nome || null};
-    }
-    function recorrenteDbParaLocal(r) {
-        const loja = (window.LOJAS_SISTEMA || []).find(l => l.slug && r.loja_id && l.slug === r.loja_slug);
-        return {...r, supabaseId:r.id, loja_slug:r.loja_slug || loja?.slug || null, loja_nome:r.loja_nome || loja?.nome || null};
-    }
-    async function inserirFinanceiroDb(item) {
-        if (!window.supabaseClient) return null;
-        const loja = item.empresa_tipo === 'loja' ? (window.LOJAS_SISTEMA || []).find(l => l.slug === item.loja_slug) : null;
-        const payload = {...item}; delete payload.supabaseId; delete payload.loja_slug; delete payload.loja_nome; delete payload.id;
-        payload.loja_id = loja?.id || null;
-        if (!payload.loja_id && item.empresa_tipo === 'loja' && window.supabaseClient) {
-            const {data} = await window.supabaseClient.from('lojas').select('id,slug,nome').eq('slug', item.loja_slug).maybeSingle();
-            payload.loja_id = data?.id || null;
-        }
-        const {data,error} = await window.supabaseClient.from('finance_lancamentos').insert(payload).select('*').single();
-        if (error) throw error;
-        return financeiroDbParaLocal(data);
-    }
-    async function atualizarFinanceiroDb(item) {
-        if (!window.supabaseClient || !item.supabaseId) return;
-        const payload = {...item}; delete payload.supabaseId; delete payload.loja_slug; delete payload.loja_nome; delete payload.id;
-        if (item.empresa_tipo === 'loja') {
-            const {data} = await window.supabaseClient.from('lojas').select('id').eq('slug', item.loja_slug).maybeSingle();
-            payload.loja_id = data?.id || null;
-        } else payload.loja_id = null;
-        const {error} = await window.supabaseClient.from('finance_lancamentos').update(payload).eq('id', item.supabaseId);
-        if (error) throw error;
-    }
-    async function inserirRecorrenteDb(item) {
-        if (!window.supabaseClient) return null;
-        const loja = item.empresa_tipo === 'loja' ? (window.LOJAS_SISTEMA || []).find(l => l.slug === item.loja_slug) : null;
-        const payload = {...item}; delete payload.supabaseId; delete payload.loja_slug; delete payload.loja_nome; delete payload.id;
-        payload.loja_id = loja?.id || null;
-        if (!payload.loja_id && item.empresa_tipo === 'loja') {
-            const {data} = await window.supabaseClient.from('lojas').select('id').eq('slug', item.loja_slug).maybeSingle(); payload.loja_id = data?.id || null;
-        }
-        const {data,error} = await window.supabaseClient.from('finance_recorrentes').insert(payload).select('*').single();
-        if (error) throw error;
-        return recorrenteDbParaLocal(data);
-    }
-    async function atualizarRecorrenteDb(item) {
-        if (!window.supabaseClient || !item.supabaseId) return;
-        const payload = {...item}; delete payload.supabaseId; delete payload.loja_slug; delete payload.loja_nome; delete payload.id;
-        if (item.empresa_tipo === 'loja') {
-            const {data} = await window.supabaseClient.from('lojas').select('id').eq('slug', item.loja_slug).maybeSingle(); payload.loja_id = data?.id || null;
-        } else payload.loja_id = null;
-        const {error} = await window.supabaseClient.from('finance_recorrentes').update(payload).eq('id', item.supabaseId);
-        if (error) throw error;
-    }
-
-    function filtroFinanceiroOk(x) {
-        if (financeiroFiltro === 'todos') return true;
-        if (financeiroFiltro === 'loja') return x.empresa_tipo === 'loja';
-        if (financeiroFiltro === 'pessoal') return x.empresa_tipo === 'pessoal';
-        return x.categoria === financeiroFiltro;
-    }
-    function prioridadeFinanceiro(data) {
-        const hoje = hojeIsoFinanceiro();
-        if (data < hoje) return 0;
-        if (data === hoje) return 1;
-        const diff = Math.ceil((new Date(`${data}T12:00:00`) - new Date(`${hoje}T12:00:00`))/86400000);
-        if (diff <= 3) return 2;
-        return 3;
-    }
-    function renderizarFinanceiro() {
-        if (!financeiroAutorizado) return;
-        const pendentes = financeiroDados.filter(x => x.status !== 'pago' && filtroFinanceiroOk(x)).sort((a,b) => prioridadeFinanceiro(a.vencimento)-prioridadeFinanceiro(b.vencimento) || String(a.vencimento).localeCompare(String(b.vencimento)));
-        const vencido = pendentes.filter(x => prioridadeFinanceiro(x.vencimento) === 0).reduce((s,x)=>s+Number(x.valor||0),0);
-        const hoje = pendentes.filter(x => prioridadeFinanceiro(x.vencimento) === 1).reduce((s,x)=>s+Number(x.valor||0),0);
-        const futuro = pendentes.filter(x => prioridadeFinanceiro(x.vencimento) >= 2).reduce((s,x)=>s+Number(x.valor||0),0);
-        const total = pendentes.reduce((s,x)=>s+Number(x.valor||0),0);
-        document.getElementById('financeiroTotalVencido').textContent=brlFin(vencido);
-        document.getElementById('financeiroTotalHoje').textContent=brlFin(hoje);
-        document.getElementById('financeiroTotalFuturo').textContent=brlFin(futuro);
-        document.getElementById('financeiroTotalPendente').textContent=brlFin(total);
-        document.getElementById('financeiroQtdPendentes').textContent=pendentes.length;
-        const box=document.getElementById('financeiroListaPendentes');
-        box.innerHTML=pendentes.length ? pendentes.map(x=>{
-            const p=prioridadeFinanceiro(x.vencimento); const cor=p===0?'border-red-200 bg-red-50 dark:bg-red-900/10':p===1?'border-amber-200 bg-amber-50 dark:bg-amber-900/10':'border-gray-200 dark:border-gray-800';
-            const label=p===0?'VENCIDO':p===1?'VENCE HOJE':`VENCE ${dataBrFin(x.vencimento)}`;
-            return `<div class="border ${cor} rounded-2xl p-4 flex items-center justify-between gap-3"><div class="min-w-0"><div class="flex flex-wrap gap-2 items-center"><span class="text-[9px] font-black uppercase tracking-wider">${label}</span><span class="text-[9px] font-bold text-gray-400">${escFin(x.categoria.replace('_',' '))}</span></div><p class="font-black text-sm text-gray-900 dark:text-white mt-1 truncate">${escFin(x.descricao)}</p><p class="text-[10px] text-gray-500 mt-1">${escFin(empresaTexto(x))}${x.fornecedor?' • '+escFin(x.fornecedor):''}</p></div><div class="text-right shrink-0"><p class="font-black text-sm text-gray-900 dark:text-white">${brlFin(x.valor)}</p><button onclick="window.quitarFinanceiro('${x.supabaseId || x.id}')" class="mt-2 text-[10px] font-black px-3 py-1.5 rounded-full bg-[#baff18] text-[#111512]">Marcar pago</button></div></div>`;
-        }).join('') : '<div class="text-sm text-gray-400 py-8 text-center">Nenhuma conta pendente.</div>';
-        const rec = financeiroRecorrentes.filter(x=>x.ativo).sort((a,b)=>String(a.proximo_vencimento).localeCompare(String(b.proximo_vencimento)));
-        document.getElementById('financeiroQtdRecorrentes').textContent=rec.length;
-        document.getElementById('financeiroListaRecorrentes').innerHTML=rec.length ? rec.map(x=>`<div class="border border-gray-200 dark:border-gray-800 rounded-2xl p-4 flex justify-between gap-3"><div><p class="font-black text-sm text-gray-900 dark:text-white">${escFin(x.descricao)}</p><p class="text-[10px] text-gray-500 mt-1">${escFin(x.frequencia)} • ${escFin(empresaTexto(x))} • próximo ${dataBrFin(x.proximo_vencimento)}</p></div><p class="font-black text-sm text-gray-900 dark:text-white">${brlFin(x.valor)}</p></div>`).join('') : '<div class="text-sm text-gray-400 py-8 text-center">Nenhum gasto recorrente cadastrado.</div>';
-    }
-
-    function modalFinanceiroHTML(tipo) {
-        const rec = tipo === 'recorrente';
-        const lojas = window.LOJAS_SISTEMA || [];
-        return `<div id="modalFinanceiro" class="fixed inset-0 z-[260] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"><div class="bg-white dark:bg-[#161925] rounded-3xl p-6 max-w-xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"><div class="flex justify-between items-start gap-4 mb-5"><div><p class="text-[10px] font-black uppercase tracking-[.16em] text-emerald-600">Financeiro</p><h3 class="text-2xl font-black text-gray-900 dark:text-white">${rec?'Novo gasto recorrente':'Nova conta / despesa'}</h3></div><button onclick="document.getElementById('modalFinanceiro')?.remove()" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500">×</button></div><form id="formFinanceiro" class="space-y-4"><div class="grid grid-cols-2 gap-3"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Tipo</span><select id="finTipoEmpresa" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"><option value="loja">Loja</option><option value="pessoal">Pessoal</option></select></label><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Categoria</span><select id="finCategoria" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"><option value="conta_pagar">Conta a pagar</option><option value="despesa">Despesa</option><option value="imposto">Imposto</option></select></label></div><div id="finLojaWrap"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Loja</span><select id="finLoja" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900">${lojas.map(l=>`<option value="${escFin(l.slug)}">${escFin(l.nome)}</option>`).join('')}</select></label></div><div class="grid grid-cols-2 gap-3"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Descrição</span><input id="finDescricao" required class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900" placeholder="Ex.: Fornecedor / energia"></label><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Valor</span><input id="finValor" required type="number" step="0.01" min="0" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900" placeholder="0,00"></label></div><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Fornecedor</span><input id="finFornecedor" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900" placeholder="Opcional"></label>${rec?`<div class="grid grid-cols-2 gap-3"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Frequência</span><select id="finFrequencia" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"><option value="diario">Diário</option><option value="semanal">Semanal</option><option value="quinzenal">Quinzenal</option><option value="mensal" selected>Mensal</option><option value="bimestral">Bimestral</option><option value="trimestral">Trimestral</option><option value="semestral">Semestral</option><option value="anual">Anual</option></select></label><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Próximo vencimento</span><input id="finData" required type="date" value="${hojeIsoFinanceiro()}" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"></label></div>`:`<label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Vencimento</span><input id="finData" required type="date" value="${hojeIsoFinanceiro()}" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"></label>`}<label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Observação</span><textarea id="finObservacao" rows="2" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900" placeholder="Opcional"></textarea></label><button class="w-full py-3 rounded-2xl bg-[#111512] text-[#baff18] font-black">Salvar</button></form></div></div>`;
-    }
-    window.abrirFormularioFinanceiro = tipo => {
-        if (!financeiroAutorizado) { window.abrirSenhaFinanceiro(); return; }
-        document.getElementById('modalFinanceiro')?.remove(); document.body.insertAdjacentHTML('beforeend', modalFinanceiroHTML(tipo));
-        const tipoEl=document.getElementById('finTipoEmpresa'), wrap=document.getElementById('finLojaWrap');
-        tipoEl.onchange=()=>wrap.classList.toggle('hidden',tipoEl.value==='pessoal');
-        document.getElementById('formFinanceiro').onsubmit=async e=>{
-            e.preventDefault();
-            const item={empresa_tipo:tipoEl.value,categoria:document.getElementById('finCategoria').value,loja_slug:tipoEl.value==='loja'?document.getElementById('finLoja').value:null,descricao:document.getElementById('finDescricao').value.trim(),fornecedor:document.getElementById('finFornecedor').value.trim()||null,valor:Number(document.getElementById('finValor').value||0),observacao:document.getElementById('finObservacao').value.trim()||null};
-            try {
-                if(tipo==='recorrente'){ item.frequencia=document.getElementById('finFrequencia').value; item.proximo_vencimento=document.getElementById('finData').value; item.ativo=true; const salvo=await inserirRecorrenteDb(item); financeiroRecorrentes.push(salvo||item); }
-                else { item.vencimento=document.getElementById('finData').value; item.status='pendente'; item.pago_em=null; const salvo=await inserirFinanceiroDb(item); financeiroDados.push(salvo||item); }
-                salvarFinanceiroLocal(); document.getElementById('modalFinanceiro')?.remove(); renderizarFinanceiro(); window.mostrarToast?.('Lançamento salvo com sucesso!','bg-green-600 text-white');
-            } catch(err) { console.error(err); window.mostrarToast?.('Não foi possível salvar no banco.','bg-red-600 text-white'); }
-        };
-    };
-    window.quitarFinanceiro = async id => {
-        const item=financeiroDados.find(x=>String(x.supabaseId||x.id)===String(id)); if(!item) return;
-        item.status='pago'; item.pago_em=hojeIsoFinanceiro(); item.atualizado_em=new Date().toISOString();
-        try { await atualizarFinanceiroDb(item); salvarFinanceiroLocal(); renderizarFinanceiro(); window.mostrarToast?.('Pagamento concluído.','bg-green-600 text-white'); } catch(err) { console.error(err); window.mostrarToast?.('Erro ao registrar pagamento.','bg-red-600 text-white'); }
-    };
-
-    function abrirSenhaFinanceiro(){
-        if(document.getElementById('modalSenhaFinanceiro')) return;
-        document.body.insertAdjacentHTML('beforeend',`<div id="modalSenhaFinanceiro" class="fixed inset-0 z-[270] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-            <div class="admin-geral-card p-6 md:p-7 relative">
-                <button type="button" onclick="document.getElementById('modalSenhaFinanceiro')?.remove()" aria-label="Fechar acesso ao financeiro" class="absolute top-4 right-4 w-9 h-9 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 flex items-center justify-center text-lg font-black">×</button>
-                <div class="w-12 h-12 rounded-2xl bg-[#baff18] text-[#111512] flex items-center justify-center font-black text-xl mb-5">⌁</div>
-                <p class="text-[10px] font-black uppercase tracking-[.18em] text-[#baff18]">Financeiro</p>
-                <h3 class="text-2xl font-black text-white mt-1">Acesso administrativo</h3>
-                <p class="text-sm text-gray-400 mt-2 pr-8">Informe a senha para acessar o financeiro proprietário.</p>
-                <div class="mt-6">
-                    <label for="senhaFinanceiro" class="block text-[10px] font-black uppercase tracking-[.15em] text-gray-500 mb-2">Senha de administrador</label>
-                    <input id="senhaFinanceiro" type="password" class="admin-geral-input" placeholder="Digite a senha" autocomplete="off" onkeydown="if(event.key==='Enter') window.verificarSenhaFinanceiro()">
-                    <p id="erroSenhaFinanceiro" class="hidden text-xs font-bold text-red-400 mt-2">Senha incorreta. Tente novamente.</p>
-                </div>
-                <button type="button" onclick="window.verificarSenhaFinanceiro()" class="admin-geral-submit mt-4">Acessar Financeiro</button>
-            </div>
-        </div>`);
-        setTimeout(()=>document.getElementById('senhaFinanceiro')?.focus(),50);
-    }
-    window.abrirSenhaFinanceiro=abrirSenhaFinanceiro;
-    window.verificarSenhaFinanceiro=async()=>{
-        const input=document.getElementById('senhaFinanceiro'); if((input?.value||'')!==FINANCEIRO_SENHA){document.getElementById('erroSenhaFinanceiro')?.classList.remove('hidden');return;}
-        financeiroAutorizado=true; document.getElementById('modalSenhaFinanceiro')?.remove(); await window.carregarFinanceiroModulo?.(); renderizarFinanceiro();
-    };
-    function proximaDataRecorrente(data, frequencia) {
-        const d = new Date(`${data}T12:00:00`);
-        const dias = {diario:1,semanal:7,quinzenal:14};
-        if (dias[frequencia]) d.setDate(d.getDate()+dias[frequencia]);
-        else { const meses = {mensal:1,bimestral:2,trimestral:3,semestral:6,anual:12}; d.setMonth(d.getMonth()+(meses[frequencia]||1)); }
-        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    }
-    async function gerarRecorrenciasVencidas() {
-        if (!window.supabaseClient) return;
-        const hoje = hojeIsoFinanceiro();
-        const recorrentes = [...financeiroRecorrentes];
-        for (const r of recorrentes) {
-            if (!r.ativo || !r.proximo_vencimento || r.proximo_vencimento > hoje) continue;
-            let proxima = r.proximo_vencimento;
-            let ultimo = null;
-            let guard = 0;
-            while (proxima <= hoje && guard++ < 120) {
-                const item = {empresa_tipo:r.empresa_tipo,categoria:r.categoria,loja_slug:r.loja_slug||null,descricao:r.descricao,fornecedor:r.fornecedor||null,valor:Number(r.valor||0),vencimento:proxima,status:'pendente',pago_em:null,forma_pagamento:null,observacao:r.observacao||null};
-                const salvo = await inserirFinanceiroDb(item);
-                financeiroDados.push(salvo || item);
-                ultimo = proxima;
-                proxima = proximaDataRecorrente(proxima, r.frequencia);
-            }
-            if (ultimo) { r.proximo_vencimento = proxima; await atualizarRecorrenteDb(r); }
-        }
-        salvarFinanceiroLocal();
-    }
-    window.carregarFinanceiroModulo=async()=>{
-        carregarFinanceiroLocal();
-        try { await carregarFinanceiroRemoto(); await gerarRecorrenciasVencidas(); }
-        catch(e){ console.warn('Financeiro usando cache local:',e); }
-        renderizarFinanceiro();
-    };
-
-    const originalAbrir=window.abrirModuloGeral;
-    window.abrirModuloGeral=async(modulo)=>{
-        if(modulo==='financeiro') { if(!financeiroAutorizado){ abrirSenhaFinanceiro(); return; } document.querySelectorAll('#tela-geral-lojas .geral-modulo').forEach(x=>x.classList.add('hidden')); document.getElementById('geralModuloFinanceiro')?.classList.remove('hidden'); document.querySelectorAll('#tela-geral-lojas .geral-tab').forEach(x=>x.classList.remove('active')); document.getElementById('geralTabFinanceiro')?.classList.add('active'); await window.carregarFinanceiroModulo(); return; }
-        return originalAbrir ? originalAbrir(modulo) : undefined;
-    };
-    document.addEventListener('click',e=>{const b=e.target.closest('[data-fin-filter]'); if(!b)return; financeiroFiltro=b.dataset.finFilter; renderizarFinanceiro();});
-    window.addEventListener('load',()=>{ carregarFinanceiroLocal(); });
-})();
-</script>
 </body>
 </html>
