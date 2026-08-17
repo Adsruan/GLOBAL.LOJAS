@@ -1933,7 +1933,7 @@
         window.verificarSenhaAdmin = (event) => {
             if (event && event.type === 'keydown' && event.key !== 'Enter') return;
             const senha = document.getElementById('inputSenhaAdmin').value;
-            if (senha === 'Ip4512$$' || senha === 'admin') { 
+            if (senha === '1234' || senha === 'admin') { 
                 window.fecharModalSenha();
                 window.abrirAdmin();
             } else {
