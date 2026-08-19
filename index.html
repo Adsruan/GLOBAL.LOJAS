@@ -3120,6 +3120,17 @@
             localStorage.setItem('lembretesSistemaCaixa', dados);
         };
 
+        // Sincronização exclusiva dos lembretes com o Supabase.
+        // Antes, este módulo salvava apenas no localStorage; por isso o lembrete
+        // desaparecia em outro dispositivo e não chegava à tabela lembretes.
+        window.sincronizarLembretesAgora = async () => {
+            const slug = window.lojaAtualSlug;
+            if (!slug || !window.supabaseDisponivel || typeof sincronizarColecao !== 'function') return;
+            const registros = carregarArrayLoja(BASES_LOCAIS.lembretes, slug)
+                .map(l => ({ ...l, lojaSlug: l.lojaSlug || slug }));
+            await sincronizarColecao('lembretes', registros, slug);
+        };
+
         window.adicionarLembrete = () => {
             const cliente = document.getElementById('lemCliente').value.trim();
             const produto = document.getElementById('lemProduto').value.trim();
@@ -3149,6 +3160,7 @@
             const novoLembrete = {
                 id: Date.now(),
                 timestamp: agora.getTime(),
+                lojaSlug: window.lojaAtualSlug,
                 cliente: cliente,
                 telefone: telefone,
                 produto: produto,
@@ -3160,6 +3172,10 @@
 
             todosLembretesBanco.unshift(novoLembrete);
             window.salvarLembretesLocal();
+            window.sincronizarLembretesAgora().catch(e => {
+                console.warn('Falha ao salvar lembrete no Supabase:', e);
+                setTimeout(() => window.sincronizarLembretesAgora().catch(err => console.warn('Nova tentativa de lembrete falhou:', err)), 1500);
+            });
 
             document.getElementById('lemCliente').value = '';
             document.getElementById('lemProduto').value = '';
@@ -3200,6 +3216,7 @@
             todosLembretesBanco[indice].status = 'concluido';
             todosLembretesBanco[indice].concluidoEm = new Date().toISOString();
             window.salvarLembretesLocal();
+            window.sincronizarLembretesAgora().catch(e => console.warn('Falha ao atualizar lembrete no Supabase:', e));
             window.atualizarLembretes();
             mostrarToast("Lembrete marcado como resolvido!", "bg-green-600 text-white");
         };
@@ -3214,6 +3231,7 @@
                 () => {
                     todosLembretesBanco = todosLembretesBanco.filter(l => String(l.id) !== String(id));
                     window.salvarLembretesLocal();
+                    window.sincronizarLembretesAgora().catch(e => console.warn('Falha ao excluir lembrete no Supabase:', e));
                     window.atualizarLembretes();
                     mostrarToast("Lembrete excluído.", "bg-red-600 text-white");
                 }
