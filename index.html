@@ -3209,6 +3209,32 @@
             window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`, '_blank', 'noopener,noreferrer');
         };
 
+        window.editarNomeLembrete = (id) => {
+            const indice = todosLembretesBanco.findIndex(l => String(l.id) === String(id));
+            if (indice === -1) return;
+
+            const atual = String(todosLembretesBanco[indice].cliente || '').trim();
+            const novoNome = window.prompt('Editar nome do cliente:', atual);
+
+            if (novoNome === null) return;
+
+            const nome = novoNome.trim();
+            if (!nome) {
+                mostrarToast('Informe um nome válido para o cliente.', 'bg-orange-500 text-white');
+                return;
+            }
+
+            todosLembretesBanco[indice].cliente = nome;
+            window.salvarLembretesLocal();
+
+            window.sincronizarLembretesAgora().catch(e => {
+                console.warn('Falha ao atualizar nome do lembrete no Supabase:', e);
+            });
+
+            window.atualizarLembretes();
+            mostrarToast('Nome do cliente atualizado!', 'bg-green-600 text-white');
+        };
+
         window.concluirLembrete = (id) => {
             const indice = todosLembretesBanco.findIndex(l => String(l.id) === String(id));
             if (indice === -1) return;
@@ -3431,7 +3457,7 @@
                                         ${escaparHtmlLembrete(String(lembrete.cliente || '?').trim().charAt(0).toUpperCase() || '?')}
                                     </div>
                                     <div class="min-w-0">
-                                        <p class="font-black text-gray-900 dark:text-white truncate">${escaparHtmlLembrete(lembrete.cliente)}</p>
+                                        <p class="font-black text-gray-900 dark:text-white break-words leading-tight" title="${escaparHtmlLembrete(lembrete.cliente)}">${escaparHtmlLembrete(lembrete.cliente)}</p>
                                         <p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">${escaparHtmlLembrete(lembrete.produto)}</p>
                                     </div>
                                 </div>
@@ -3458,6 +3484,9 @@
                                         WhatsApp
                                     </button>
                                 ` : ''}
+                                <button onclick="window.editarNomeLembrete(${JSON.stringify(lembrete.id)})" class="shrink-0 min-w-[65px] bg-white dark:bg-[#0f111a] hover:bg-gray-50 dark:hover:bg-[#1c2033] text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 font-bold text-xs px-3 py-2.5 rounded-lg active:scale-95 transition-all" title="Editar nome do cliente">
+                                    Editar
+                                </button>
                                 ${!concluido ? `
                                     <button onclick="window.concluirLembrete(${JSON.stringify(lembrete.id)})" class="shrink-0 min-w-[72px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-2.5 rounded-lg active:scale-95 transition-all" title="Marcar como concluído">
                                         Concluir
