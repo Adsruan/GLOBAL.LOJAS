@@ -3209,13 +3209,15 @@
             window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`, '_blank', 'noopener,noreferrer');
         };
 
-        window.editarNomeLembrete = (id) => {
+        window.editarDadosLembrete = (id) => {
             const indice = todosLembretesBanco.findIndex(l => String(l.id) === String(id));
             if (indice === -1) return;
 
-            const atual = String(todosLembretesBanco[indice].cliente || '').trim();
-            const novoNome = window.prompt('Editar nome do cliente:', atual);
+            const lembrete = todosLembretesBanco[indice];
+            const nomeAtual = String(lembrete.cliente || '').trim();
+            const telefoneAtual = String(lembrete.telefone || '').trim();
 
+            const novoNome = window.prompt('Nome completo do cliente:', nomeAtual);
             if (novoNome === null) return;
 
             const nome = novoNome.trim();
@@ -3224,15 +3226,20 @@
                 return;
             }
 
-            todosLembretesBanco[indice].cliente = nome;
+            const novoTelefone = window.prompt('WhatsApp / telefone do cliente:', telefoneAtual);
+            if (novoTelefone === null) return;
+
+            lembrete.cliente = nome;
+            lembrete.telefone = novoTelefone.trim();
+
             window.salvarLembretesLocal();
 
             window.sincronizarLembretesAgora().catch(e => {
-                console.warn('Falha ao atualizar nome do lembrete no Supabase:', e);
+                console.warn('Falha ao atualizar dados cadastrais do lembrete no Supabase:', e);
             });
 
             window.atualizarLembretes();
-            mostrarToast('Nome do cliente atualizado!', 'bg-green-600 text-white');
+            mostrarToast('Dados cadastrais atualizados!', 'bg-green-600 text-white');
         };
 
         window.concluirLembrete = (id) => {
@@ -3450,15 +3457,16 @@
 
                 return `
                     <div class="${classesLinha} px-5 md:px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#1c2033] transition-colors">
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 md:items-center">
-                            <div class="md:col-span-2 min-w-0">
-                                <div class="flex items-center gap-2">
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-3 md:items-center">
+                            <!-- Nome completo sempre em uma linha própria, sem comprimir as outras colunas -->
+                            <div class="md:col-span-12 min-w-0 border-b border-gray-100 dark:border-gray-800 pb-2">
+                                <div class="flex items-start gap-3">
                                     <div class="w-9 h-9 rounded-xl ${concluido ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'bg-indigo-50 dark:bg-cyan-900/20 text-indigo-600 dark:text-cyan-400'} flex items-center justify-center shrink-0 font-black text-xs">
                                         ${escaparHtmlLembrete(String(lembrete.cliente || '?').trim().charAt(0).toUpperCase() || '?')}
                                     </div>
-                                    <div class="min-w-0">
-                                        <p class="font-black text-gray-900 dark:text-white break-words leading-tight" title="${escaparHtmlLembrete(lembrete.cliente)}">${escaparHtmlLembrete(lembrete.cliente)}</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">${escaparHtmlLembrete(lembrete.produto)}</p>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="font-black text-gray-900 dark:text-white text-base leading-tight break-words" title="${escaparHtmlLembrete(lembrete.cliente)}">${escaparHtmlLembrete(lembrete.cliente)}</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 break-words">${escaparHtmlLembrete(lembrete.produto)}</p>
                                     </div>
                                 </div>
                             </div>
@@ -3474,17 +3482,17 @@
                                 <p class="text-sm md:text-base font-black ${concluido ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-white'} mt-0.5 md:mt-0">${formataBRL(Number(lembrete.valor || 0))}</p>
                             </div>
 
-                            <div class="md:col-span-1 flex items-center md:pr-2">
+                            <div class="md:col-span-2 flex items-center md:pr-2">
                                 <span class="${classesStatus} inline-flex items-center border text-[9px] font-black uppercase tracking-normal px-2 py-1 rounded-full whitespace-nowrap">${statusTexto}</span>
                             </div>
 
-                            <div class="md:col-span-5 flex flex-wrap md:flex-nowrap items-center md:justify-start gap-2 md:pl-2 min-w-0">
+                            <div class="md:col-span-6 flex flex-wrap md:flex-nowrap items-center md:justify-end gap-2 min-w-0">
                                 ${lembrete.telefone ? `
                                     <button onclick="window.abrirWhatsAppLembrete(${JSON.stringify(lembrete.id)})" class="shrink-0 min-w-[82px] bg-green-600 hover:bg-green-700 text-white font-bold text-xs px-2.5 py-2.5 rounded-lg active:scale-95 transition-all" title="Abrir WhatsApp do cliente">
                                         WhatsApp
                                     </button>
                                 ` : ''}
-                                <button onclick="window.editarNomeLembrete(${JSON.stringify(lembrete.id)})" class="shrink-0 min-w-[65px] bg-white dark:bg-[#0f111a] hover:bg-gray-50 dark:hover:bg-[#1c2033] text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 font-bold text-xs px-3 py-2.5 rounded-lg active:scale-95 transition-all" title="Editar nome do cliente">
+                                <button onclick="window.editarDadosLembrete(${JSON.stringify(lembrete.id)})" class="shrink-0 min-w-[65px] bg-white dark:bg-[#0f111a] hover:bg-gray-50 dark:hover:bg-[#1c2033] text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 font-bold text-xs px-3 py-2.5 rounded-lg active:scale-95 transition-all" title="Editar dados cadastrais do cliente">
                                     Editar
                                 </button>
                                 ${!concluido ? `
