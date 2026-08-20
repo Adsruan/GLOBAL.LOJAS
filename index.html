@@ -1445,7 +1445,7 @@
                                     <div class="xl:col-span-3">
                                         <label for="lemFiltroStatus" class="block text-[11px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">Pendência</label>
                                         <select id="lemFiltroStatus" onchange="window.atualizarLembretes()" class="w-full bg-gray-50 dark:bg-[#0f111a] dark:text-gray-100 border border-gray-200 dark:border-gray-700 p-3 rounded-xl focus:outline-none focus:border-indigo-500 dark:focus:border-cyan-500 transition-colors text-sm">
-                                            <option value="pendentes" selected>Pendentes</option>
+                                            <option value="atencao" selected>Atenção — vencidos / próximos 3 dias</option>
                                             <option value="todos">Todos</option>
                                             <option value="vencidos">Vencidos</option>
                                             <option value="hoje">Vence hoje</option>
@@ -3278,7 +3278,7 @@
             const valorMax = document.getElementById('lemFiltroValorMax');
 
             if (nome) nome.value = '';
-            if (status) status.value = 'pendentes';
+            if (status) status.value = 'atencao';
 
             [valorMin, valorMax].forEach(input => {
                 if (!input) return;
@@ -3308,8 +3308,14 @@
             if (dashConcluidos) dashConcluidos.textContent = concluidosGerais.length;
             if (dashValor) dashValor.textContent = formataBRL(valorPendenteGeral);
 
-            // Badges continuam mostrando apenas o que ainda está pendente
-            const totalPendentes = pendentesGerais.length;
+            // Notificação automática: só chama atenção para pendências
+            // vencidas ou que vencem nos próximos 3 dias.
+            const lembretesDeAtencao = pendentesGerais.filter(l => {
+                if (!l.dataVencimento) return false;
+                const dias = diasEntreDatasIso(hoje, l.dataVencimento);
+                return dias !== null && dias <= 3;
+            });
+            const totalPendentes = lembretesDeAtencao.length;
             const badgeNav = document.getElementById('badgeLembretesNav');
             const badgeModulo = document.getElementById('badgeLembretesModulo');
 
@@ -3341,6 +3347,11 @@
                 if (valorMin > 0 && valor < valorMin) return false;
                 if (valorMax > 0 && valor > valorMax) return false;
 
+                if (filtroStatus === 'atencao') {
+                    if (concluido || !data) return false;
+                    const dias = diasEntreDatasIso(hoje, data);
+                    if (dias === null || dias > 3) return false;
+                }
                 if (filtroStatus === 'pendentes' && concluido) return false;
                 if (filtroStatus === 'concluidos' && !concluido) return false;
                 if (filtroStatus === 'vencidos' && (concluido || !data || data >= hoje)) return false;
