@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -3118,17 +3118,33 @@
             const slug = window.lojaAtualSlug || 'real_papelaria';
             localStorage.setItem(`lembretesSistemaCaixa__${slug}`, dados);
             localStorage.setItem('lembretesSistemaCaixa', dados);
+            // Lembretes são compartilhados entre todas as lojas.
+            localStorage.setItem('lembretesSistemaCaixa__global', dados);
         };
 
         // Sincronização exclusiva dos lembretes com o Supabase.
         // Antes, este módulo salvava apenas no localStorage; por isso o lembrete
         // desaparecia em outro dispositivo e não chegava à tabela lembretes.
         window.sincronizarLembretesAgora = async () => {
-            const slug = window.lojaAtualSlug;
-            if (!slug || !window.supabaseDisponivel || typeof sincronizarColecao !== 'function') return;
-            const registros = carregarArrayLoja(BASES_LOCAIS.lembretes, slug)
-                .map(l => ({ ...l, lojaSlug: l.lojaSlug || slug }));
-            await sincronizarColecao('lembretes', registros, slug);
+            if (!window.supabaseDisponivel || typeof sincronizarColecao !== 'function') return;
+
+            const registros = (todosLembretesBanco || []).map(l => ({
+                ...l,
+                lojaSlug: l.lojaSlug || window.lojaAtualSlug
+            }));
+
+            // Os lembretes são globais na visualização, mas cada registro
+            // continua pertencendo à loja em que foi cadastrado no banco.
+            const porLoja = new Map();
+            registros.forEach(l => {
+                const slug = l.lojaSlug || window.lojaAtualSlug;
+                if (!porLoja.has(slug)) porLoja.set(slug, []);
+                porLoja.get(slug).push(l);
+            });
+
+            for (const [slug, lista] of porLoja) {
+                await sincronizarColecao('lembretes', lista, slug);
+            }
         };
 
         window.adicionarLembrete = () => {
@@ -6169,6 +6185,10 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             todasVendasBanco = carregarArrayLoja(BASES_LOCAIS.vendas, slug);
             todasDespesasBanco = carregarArrayLoja(BASES_LOCAIS.sangrias, slug);
             todosLembretesBanco = carregarArrayLoja(BASES_LOCAIS.lembretes, slug);
+            try {
+                const globais = JSON.parse(localStorage.getItem('lembretesSistemaCaixa__global') || 'null');
+                if (Array.isArray(globais)) todosLembretesBanco = globais;
+            } catch {}
             todosBoletosBanco = carregarArrayLoja(BASES_LOCAIS.boletos, slug);
             bloqueioPersistencia = true;
             try {
@@ -6741,6 +6761,13 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             return [...mapa.values()].sort((a,b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
         }
 
+        async function selecionarTodosLembretes() {
+            if (!window.supabaseClient) return [];
+            const { data, error } = await window.supabaseClient.from('lembretes').select('*');
+            if (error) throw error;
+            return data || [];
+        }
+
         async function selecionarTabelaLojaSegura(tabela, slug, obrigatoria = false) {
             try {
                 return await selecionarTabelaLoja(tabela, slug);
@@ -6760,7 +6787,7 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             const [rLinhas, sLinhas, lLinhas, bLinhas] = await Promise.all([
                 selecionarTabelaLojaSegura('recebimentos', slug),
                 selecionarTabelaLojaSegura('sangrias', slug),
-                selecionarTabelaLojaSegura('lembretes', slug),
+                selecionarTodosLembretes(),
                 selecionarTabelaLojaSegura('boletos', slug)
             ]);
             let itens = new Map();
@@ -6775,7 +6802,11 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             });
             const recebimentosRemotos = rLinhas.map(l => ({...recebimentoDoDb(l), lojaSlug: slug}));
             const sangriasRemotas = sLinhas.map(l => ({...sangriaDoDb(l), lojaSlug: slug}));
-            const lembretesRemotos = lLinhas.map(l => ({...lembreteDoDb(l), lojaSlug: slug}));
+            const lembretesRemotos = lLinhas.map(l => {
+                const lembrete = lembreteDoDb(l);
+                const slugOrigem = lembrete.lojaSlug || (LOJAS.find(x => String(x.id) === String(lerCampo(l,['loja_id'])))?.slug) || slug;
+                return {...lembrete, lojaSlug: slugOrigem};
+            });
             const boletosRemotos = bLinhas.map(l => ({...boletoDoDb(l), lojaSlug: slug}));
 
             // Supabase é a fonte de verdade para vendas/recebimentos depois da migração.
@@ -6789,7 +6820,16 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             salvarArrayLoja(BASES_LOCAIS.vendas, slug, [...vendasSeguras, ...recebimentosRemotos]
                 .sort((a,b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)));
             salvarArrayLoja(BASES_LOCAIS.sangrias, slug, sangriasSeguras);
-            salvarArrayLoja(BASES_LOCAIS.lembretes, slug, mesclarRegistros(carregarArrayLoja(BASES_LOCAIS.lembretes, slug), lembretesRemotos));
+            const lembretesGlobaisAtuais = (() => {
+                try {
+                    const raw = localStorage.getItem('lembretesSistemaCaixa__global');
+                    return Array.isArray(JSON.parse(raw || 'null')) ? JSON.parse(raw) : [];
+                } catch { return []; }
+            })();
+            const lembretesGlobais = mesclarRegistros(lembretesGlobaisAtuais, lembretesRemotos);
+            salvarArrayLoja(BASES_LOCAIS.lembretes, slug, lembretesGlobais);
+            localStorage.setItem('lembretesSistemaCaixa__global', JSON.stringify(lembretesGlobais));
+            todosLembretesBanco = lembretesGlobais;
             salvarArrayLoja(BASES_LOCAIS.boletos, slug, mesclarRegistros(carregarArrayLoja(BASES_LOCAIS.boletos, slug), boletosRemotos));
         }
 
@@ -7563,6 +7603,7 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
     const escFin = s => String(s ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
     const dataBrFin = iso => iso ? new Date(`${iso}T12:00:00`).toLocaleDateString('pt-BR') : '-';
     const empresaTexto = x => x.empresa_tipo === 'pessoal' ? 'Pessoal' : ((window.LOJAS_SISTEMA || []).find(l => l.slug === x.loja_slug)?.nome || x.loja_nome || 'Loja');
+    const idFinanceiro = prefixo => `${prefixo}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
 
     function financeiroLocalKey(sufixo) { return `financeiro_${sufixo}`; }
     function salvarFinanceiroLocal() {
@@ -7572,6 +7613,49 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
     function carregarFinanceiroLocal() {
         try { financeiroDados = JSON.parse(localStorage.getItem(financeiroLocalKey('lancamentos')) || '[]') || []; } catch { financeiroDados = []; }
         try { financeiroRecorrentes = JSON.parse(localStorage.getItem(financeiroLocalKey('recorrentes')) || '[]') || []; } catch { financeiroRecorrentes = []; }
+    }
+
+    // Metadados de parcelamento ficam na observação já existente do banco.
+    // Assim não é necessário alterar a estrutura atual da tabela finance_lancamentos.
+    const PARCELA_META_RE = /(?:\n|^)?\[\[PARCELA:([^|\]]+)\|(\d+)\|(\d+)\]\]$/;
+    function extrairMetaParcela(observacao) {
+        const raw = String(observacao || '');
+        const m = raw.match(PARCELA_META_RE);
+        if (!m) return { texto: raw || null, grupo: null, numero: null, total: null };
+        return {
+            texto: raw.replace(PARCELA_META_RE, '').trim() || null,
+            grupo: m[1],
+            numero: Number(m[2]),
+            total: Number(m[3])
+        };
+    }
+    function observacaoComMeta(texto, grupo, numero, total) {
+        const base = String(texto || '').trim();
+        if (!grupo || !numero || !total) return base || null;
+        return `${base ? base + '\n' : ''}[[PARCELA:${grupo}|${numero}|${total}]]`;
+    }
+    function normalizarLancamentoFinanceiro(item) {
+        const meta = extrairMetaParcela(item?.observacao);
+        return {
+            ...item,
+            observacao: meta.texto,
+            parcela_grupo: item?.parcela_grupo || meta.grupo || null,
+            parcela_numero: Number(item?.parcela_numero || meta.numero || 0) || null,
+            parcelas_total: Number(item?.parcelas_total || meta.total || 0) || null
+        };
+    }
+    function prepararPayloadLancamento(item) {
+        const payload = {...item};
+        const observacao = observacaoComMeta(item.observacao, item.parcela_grupo, item.parcela_numero, item.parcelas_total);
+        delete payload.supabaseId; delete payload.loja_slug; delete payload.loja_nome; delete payload.id;
+        delete payload.parcela_grupo; delete payload.parcela_numero; delete payload.parcelas_total;
+        payload.observacao = observacao;
+        return payload;
+    }
+    function prepararPayloadRecorrente(item) {
+        const payload = {...item};
+        delete payload.supabaseId; delete payload.loja_slug; delete payload.loja_nome; delete payload.id;
+        return payload;
     }
 
     async function carregarFinanceiroRemoto() {
@@ -7592,7 +7676,7 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
     }
     function financeiroDbParaLocal(r) {
         const loja = (window.LOJAS_SISTEMA || []).find(l => l.slug && r.loja_id && l.slug === r.loja_slug);
-        return {...r, supabaseId:r.id, loja_slug:r.loja_slug || loja?.slug || null, loja_nome:r.loja_nome || loja?.nome || null};
+        return normalizarLancamentoFinanceiro({...r, supabaseId:r.id, loja_slug:r.loja_slug || loja?.slug || null, loja_nome:r.loja_nome || loja?.nome || null});
     }
     function recorrenteDbParaLocal(r) {
         const loja = (window.LOJAS_SISTEMA || []).find(l => l.slug && r.loja_id && l.slug === r.loja_slug);
@@ -7601,7 +7685,7 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
     async function inserirFinanceiroDb(item) {
         if (!window.supabaseClient) return null;
         const loja = item.empresa_tipo === 'loja' ? (window.LOJAS_SISTEMA || []).find(l => l.slug === item.loja_slug) : null;
-        const payload = {...item}; delete payload.supabaseId; delete payload.loja_slug; delete payload.loja_nome; delete payload.id;
+        const payload = prepararPayloadLancamento(item);
         payload.loja_id = loja?.id || null;
         if (!payload.loja_id && item.empresa_tipo === 'loja' && window.supabaseClient) {
             const {data} = await window.supabaseClient.from('lojas').select('id,slug,nome').eq('slug', item.loja_slug).maybeSingle();
@@ -7613,7 +7697,7 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
     }
     async function atualizarFinanceiroDb(item) {
         if (!window.supabaseClient || !item.supabaseId) return;
-        const payload = {...item}; delete payload.supabaseId; delete payload.loja_slug; delete payload.loja_nome; delete payload.id;
+        const payload = prepararPayloadLancamento(item);
         if (item.empresa_tipo === 'loja') {
             const {data} = await window.supabaseClient.from('lojas').select('id').eq('slug', item.loja_slug).maybeSingle();
             payload.loja_id = data?.id || null;
@@ -7621,10 +7705,15 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
         const {error} = await window.supabaseClient.from('finance_lancamentos').update(payload).eq('id', item.supabaseId);
         if (error) throw error;
     }
+    async function excluirFinanceiroDb(item) {
+        if (!window.supabaseClient || !item?.supabaseId) return;
+        const {error} = await window.supabaseClient.from('finance_lancamentos').delete().eq('id', item.supabaseId);
+        if (error) throw error;
+    }
     async function inserirRecorrenteDb(item) {
         if (!window.supabaseClient) return null;
         const loja = item.empresa_tipo === 'loja' ? (window.LOJAS_SISTEMA || []).find(l => l.slug === item.loja_slug) : null;
-        const payload = {...item}; delete payload.supabaseId; delete payload.loja_slug; delete payload.loja_nome; delete payload.id;
+        const payload = prepararPayloadRecorrente(item);
         payload.loja_id = loja?.id || null;
         if (!payload.loja_id && item.empresa_tipo === 'loja') {
             const {data} = await window.supabaseClient.from('lojas').select('id').eq('slug', item.loja_slug).maybeSingle(); payload.loja_id = data?.id || null;
@@ -7635,11 +7724,16 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
     }
     async function atualizarRecorrenteDb(item) {
         if (!window.supabaseClient || !item.supabaseId) return;
-        const payload = {...item}; delete payload.supabaseId; delete payload.loja_slug; delete payload.loja_nome; delete payload.id;
+        const payload = prepararPayloadRecorrente(item);
         if (item.empresa_tipo === 'loja') {
             const {data} = await window.supabaseClient.from('lojas').select('id').eq('slug', item.loja_slug).maybeSingle(); payload.loja_id = data?.id || null;
         } else payload.loja_id = null;
         const {error} = await window.supabaseClient.from('finance_recorrentes').update(payload).eq('id', item.supabaseId);
+        if (error) throw error;
+    }
+    async function excluirRecorrenteDb(item) {
+        if (!window.supabaseClient || !item?.supabaseId) return;
+        const {error} = await window.supabaseClient.from('finance_recorrentes').delete().eq('id', item.supabaseId);
         if (error) throw error;
     }
 
@@ -7657,6 +7751,10 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
         if (diff <= 3) return 2;
         return 3;
     }
+    function chaveItemFinanceiro(x) { return String(x?.supabaseId || x?.id || ''); }
+    function etiquetaParcela(x) {
+        return x?.parcelas_total && x?.parcela_numero ? `<span class="text-[9px] font-black px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">PARCELA ${x.parcela_numero}/${x.parcelas_total}</span>` : '';
+    }
     function renderizarFinanceiro() {
         if (!financeiroAutorizado) return;
         const pendentes = financeiroDados.filter(x => x.status !== 'pago' && filtroFinanceiroOk(x)).sort((a,b) => prioridadeFinanceiro(a.vencimento)-prioridadeFinanceiro(b.vencimento) || String(a.vencimento).localeCompare(String(b.vencimento)));
@@ -7673,37 +7771,192 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
         box.innerHTML=pendentes.length ? pendentes.map(x=>{
             const p=prioridadeFinanceiro(x.vencimento); const cor=p===0?'border-red-200 bg-red-50 dark:bg-red-900/10':p===1?'border-amber-200 bg-amber-50 dark:bg-amber-900/10':'border-gray-200 dark:border-gray-800';
             const label=p===0?'VENCIDO':p===1?'VENCE HOJE':`VENCE ${dataBrFin(x.vencimento)}`;
-            return `<div class="border ${cor} rounded-2xl p-4 flex items-center justify-between gap-3"><div class="min-w-0"><div class="flex flex-wrap gap-2 items-center"><span class="text-[9px] font-black uppercase tracking-wider">${label}</span><span class="text-[9px] font-bold text-gray-400">${escFin(x.categoria.replace('_',' '))}</span></div><p class="font-black text-sm text-gray-900 dark:text-white mt-1 truncate">${escFin(x.descricao)}</p><p class="text-[10px] text-gray-500 mt-1">${escFin(empresaTexto(x))}${x.fornecedor?' • '+escFin(x.fornecedor):''}</p></div><div class="text-right shrink-0"><p class="font-black text-sm text-gray-900 dark:text-white">${brlFin(x.valor)}</p><button onclick="window.quitarFinanceiro('${x.supabaseId || x.id}')" class="mt-2 text-[10px] font-black px-3 py-1.5 rounded-full bg-[#baff18] text-[#111512]">Marcar pago</button></div></div>`;
+            const chave=escFin(chaveItemFinanceiro(x));
+            return `<div class="border ${cor} rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div class="min-w-0"><div class="flex flex-wrap gap-2 items-center"><span class="text-[9px] font-black uppercase tracking-wider">${label}</span><span class="text-[9px] font-bold text-gray-400">${escFin(String(x.categoria||'').replace('_',' '))}</span>${etiquetaParcela(x)}</div><p class="font-black text-sm text-gray-900 dark:text-white mt-1 truncate">${escFin(x.descricao)}</p><p class="text-[10px] text-gray-500 mt-1">${escFin(empresaTexto(x))}${x.fornecedor?' • '+escFin(x.fornecedor):''}</p></div><div class="sm:text-right shrink-0"><p class="font-black text-sm text-gray-900 dark:text-white">${brlFin(x.valor)}</p><div class="mt-2 flex flex-wrap sm:justify-end gap-1.5"><button onclick="window.quitarFinanceiro('${chave}')" class="text-[10px] font-black px-3 py-1.5 rounded-full bg-[#baff18] text-[#111512]">Marcar pago</button><button onclick="window.editarFinanceiro('${chave}')" class="text-[10px] font-black px-3 py-1.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">Editar</button><button onclick="window.excluirFinanceiro('${chave}')" class="text-[10px] font-black px-3 py-1.5 rounded-full bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300">Excluir</button></div></div></div>`;
         }).join('') : '<div class="text-sm text-gray-400 py-8 text-center">Nenhuma conta pendente.</div>';
         const rec = financeiroRecorrentes.filter(x=>x.ativo).sort((a,b)=>String(a.proximo_vencimento).localeCompare(String(b.proximo_vencimento)));
         document.getElementById('financeiroQtdRecorrentes').textContent=rec.length;
-        document.getElementById('financeiroListaRecorrentes').innerHTML=rec.length ? rec.map(x=>`<div class="border border-gray-200 dark:border-gray-800 rounded-2xl p-4 flex justify-between gap-3"><div><p class="font-black text-sm text-gray-900 dark:text-white">${escFin(x.descricao)}</p><p class="text-[10px] text-gray-500 mt-1">${escFin(x.frequencia)} • ${escFin(empresaTexto(x))} • próximo ${dataBrFin(x.proximo_vencimento)}</p></div><p class="font-black text-sm text-gray-900 dark:text-white">${brlFin(x.valor)}</p></div>`).join('') : '<div class="text-sm text-gray-400 py-8 text-center">Nenhum gasto recorrente cadastrado.</div>';
+        document.getElementById('financeiroListaRecorrentes').innerHTML=rec.length ? rec.map(x=>{
+            const chave=escFin(chaveItemFinanceiro(x));
+            return `<div class="border border-gray-200 dark:border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div><p class="font-black text-sm text-gray-900 dark:text-white">${escFin(x.descricao)}</p><p class="text-[10px] text-gray-500 mt-1">${escFin(x.frequencia)} • ${escFin(empresaTexto(x))} • próximo ${dataBrFin(x.proximo_vencimento)}</p></div><div class="sm:text-right"><p class="font-black text-sm text-gray-900 dark:text-white">${brlFin(x.valor)}</p><div class="mt-2 flex flex-wrap sm:justify-end gap-1.5"><button onclick="window.quitarRecorrenteFinanceiro('${chave}')" class="text-[10px] font-black px-3 py-1.5 rounded-full bg-[#baff18] text-[#111512]">Marcar pago</button><button onclick="window.editarRecorrenteFinanceiro('${chave}')" class="text-[10px] font-black px-3 py-1.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">Editar</button><button onclick="window.excluirRecorrenteFinanceiro('${chave}')" class="text-[10px] font-black px-3 py-1.5 rounded-full bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300">Excluir</button></div></div></div>`;
+        }).join('') : '<div class="text-sm text-gray-400 py-8 text-center">Nenhum gasto recorrente cadastrado.</div>';
     }
 
-    function modalFinanceiroHTML(tipo) {
-        const rec = tipo === 'recorrente';
-        const lojas = window.LOJAS_SISTEMA || [];
-        return `<div id="modalFinanceiro" class="fixed inset-0 z-[260] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"><div class="bg-white dark:bg-[#161925] rounded-3xl p-6 max-w-xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"><div class="flex justify-between items-start gap-4 mb-5"><div><p class="text-[10px] font-black uppercase tracking-[.16em] text-emerald-600">Financeiro</p><h3 class="text-2xl font-black text-gray-900 dark:text-white">${rec?'Novo gasto recorrente':'Nova conta / despesa'}</h3></div><button onclick="document.getElementById('modalFinanceiro')?.remove()" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500">×</button></div><form id="formFinanceiro" class="space-y-4"><div class="grid grid-cols-2 gap-3"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Tipo</span><select id="finTipoEmpresa" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"><option value="loja">Loja</option><option value="pessoal">Pessoal</option></select></label><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Categoria</span><select id="finCategoria" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"><option value="conta_pagar">Conta a pagar</option><option value="despesa">Despesa</option><option value="imposto">Imposto</option></select></label></div><div id="finLojaWrap"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Loja</span><select id="finLoja" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900">${lojas.map(l=>`<option value="${escFin(l.slug)}">${escFin(l.nome)}</option>`).join('')}</select></label></div><div class="grid grid-cols-2 gap-3"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Descrição</span><input id="finDescricao" required class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900" placeholder="Ex.: Fornecedor / energia"></label><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Valor</span><input id="finValor" required type="number" step="0.01" min="0" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900" placeholder="0,00"></label></div><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Fornecedor</span><input id="finFornecedor" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900" placeholder="Opcional"></label>${rec?`<div class="grid grid-cols-2 gap-3"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Frequência</span><select id="finFrequencia" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"><option value="diario">Diário</option><option value="semanal">Semanal</option><option value="quinzenal">Quinzenal</option><option value="mensal" selected>Mensal</option><option value="bimestral">Bimestral</option><option value="trimestral">Trimestral</option><option value="semestral">Semestral</option><option value="anual">Anual</option></select></label><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Próximo vencimento</span><input id="finData" required type="date" value="${hojeIsoFinanceiro()}" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"></label></div>`:`<label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Vencimento</span><input id="finData" required type="date" value="${hojeIsoFinanceiro()}" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"></label>`}<label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Observação</span><textarea id="finObservacao" rows="2" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900" placeholder="Opcional"></textarea></label><button class="w-full py-3 rounded-2xl bg-[#111512] text-[#baff18] font-black">Salvar</button></form></div></div>`;
+    function formatarMoedaFinInput(el) {
+        const digitos = String(el.value || '').replace(/\D/g,'');
+        const centavos = Number(digitos || 0);
+        el.dataset.rawCents = String(centavos);
+        el.value = (centavos / 100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+        atualizarPreviewParcelas();
     }
+    function definirValorFinInput(el, valor) {
+        const centavos = Math.round(Number(valor || 0) * 100);
+        el.dataset.rawCents = String(centavos);
+        el.value = (centavos / 100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    }
+    function lerValorFinInput() {
+        const el=document.getElementById('finValor');
+        return Number(el?.dataset.rawCents || 0) / 100;
+    }
+    function adicionarMesesFinanceiro(dataIso, quantidade) {
+        const [ano,mes,dia] = String(dataIso).split('-').map(Number);
+        const primeiro = new Date(ano, (mes-1)+quantidade, 1, 12, 0, 0);
+        const ultimoDia = new Date(primeiro.getFullYear(), primeiro.getMonth()+1, 0).getDate();
+        const d = new Date(primeiro.getFullYear(), primeiro.getMonth(), Math.min(dia, ultimoDia), 12, 0, 0);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    function atualizarPreviewParcelas() {
+        const box=document.getElementById('finParcelasPreview');
+        const check=document.getElementById('finParcelado');
+        const qtd=Number(document.getElementById('finParcelas')?.value||0);
+        if(!box || !check?.checked || qtd < 2){ if(box) box.textContent=''; return; }
+        const total=lerValorFinInput();
+        box.textContent = total > 0 ? `${qtd} parcelas • aproximadamente ${brlFin(total/qtd)} por parcela` : `${qtd} parcelas`;
+    }
+
+    function modalFinanceiroHTML(tipo, existente=null) {
+        const rec = tipo === 'recorrente';
+        const editando = !!existente;
+        const lojas = window.LOJAS_SISTEMA || [];
+        const titulo = editando ? (rec ? 'Editar gasto recorrente' : 'Editar conta / despesa') : (rec ? 'Novo gasto recorrente' : 'Nova conta / despesa');
+        const infoParcela = !rec && existente?.parcelas_total ? `<div class="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 text-xs font-bold text-blue-700 dark:text-blue-300">Editando parcela ${existente.parcela_numero}/${existente.parcelas_total}. A alteração será aplicada somente nesta parcela.</div>` : '';
+        const parcelamento = !rec && !editando ? `<div class="border border-gray-200 dark:border-gray-700 rounded-2xl p-4"><label class="flex items-center gap-3 cursor-pointer"><input id="finParcelado" type="checkbox" class="w-4 h-4"><span class="text-sm font-black text-gray-800 dark:text-gray-100">Esta conta é parcelada</span></label><div id="finParcelasWrap" class="hidden mt-3"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Quantidade de parcelas</span><input id="finParcelas" type="number" min="2" max="120" value="2" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"></label><p id="finParcelasPreview" class="text-[10px] font-bold text-gray-500 mt-2"></p></div></div>` : '';
+        return `<div id="modalFinanceiro" class="fixed inset-0 z-[260] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"><div class="bg-white dark:bg-[#161925] rounded-3xl p-6 max-w-xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"><div class="flex justify-between items-start gap-4 mb-5"><div><p class="text-[10px] font-black uppercase tracking-[.16em] text-emerald-600">Financeiro</p><h3 class="text-2xl font-black text-gray-900 dark:text-white">${titulo}</h3></div><button onclick="document.getElementById('modalFinanceiro')?.remove()" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500">×</button></div>${infoParcela}<form id="formFinanceiro" class="space-y-4 ${infoParcela?'mt-4':''}"><div class="grid grid-cols-2 gap-3"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Tipo</span><select id="finTipoEmpresa" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"><option value="loja">Loja</option><option value="pessoal">Pessoal</option></select></label><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Categoria</span><select id="finCategoria" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"><option value="conta_pagar">Conta a pagar</option><option value="despesa">Despesa</option><option value="imposto">Imposto</option></select></label></div><div id="finLojaWrap"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Loja</span><select id="finLoja" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900">${lojas.map(l=>`<option value="${escFin(l.slug)}">${escFin(l.nome)}</option>`).join('')}</select></label></div><div class="grid grid-cols-2 gap-3"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Descrição</span><input id="finDescricao" required class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900" placeholder="Ex.: Fornecedor / energia"></label><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Valor${!rec&&!editando?' total':''}</span><input id="finValor" required type="tel" inputmode="numeric" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900" placeholder="0,00"></label></div><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Fornecedor</span><input id="finFornecedor" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900" placeholder="Opcional"></label>${rec?`<div class="grid grid-cols-2 gap-3"><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Frequência</span><select id="finFrequencia" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"><option value="diario">Diário</option><option value="semanal">Semanal</option><option value="quinzenal">Quinzenal</option><option value="mensal">Mensal</option><option value="bimestral">Bimestral</option><option value="trimestral">Trimestral</option><option value="semestral">Semestral</option><option value="anual">Anual</option></select></label><label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Próximo vencimento</span><input id="finData" required type="date" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"></label></div>`:`<label class="block"><span class="text-[10px] font-black uppercase text-gray-400">${editando?'Vencimento':'Primeiro vencimento'}</span><input id="finData" required type="date" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900"></label>${parcelamento}`}<label class="block"><span class="text-[10px] font-black uppercase text-gray-400">Observação</span><textarea id="finObservacao" rows="2" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900" placeholder="Opcional"></textarea></label><button class="w-full py-3 rounded-2xl bg-[#111512] text-[#baff18] font-black">${editando?'Salvar alterações':'Salvar'}</button></form></div></div>`;
+    }
+
+    function preencherFormularioFinanceiro(tipo, existente) {
+        const tipoEl=document.getElementById('finTipoEmpresa'), wrap=document.getElementById('finLojaWrap');
+        const valorEl=document.getElementById('finValor');
+        valorEl.addEventListener('input',()=>formatarMoedaFinInput(valorEl));
+        if (existente) {
+            tipoEl.value=existente.empresa_tipo || 'loja';
+            document.getElementById('finCategoria').value=existente.categoria || 'conta_pagar';
+            if(document.getElementById('finLoja') && existente.loja_slug) document.getElementById('finLoja').value=existente.loja_slug;
+            document.getElementById('finDescricao').value=existente.descricao || '';
+            document.getElementById('finFornecedor').value=existente.fornecedor || '';
+            definirValorFinInput(valorEl,existente.valor);
+            document.getElementById('finObservacao').value=existente.observacao || '';
+            if(tipo==='recorrente') document.getElementById('finFrequencia').value=existente.frequencia || 'mensal';
+            document.getElementById('finData').value=tipo==='recorrente' ? (existente.proximo_vencimento || hojeIsoFinanceiro()) : (existente.vencimento || hojeIsoFinanceiro());
+        } else {
+            tipoEl.value='loja';
+            definirValorFinInput(valorEl,0);
+            document.getElementById('finData').value=hojeIsoFinanceiro();
+            if(tipo==='recorrente') document.getElementById('finFrequencia').value='mensal';
+        }
+        wrap.classList.toggle('hidden',tipoEl.value==='pessoal');
+        tipoEl.onchange=()=>wrap.classList.toggle('hidden',tipoEl.value==='pessoal');
+        const parcelado=document.getElementById('finParcelado');
+        const parcelasWrap=document.getElementById('finParcelasWrap');
+        if(parcelado && parcelasWrap){
+            parcelado.onchange=()=>{parcelasWrap.classList.toggle('hidden',!parcelado.checked); atualizarPreviewParcelas();};
+            document.getElementById('finParcelas').addEventListener('input',atualizarPreviewParcelas);
+        }
+    }
+
+    async function salvarNovoLancamentoFinanceiro(base) {
+        const parcelado = document.getElementById('finParcelado')?.checked;
+        const qtd = parcelado ? Math.max(2, Math.min(120, Number(document.getElementById('finParcelas')?.value || 2))) : 1;
+        if (qtd === 1) {
+            const item={...base,id:idFinanceiro('fin'),vencimento:document.getElementById('finData').value,status:'pendente',pago_em:null};
+            const salvo=await inserirFinanceiroDb(item);
+            financeiroDados.push(salvo||item);
+            return;
+        }
+        const totalCentavos=Math.round(Number(base.valor||0)*100);
+        const baseCentavos=Math.floor(totalCentavos/qtd);
+        let resto=totalCentavos-(baseCentavos*qtd);
+        const grupo=idFinanceiro('parcela');
+        const primeiroVencimento=document.getElementById('finData').value;
+        for(let i=1;i<=qtd;i++){
+            const centavos=baseCentavos+(resto>0?1:0); if(resto>0) resto--;
+            const item={...base,id:idFinanceiro('fin'),valor:centavos/100,vencimento:adicionarMesesFinanceiro(primeiroVencimento,i-1),status:'pendente',pago_em:null,parcela_grupo:grupo,parcela_numero:i,parcelas_total:qtd};
+            const salvo=await inserirFinanceiroDb(item);
+            financeiroDados.push(salvo||item);
+        }
+    }
+
     window.abrirFormularioFinanceiro = tipo => {
         if (!financeiroAutorizado) { window.abrirSenhaFinanceiro(); return; }
-        document.getElementById('modalFinanceiro')?.remove(); document.body.insertAdjacentHTML('beforeend', modalFinanceiroHTML(tipo));
-        const tipoEl=document.getElementById('finTipoEmpresa'), wrap=document.getElementById('finLojaWrap');
-        tipoEl.onchange=()=>wrap.classList.toggle('hidden',tipoEl.value==='pessoal');
+        document.getElementById('modalFinanceiro')?.remove();
+        document.body.insertAdjacentHTML('beforeend', modalFinanceiroHTML(tipo));
+        preencherFormularioFinanceiro(tipo,null);
         document.getElementById('formFinanceiro').onsubmit=async e=>{
             e.preventDefault();
-            const item={empresa_tipo:tipoEl.value,categoria:document.getElementById('finCategoria').value,loja_slug:tipoEl.value==='loja'?document.getElementById('finLoja').value:null,descricao:document.getElementById('finDescricao').value.trim(),fornecedor:document.getElementById('finFornecedor').value.trim()||null,valor:Number(document.getElementById('finValor').value||0),observacao:document.getElementById('finObservacao').value.trim()||null};
+            const tipoEl=document.getElementById('finTipoEmpresa');
+            const item={empresa_tipo:tipoEl.value,categoria:document.getElementById('finCategoria').value,loja_slug:tipoEl.value==='loja'?document.getElementById('finLoja').value:null,descricao:document.getElementById('finDescricao').value.trim(),fornecedor:document.getElementById('finFornecedor').value.trim()||null,valor:lerValorFinInput(),observacao:document.getElementById('finObservacao').value.trim()||null};
+            if(item.valor<=0){window.mostrarToast?.('Informe um valor maior que zero.','bg-orange-500 text-white');return;}
             try {
-                if(tipo==='recorrente'){ item.frequencia=document.getElementById('finFrequencia').value; item.proximo_vencimento=document.getElementById('finData').value; item.ativo=true; const salvo=await inserirRecorrenteDb(item); financeiroRecorrentes.push(salvo||item); }
-                else { item.vencimento=document.getElementById('finData').value; item.status='pendente'; item.pago_em=null; const salvo=await inserirFinanceiroDb(item); financeiroDados.push(salvo||item); }
+                if(tipo==='recorrente'){
+                    item.id=idFinanceiro('rec'); item.frequencia=document.getElementById('finFrequencia').value; item.proximo_vencimento=document.getElementById('finData').value; item.ativo=true;
+                    const salvo=await inserirRecorrenteDb(item); financeiroRecorrentes.push(salvo||item);
+                } else {
+                    await salvarNovoLancamentoFinanceiro(item);
+                }
                 salvarFinanceiroLocal(); document.getElementById('modalFinanceiro')?.remove(); renderizarFinanceiro(); window.mostrarToast?.('Lançamento salvo com sucesso!','bg-green-600 text-white');
             } catch(err) { console.error(err); window.mostrarToast?.('Não foi possível salvar no banco.','bg-red-600 text-white'); }
         };
     };
+
+    window.editarFinanceiro = id => {
+        const item=financeiroDados.find(x=>chaveItemFinanceiro(x)===String(id)); if(!item) return;
+        document.getElementById('modalFinanceiro')?.remove(); document.body.insertAdjacentHTML('beforeend',modalFinanceiroHTML('lancamento',item));
+        preencherFormularioFinanceiro('lancamento',item);
+        document.getElementById('formFinanceiro').onsubmit=async e=>{
+            e.preventDefault();
+            const tipoEl=document.getElementById('finTipoEmpresa');
+            const atualizado={...item,empresa_tipo:tipoEl.value,categoria:document.getElementById('finCategoria').value,loja_slug:tipoEl.value==='loja'?document.getElementById('finLoja').value:null,descricao:document.getElementById('finDescricao').value.trim(),fornecedor:document.getElementById('finFornecedor').value.trim()||null,valor:lerValorFinInput(),vencimento:document.getElementById('finData').value,observacao:document.getElementById('finObservacao').value.trim()||null};
+            if(atualizado.valor<=0){window.mostrarToast?.('Informe um valor maior que zero.','bg-orange-500 text-white');return;}
+            try{await atualizarFinanceiroDb(atualizado);Object.assign(item,atualizado);salvarFinanceiroLocal();document.getElementById('modalFinanceiro')?.remove();renderizarFinanceiro();window.mostrarToast?.('Lançamento atualizado.','bg-green-600 text-white');}catch(err){console.error(err);window.mostrarToast?.('Erro ao editar lançamento.','bg-red-600 text-white');}
+        };
+    };
+    window.editarRecorrenteFinanceiro = id => {
+        const item=financeiroRecorrentes.find(x=>chaveItemFinanceiro(x)===String(id)); if(!item) return;
+        document.getElementById('modalFinanceiro')?.remove(); document.body.insertAdjacentHTML('beforeend',modalFinanceiroHTML('recorrente',item));
+        preencherFormularioFinanceiro('recorrente',item);
+        document.getElementById('formFinanceiro').onsubmit=async e=>{
+            e.preventDefault();
+            const tipoEl=document.getElementById('finTipoEmpresa');
+            const atualizado={...item,empresa_tipo:tipoEl.value,categoria:document.getElementById('finCategoria').value,loja_slug:tipoEl.value==='loja'?document.getElementById('finLoja').value:null,descricao:document.getElementById('finDescricao').value.trim(),fornecedor:document.getElementById('finFornecedor').value.trim()||null,valor:lerValorFinInput(),frequencia:document.getElementById('finFrequencia').value,proximo_vencimento:document.getElementById('finData').value,observacao:document.getElementById('finObservacao').value.trim()||null};
+            if(atualizado.valor<=0){window.mostrarToast?.('Informe um valor maior que zero.','bg-orange-500 text-white');return;}
+            try{await atualizarRecorrenteDb(atualizado);Object.assign(item,atualizado);salvarFinanceiroLocal();document.getElementById('modalFinanceiro')?.remove();renderizarFinanceiro();window.mostrarToast?.('Gasto recorrente atualizado.','bg-green-600 text-white');}catch(err){console.error(err);window.mostrarToast?.('Erro ao editar gasto recorrente.','bg-red-600 text-white');}
+        };
+    };
+
+    function confirmarAcaoFinanceiro(titulo,mensagem,acao){
+        if(typeof window.abrirModal==='function'){window.abrirModal(titulo,mensagem,acao);return;}
+        if(window.confirm(mensagem)) acao();
+    }
+    window.excluirFinanceiro = id => {
+        const item=financeiroDados.find(x=>chaveItemFinanceiro(x)===String(id)); if(!item) return;
+        confirmarAcaoFinanceiro('Excluir lançamento?','Tem certeza que deseja excluir este lançamento financeiro?',async()=>{
+            try{await excluirFinanceiroDb(item);financeiroDados=financeiroDados.filter(x=>x!==item);salvarFinanceiroLocal();renderizarFinanceiro();window.mostrarToast?.('Lançamento excluído.','bg-gray-800 text-white');}catch(err){console.error(err);window.mostrarToast?.('Erro ao excluir lançamento.','bg-red-600 text-white');}
+        });
+    };
+    window.excluirRecorrenteFinanceiro = id => {
+        const item=financeiroRecorrentes.find(x=>chaveItemFinanceiro(x)===String(id)); if(!item) return;
+        confirmarAcaoFinanceiro('Excluir gasto recorrente?','Tem certeza que deseja excluir este gasto recorrente?',async()=>{
+            try{await excluirRecorrenteDb(item);financeiroRecorrentes=financeiroRecorrentes.filter(x=>x!==item);salvarFinanceiroLocal();renderizarFinanceiro();window.mostrarToast?.('Gasto recorrente excluído.','bg-gray-800 text-white');}catch(err){console.error(err);window.mostrarToast?.('Erro ao excluir gasto recorrente.','bg-red-600 text-white');}
+        });
+    };
+
     window.quitarFinanceiro = async id => {
-        const item=financeiroDados.find(x=>String(x.supabaseId||x.id)===String(id)); if(!item) return;
+        const item=financeiroDados.find(x=>chaveItemFinanceiro(x)===String(id)); if(!item) return;
+        const anterior={status:item.status,pago_em:item.pago_em,atualizado_em:item.atualizado_em};
         item.status='pago'; item.pago_em=hojeIsoFinanceiro(); item.atualizado_em=new Date().toISOString();
-        try { await atualizarFinanceiroDb(item); salvarFinanceiroLocal(); renderizarFinanceiro(); window.mostrarToast?.('Pagamento concluído.','bg-green-600 text-white'); } catch(err) { console.error(err); window.mostrarToast?.('Erro ao registrar pagamento.','bg-red-600 text-white'); }
+        try { await atualizarFinanceiroDb(item); salvarFinanceiroLocal(); renderizarFinanceiro(); window.mostrarToast?.('Pagamento concluído.','bg-green-600 text-white'); }
+        catch(err) { Object.assign(item,anterior); console.error(err); window.mostrarToast?.('Erro ao registrar pagamento.','bg-red-600 text-white'); }
+    };
+    window.quitarRecorrenteFinanceiro = async id => {
+        const r=financeiroRecorrentes.find(x=>chaveItemFinanceiro(x)===String(id)); if(!r) return;
+        const vencimento=r.proximo_vencimento || hojeIsoFinanceiro();
+        const item={id:idFinanceiro('fin'),empresa_tipo:r.empresa_tipo,categoria:r.categoria,loja_slug:r.loja_slug||null,descricao:r.descricao,fornecedor:r.fornecedor||null,valor:Number(r.valor||0),vencimento,status:'pago',pago_em:hojeIsoFinanceiro(),forma_pagamento:null,observacao:r.observacao||null};
+        const proxima=proximaDataRecorrente(vencimento,r.frequencia);
+        try{
+            const salvo=await inserirFinanceiroDb(item); financeiroDados.push(salvo||item);
+            r.proximo_vencimento=proxima; await atualizarRecorrenteDb(r);
+            salvarFinanceiroLocal(); renderizarFinanceiro(); window.mostrarToast?.('Recorrência marcada como paga e próximo vencimento atualizado.','bg-green-600 text-white');
+        }catch(err){console.error(err);window.mostrarToast?.('Erro ao registrar pagamento recorrente.','bg-red-600 text-white');}
     };
 
     function abrirSenhaFinanceiro(){
@@ -7747,7 +8000,7 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             let ultimo = null;
             let guard = 0;
             while (proxima <= hoje && guard++ < 120) {
-                const item = {empresa_tipo:r.empresa_tipo,categoria:r.categoria,loja_slug:r.loja_slug||null,descricao:r.descricao,fornecedor:r.fornecedor||null,valor:Number(r.valor||0),vencimento:proxima,status:'pendente',pago_em:null,forma_pagamento:null,observacao:r.observacao||null};
+                const item = {id:idFinanceiro('fin'),empresa_tipo:r.empresa_tipo,categoria:r.categoria,loja_slug:r.loja_slug||null,descricao:r.descricao,fornecedor:r.fornecedor||null,valor:Number(r.valor||0),vencimento:proxima,status:'pendente',pago_em:null,forma_pagamento:null,observacao:r.observacao||null};
                 const salvo = await inserirFinanceiroDb(item);
                 financeiroDados.push(salvo || item);
                 ultimo = proxima;
@@ -7759,6 +8012,7 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
     }
     window.carregarFinanceiroModulo=async()=>{
         carregarFinanceiroLocal();
+        financeiroDados=financeiroDados.map(normalizarLancamentoFinanceiro);
         try { await carregarFinanceiroRemoto(); await gerarRecorrenciasVencidas(); }
         catch(e){ console.warn('Financeiro usando cache local:',e); }
         renderizarFinanceiro();
@@ -7770,7 +8024,7 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
         return originalAbrir ? originalAbrir(modulo) : undefined;
     };
     document.addEventListener('click',e=>{const b=e.target.closest('[data-fin-filter]'); if(!b)return; financeiroFiltro=b.dataset.finFilter; renderizarFinanceiro();});
-    window.addEventListener('load',()=>{ carregarFinanceiroLocal(); });
+    window.addEventListener('load',()=>{ carregarFinanceiroLocal(); financeiroDados=financeiroDados.map(normalizarLancamentoFinanceiro); });
 })();
 </script>
 </body>
