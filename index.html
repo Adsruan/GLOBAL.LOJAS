@@ -7607,8 +7607,18 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
 
     function financeiroLocalKey(sufixo) { return `financeiro_${sufixo}`; }
     function salvarFinanceiroLocal() {
-        localStorage.setItem(financeiroLocalKey('lancamentos'), JSON.stringify(financeiroDados));
-        localStorage.setItem(financeiroLocalKey('recorrentes'), JSON.stringify(financeiroRecorrentes));
+        try {
+            const antigosLanc = JSON.parse(localStorage.getItem(financeiroLocalKey('lancamentos')) || '[]') || [];
+            const antigosRec = JSON.parse(localStorage.getItem(financeiroLocalKey('recorrentes')) || '[]') || [];
+            if (financeiroDados.length > 0 || antigosLanc.length === 0) {
+                localStorage.setItem(financeiroLocalKey('lancamentos'), JSON.stringify(financeiroDados));
+            }
+            if (financeiroRecorrentes.length > 0 || antigosRec.length === 0) {
+                localStorage.setItem(financeiroLocalKey('recorrentes'), JSON.stringify(financeiroRecorrentes));
+            }
+        } catch (e) {
+            console.warn('Não foi possível atualizar o cache local do Financeiro:', e);
+        }
     }
     function carregarFinanceiroLocal() {
         try { financeiroDados = JSON.parse(localStorage.getItem(financeiroLocalKey('lancamentos')) || '[]') || []; } catch { financeiroDados = []; }
@@ -7670,8 +7680,27 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
         if (e2) throw e2;
         if (e3) throw e3;
         const mapaLojas = new Map((lojas || []).map(l => [String(l.id), l]));
-        financeiroDados = (lanc || []).map(r => financeiroDbParaLocal({...r, loja_slug: mapaLojas.get(String(r.loja_id))?.slug || null, loja_nome: mapaLojas.get(String(r.loja_id))?.nome || null}));
-        financeiroRecorrentes = (rec || []).map(r => recorrenteDbParaLocal({...r, loja_slug: mapaLojas.get(String(r.loja_id))?.slug || null, loja_nome: mapaLojas.get(String(r.loja_id))?.nome || null}));
+
+        const remotoLancamentos = (lanc || []).map(r => financeiroDbParaLocal({
+            ...r,
+            loja_slug: mapaLojas.get(String(r.loja_id))?.slug || null,
+            loja_nome: mapaLojas.get(String(r.loja_id))?.nome || null
+        }));
+        const remotoRecorrentes = (rec || []).map(r => recorrenteDbParaLocal({
+            ...r,
+            loja_slug: mapaLojas.get(String(r.loja_id))?.slug || null,
+            loja_nome: mapaLojas.get(String(r.loja_id))?.nome || null
+        }));
+
+        // Não apaga o cache local quando uma leitura remota vier vazia.
+        // Assim, uma resposta vazia/intermitente do Supabase não faz
+        // contas já salvas desaparecerem do Financeiro.
+        if (remotoLancamentos.length > 0 || financeiroDados.length === 0) {
+            financeiroDados = remotoLancamentos;
+        }
+        if (remotoRecorrentes.length > 0 || financeiroRecorrentes.length === 0) {
+            financeiroRecorrentes = remotoRecorrentes;
+        }
         salvarFinanceiroLocal();
     }
     function financeiroDbParaLocal(r) {
