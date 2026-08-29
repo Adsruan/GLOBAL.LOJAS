@@ -6250,43 +6250,12 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
                 legado_id: { type: 'string' },
                 payload: { type: 'object' }
             };
-
             ['vendas','sangrias','recebimentos','lembretes','boletos'].forEach(tabela => {
                 const atual = COLUNAS[tabela]?.properties || {};
                 COLUNAS[tabela] = { ...(COLUNAS[tabela] || {}), properties: { ...base, ...atual } };
             });
-
-            // A tabela vendas possui colunas estruturais que precisam continuar
-            // sendo preenchidas mesmo quando o OpenAPI do PostgREST não expõe
-            // o schema completo. Sem este fallback, apenas loja_id/legacy_id/payload
-            // eram enviados e total/data/hora ficavam nulos no banco.
-            const vendasConhecidas = {
-                id: { type: 'string', format: 'uuid' },
-                loja_id: { type: 'string', format: 'uuid' },
-                legacy_id: { type: 'string' },
-                data_venda: { type: 'string', format: 'date' },
-                hora_venda: { type: 'string', format: 'time' },
-                vendedor_id: { type: 'string', format: 'uuid' },
-                vendedor_nome: { type: 'string' },
-                cliente_nome: { type: 'string' },
-                cliente_documento: { type: 'string' },
-                subtotal: { type: 'number' },
-                desconto: { type: 'number' },
-                total: { type: 'number' },
-                forma_pagamento: { type: 'string' },
-                detalhes_pagamento: { type: 'object' },
-                itens: { type: 'object' },
-                status: { type: 'string' },
-                dados_originais: { type: 'object' },
-                criado_em: { type: 'string', format: 'date-time' },
-                atualizado_em: { type: 'string', format: 'date-time' },
-                legado_id: { type: 'string' },
-                payload: { type: 'object' }
-            };
-            COLUNAS.vendas = { ...(COLUNAS.vendas || {}), properties: { ...vendasConhecidas, ...(COLUNAS.vendas?.properties || {}) } };
-
-            // venda_itens continua usando as colunas reais quando o schema estiver
-            // disponivel. No fallback, os itens viajam dentro do payload da venda.
+            // venda_itens continua usando as colunas reais quando o esquema estiver disponivel.
+            // No fallback, os itens ja viajam dentro do payload da venda, evitando perda de dados.
             if (!COLUNAS.venda_itens) {
                 COLUNAS.venda_itens = { properties: { ...base } };
             }
@@ -6334,36 +6303,23 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
         }
 
         function vendaParaDb(v) {
-            const lojaId = lojaIdPorSlug(v.lojaSlug || window.lojaAtualSlug);
-            const out = payloadBase('vendas', v, lojaId);
-            const agoraIso = new Date(Number(v.timestamp || Date.now())).toISOString();
-
-            // Colunas oficiais da tabela vendas. O payload continua sendo mantido
-            // integralmente para compatibilidade, mas os campos estruturais também
-            // recebem os valores reais da venda.
+            const out = payloadBase('vendas', v, lojaIdPorSlug(v.lojaSlug || window.lojaAtualSlug));
             definir(out,'vendas',['timestamp','timestamp_ms'],v.timestamp);
             definir(out,'vendas',['data_iso','data','data_venda','dados_venda'],v.dataIso);
             definir(out,'vendas',['data_br'],v.dataBr);
             definir(out,'vendas',['hora','hora_venda'],v.hora);
-            definir(out,'vendas',['vendedor','vendedor_nome'],v.vendedor);
-            definir(out,'vendas',['cliente_nome'],v.clienteNome);
-            definir(out,'vendas',['cliente_doc','cliente_documento','cpf_cnpj','documento'],v.clienteDoc);
             definir(out,'vendas',['forma_pagamento','pagamento'],v.formaPagamento);
-            definir(out,'vendas',['detalhes','detalhes_pagamento'],v.detalhes || []);
+            definir(out,'vendas',['detalhes','detalhes_pagamento'],v.detalhes);
+            definir(out,'vendas',['vendedor','vendedor_nome'],v.vendedor);
             definir(out,'vendas',['descricao'],v.descricao);
+            definir(out,'vendas',['cliente_nome'],v.clienteNome);
+            definir(out,'vendas',['cliente_doc','cpf_cnpj','documento'],v.clienteDoc);
             definir(out,'vendas',['qtd','quantidade'],v.qtd);
             definir(out,'vendas',['unitario','valor_unitario'],v.unitario);
-            definir(out,'vendas',['subtotal'],Number(v.subtotal ?? v.total ?? 0));
-            definir(out,'vendas',['desconto'],Number(v.desconto ?? 0));
-            definir(out,'vendas',['total','valor_total','valor'],Number(v.total || 0));
+            definir(out,'vendas',['total','valor_total','valor'],v.total);
             definir(out,'vendas',['recebido','valor_recebido'],v.recebido);
             definir(out,'vendas',['troco'],v.troco);
-            definir(out,'vendas',['itens'],Array.isArray(v.itens) ? v.itens : []);
-            definir(out,'vendas',['status'],v.status || 'concluida');
-            definir(out,'vendas',['dados_originais'],v.dadosOriginais || copiar(v));
-            definir(out,'vendas',['criado_em','created_at'],v.criadoEm || agoraIso);
-            definir(out,'vendas',['atualizado_em','updated_at'],v.atualizadoEm || agoraIso);
-            definir(out,'vendas',['legado_id','origem_id','local_id','id_local','legacy_id'],v.id != null ? String(v.id) : undefined);
+            definir(out,'vendas',['itens'],v.itens);
             return out;
         }
 
@@ -6685,6 +6641,17 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             v.qtd ??= Number(lerCampo(linha,['qtd','quantidade']) || 1);
             v.unitario ??= Number(lerCampo(linha,['unitario','valor_unitario']) || 0);
             v.total ??= Number(lerCampo(linha,['total','valor_total','valor']) || 0);
+
+            // Correção pontual de leitura: algumas vendas antigas da Real Papelaria
+            // possuem total=0 na coluna principal, enquanto o valor correto permanece
+            // dentro do payload do próprio registro. Usa o payload somente como fallback
+            // quando o total principal está zerado, sem alterar o banco nem outras lojas.
+            if (!(Number(v.total) > 0)) {
+                const payloadVenda = parseJson(linha?.payload, {});
+                const totalPayload = Number(payloadVenda?.total ?? payloadVenda?.valor_total ?? payloadVenda?.valor ?? 0);
+                if (totalPayload > 0) v.total = totalPayload;
+            }
+
             v.recebido ??= Number(lerCampo(linha,['recebido','valor_recebido']) ?? v.total);
             v.troco ??= Number(lerCampo(linha,['troco']) || 0);
             v.itens ??= parseJson(lerCampo(linha,['itens']), []);
@@ -6877,37 +6844,6 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             salvarArrayLoja(BASES_LOCAIS.boletos, slug, mesclarRegistros(carregarArrayLoja(BASES_LOCAIS.boletos, slug), boletosRemotos));
         }
 
-        async function repararVendasEstruturaisSupabase(slug = null) {
-            if (!window.supabaseDisponivel || !window.supabaseClient || !COLUNAS.vendas) return;
-            const lojasAlvo = slug ? LOJAS.filter(l => l.slug === slug) : LOJAS;
-            for (const loja of lojasAlvo) {
-                const lojaId = lojaIdPorSlug(loja.slug);
-                if (!lojaId) continue;
-                const idCampo = campo('vendas',['id']);
-                const lojaCampo = campo('vendas',['loja_id']);
-                if (!idCampo) continue;
-
-                let q = window.supabaseClient.from('vendas').select('*');
-                if (lojaCampo) q = q.eq(lojaCampo, lojaId);
-                const { data, error } = await q;
-                if (error) throw error;
-
-                for (const linha of (data || [])) {
-                    const payload = parseJson(campoPayload('vendas') ? linha[campoPayload('vendas')] : null, {});
-                    const totalPayload = Number(payload?.total || 0);
-                    if (!payload || totalPayload <= 0) continue;
-
-                    const precisa = Number(linha.total || 0) <= 0 || !linha.data_venda || !linha.hora_venda || !linha.vendedor_nome;
-                    if (!precisa) continue;
-
-                    const local = vendaDoDb(linha);
-                    const corrigida = vendaParaDb({ ...local, lojaSlug: loja.slug, supabaseId: linha[idCampo] });
-                    const { error: updateError } = await window.supabaseClient.from('vendas').update(corrigida).eq(idCampo, linha[idCampo]);
-                    if (updateError) throw updateError;
-                }
-            }
-        }
-
         async function baixarTodasLojas() {
             if (!window.supabaseDisponivel) return;
             const erros = [];
@@ -7034,8 +6970,6 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
                 // localStorage antigo reenvie vendas que já foram excluídas em outro aparelho.
                 const errosLeitura = await baixarTodasLojas();
                 if (errosLeitura?.length) throw new Error(`leitura de vendas: ${errosLeitura[0]}`);
-                await repararVendasEstruturaisSupabase();
-                await baixarTodasLojas();
 
                 carregarDadosLocaisDaLoja(window.lojaAtualSlug);
                 marcarRegistrosDaLoja();
@@ -7280,8 +7214,6 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             if (window.supabaseDisponivel) {
                 try {
                     // Baixa primeiro. Nunca envia um cache antigo antes de consultar o banco.
-                    await baixarLojaDoSupabase(slug);
-                    await repararVendasEstruturaisSupabase(slug);
                     await baixarLojaDoSupabase(slug);
                     carregarDadosLocaisDaLoja(slug);
                     marcarRegistrosDaLoja();
