@@ -2033,10 +2033,10 @@
         }, true); // O 'true' ativa o Event Capturing (intercepta antes de chegar aos elementos)
 
         // CONFIGURAÇÃO E DADOS LOCAIS
-        let todasVendasBanco = JSON.parse(localStorage.getItem('vendasSistemaCaixa') || '[]'); 
-        let todasDespesasBanco = JSON.parse(localStorage.getItem('despesasSistemaCaixa') || '[]');
-        let todosLembretesBanco = JSON.parse(localStorage.getItem('lembretesSistemaCaixa') || '[]');
-        let todosBoletosBanco = JSON.parse(localStorage.getItem('boletosSistemaCaixa') || '[]'); 
+        let todasVendasBanco = [];
+        let todasDespesasBanco = [];
+        let todosLembretesBanco = [];
+        let todosBoletosBanco = []; 
         
         let vendasFiltradas = [];  
         let despesasFiltradas = [];
@@ -2194,8 +2194,13 @@
                 todasVendasBanco[vendaIndex].descricao = document.getElementById('editDescricao').value || 'Diversos';
                 todasVendasBanco[vendaIndex].clienteNome = document.getElementById('editClienteNome').value;
                 todasVendasBanco[vendaIndex].clienteDoc = document.getElementById('editClienteDoc').value;
-                localStorage.setItem('vendasSistemaCaixa', JSON.stringify(todasVendasBanco));
+                salvarArrayLoja(BASES_LOCAIS.vendas, window.lojaAtualSlug, todasVendasBanco);
                 filtrarEAtualizarDashboard();
+                if (window.supabaseDisponivel) {
+                    salvarRegistroDiretoNoSupabase('vendas', todasVendasBanco[vendaIndex], window.lojaAtualSlug)
+                        .then(() => setStatusBanco('Banco: sincronizado', 'ok'))
+                        .catch(e => { console.error('Falha ao atualizar venda no Supabase:', e); setStatusBanco('Banco: erro ao atualizar venda', 'erro'); });
+                }
                 mostrarToast('Venda atualizada com sucesso!', 'bg-green-600 text-white');
             }
             window.fecharModalEditar();
@@ -3020,7 +3025,7 @@
 
             todasVendasBanco.unshift(novaVenda);
             window.__ultimaMutacaoLocal = Date.now();
-            localStorage.setItem('vendasSistemaCaixa', JSON.stringify(todasVendasBanco));
+
             mostrarToast("Venda registrada!", "bg-green-600 text-white");
 
             carrinhoAtual = [];
@@ -3596,7 +3601,7 @@
             };
 
             todasVendasBanco.unshift(novaVenda);
-            localStorage.setItem('vendasSistemaCaixa', JSON.stringify(todasVendasBanco));
+
             mostrarToast("Recebimento registrado com sucesso!", "bg-green-600 text-white");
 
             // Limpa formulário
@@ -3673,7 +3678,7 @@
             };
 
             todasDespesasBanco.unshift(novaDespesa);
-            localStorage.setItem('despesasSistemaCaixa', JSON.stringify(todasDespesasBanco));
+
             mostrarToast("Sangria registrada com sucesso!", "bg-red-600 text-white");
             window.fecharModalSangria();
             
@@ -4040,7 +4045,7 @@
                 salvarArrayLoja(BASES_LOCAIS.sangrias, slug, todasDespesasBanco);
                 bloqueioPersistencia = true;
                 try {
-                    localStorage.setItem('despesasSistemaCaixa', JSON.stringify(todasDespesasBanco));
+
                 } finally {
                     bloqueioPersistencia = false;
                 }
@@ -4094,7 +4099,7 @@
         window.apagarVenda = (idVenda) => {
             window.abrirModal("Apagar Venda?", "Tem certeza que deseja apagar este registro? O faturamento e o gráfico serão atualizados automaticamente.", () => {
                 todasVendasBanco = todasVendasBanco.filter(v => v.id !== idVenda);
-                localStorage.setItem('vendasSistemaCaixa', JSON.stringify(todasVendasBanco));
+
                 filtrarEAtualizarDashboard();
                 window.renderizarDashVendedores();
                 mostrarToast("Venda apagada com sucesso", "bg-gray-800 text-white");
@@ -4104,7 +4109,7 @@
         window.limparTodasAsVendas = () => {
             window.abrirModal("Zerar Sistema?", "Esta ação apagará TODAS as vendas E SANGRIAS da memória deste dispositivo. Certifique-se de baixar o relatório em CSV antes!", () => {
                 todasVendasBanco = []; todasDespesasBanco = [];
-                localStorage.removeItem('vendasSistemaCaixa'); localStorage.removeItem('despesasSistemaCaixa');
+
                 filtrarEAtualizarDashboard(); window.renderizarDashVendedores();
                 mostrarToast("Sistema zerado.", "bg-gray-800 text-white");
             });
@@ -4153,8 +4158,16 @@
                         if (importadasVendas > 0 || importadasSangrias > 0) {
                             todasVendasBanco.sort((a, b) => b.timestamp - a.timestamp);
                             todasDespesasBanco.sort((a, b) => b.timestamp - a.timestamp);
-                            localStorage.setItem('vendasSistemaCaixa', JSON.stringify(todasVendasBanco));
-                            localStorage.setItem('despesasSistemaCaixa', JSON.stringify(todasDespesasBanco));
+                            salvarArrayLoja(BASES_LOCAIS.vendas, window.lojaAtualSlug, todasVendasBanco);
+                            salvarArrayLoja(BASES_LOCAIS.sangrias, window.lojaAtualSlug, todasDespesasBanco);
+                            if (window.supabaseDisponivel) {
+                                const mapaV = carregarMapa('vendas', window.lojaAtualSlug);
+                                const mapaS = carregarMapa('sangrias', window.lojaAtualSlug);
+                                Promise.all(todasVendasBanco.map(r => sincronizarRegistro('vendas', r, window.lojaAtualSlug, mapaV)))
+                                    .then(() => Promise.all(todasDespesasBanco.map(r => sincronizarRegistro('sangrias', r, window.lojaAtualSlug, mapaS))))
+                                    .then(() => { salvarMapa('vendas', window.lojaAtualSlug, mapaV); salvarMapa('sangrias', window.lojaAtualSlug, mapaS); })
+                                    .catch(e => console.error('Falha ao enviar backup para o Supabase:', e));
+                            }
                             filtrarEAtualizarDashboard();
                             window.renderizarDashVendedores();
                             mostrarToast(`Backup restaurado: ${importadasVendas} vendas | ${importadasSangrias} sangrias!`, "bg-green-600 text-white");
@@ -4241,7 +4254,16 @@
 
                 if (importadasVendas > 0 || importadasSangrias > 0) {
                     todasVendasBanco.sort((a, b) => b.timestamp - a.timestamp); todasDespesasBanco.sort((a, b) => b.timestamp - a.timestamp);
-                    localStorage.setItem('vendasSistemaCaixa', JSON.stringify(todasVendasBanco)); localStorage.setItem('despesasSistemaCaixa', JSON.stringify(todasDespesasBanco));
+                    salvarArrayLoja(BASES_LOCAIS.vendas, window.lojaAtualSlug, todasVendasBanco);
+                    salvarArrayLoja(BASES_LOCAIS.sangrias, window.lojaAtualSlug, todasDespesasBanco);
+                    if (window.supabaseDisponivel) {
+                        const mapaV = carregarMapa('vendas', window.lojaAtualSlug);
+                        const mapaS = carregarMapa('sangrias', window.lojaAtualSlug);
+                        Promise.all(todasVendasBanco.map(r => sincronizarRegistro('vendas', r, window.lojaAtualSlug, mapaV)))
+                            .then(() => Promise.all(todasDespesasBanco.map(r => sincronizarRegistro('sangrias', r, window.lojaAtualSlug, mapaS))))
+                            .then(() => { salvarMapa('vendas', window.lojaAtualSlug, mapaV); salvarMapa('sangrias', window.lojaAtualSlug, mapaS); })
+                            .catch(e => console.error('Falha ao enviar importação para o Supabase:', e));
+                    }
                     filtrarEAtualizarDashboard(); window.renderizarDashVendedores();
                     mostrarToast(`Importado: ${importadasVendas} vendas | ${importadasSangrias} sangrias!`, "bg-green-600 text-white");
                 } else {
@@ -4317,7 +4339,7 @@
         // ==========================================
 
         window.salvarBoletosLocal = () => {
-            localStorage.setItem('boletosSistemaCaixa', JSON.stringify(todosBoletosBanco));
+
         };
 
         function boletoHojeIso() {
@@ -5991,40 +6013,18 @@
         // ou sangria recém-lançada.
         const CHAVE_PENDENCIAS_SYNC = 'caixaExpressoPendenciasSync';
 
-        function carregarPendenciasSync(slug, tipo) {
-            try {
-                const mapa = JSON.parse(localStorage.getItem(CHAVE_PENDENCIAS_SYNC) || '{}');
-                return Array.isArray(mapa?.[slug]?.[tipo]) ? mapa[slug][tipo].map(String) : [];
-            } catch (e) { return []; }
-        }
-
-        function salvarPendenciasSync(slug, tipo, ids) {
-            try {
-                const mapa = JSON.parse(localStorage.getItem(CHAVE_PENDENCIAS_SYNC) || '{}');
-                if (!mapa[slug]) mapa[slug] = {};
-                mapa[slug][tipo] = [...new Set((ids || []).map(String))];
-                localStorage.setItem(CHAVE_PENDENCIAS_SYNC, JSON.stringify(mapa));
-            } catch (e) {
-                console.warn('Falha ao salvar pendências de sincronização:', e);
-            }
-        }
-
+        function chavePendencia(slug, tipo) { return `${slug}__${tipo}`; }
+        function carregarPendenciasSync(slug, tipo) { return PENDENCIAS_MEMORIA.get(chavePendencia(slug, tipo)) || []; }
+        function salvarPendenciasSync(slug, tipo, ids) { PENDENCIAS_MEMORIA.set(chavePendencia(slug, tipo), [...new Set((ids || []).map(String))]); }
         function marcarPendenteSync(slug, tipo, registro) {
             if (!slug || !registro?.id) return;
             const ids = carregarPendenciasSync(slug, tipo);
-            if (!ids.includes(String(registro.id))) {
-                ids.push(String(registro.id));
-                salvarPendenciasSync(slug, tipo, ids);
-            }
+            if (!ids.includes(String(registro.id))) { ids.push(String(registro.id)); salvarPendenciasSync(slug, tipo, ids); }
         }
-
         function confirmarPendenteSync(slug, tipo, id) {
             if (!slug || id == null) return;
-            salvarPendenciasSync(slug, tipo,
-                carregarPendenciasSync(slug, tipo).filter(x => x !== String(id))
-            );
+            salvarPendenciasSync(slug, tipo, carregarPendenciasSync(slug, tipo).filter(x => x !== String(id)));
         }
-
         function existePendenteSync(slug, tipo, id) {
             return carregarPendenciasSync(slug, tipo).includes(String(id));
         }
@@ -6146,27 +6146,28 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             if (destino) window.abrirModuloGeral(destino);
         };
 
-        // Copia o banco legado para a Real Papelaria apenas uma vez, sem apagar nada.
-        function prepararDadosLegados() {
-            Object.values(BASES_LOCAIS).forEach(base => {
-                const legado = localStorage.getItem(base);
-                const destino = chaveLoja(base, 'real_papelaria');
-                if (legado && !localStorage.getItem(destino)) localStorage.setItem(destino, legado);
-            });
+        // Supabase é a única fonte de verdade dos dados operacionais.
+        // Os mapas abaixo existem somente em memória durante a sessão para alimentar a UI.
+        const MEMORIA_LOJAS = { vendas: new Map(), sangrias: new Map(), lembretes: new Map(), boletos: new Map() };
+        const MAPAS_SUPABASE = new Map();
+        const PENDENCIAS_MEMORIA = new Map();
+
+        function prepararDadosLegados() {}
+
+        function nomeBaseLocal(base) {
+            return Object.keys(BASES_LOCAIS).find(k => BASES_LOCAIS[k] === base) || base;
         }
 
         function carregarArrayLoja(base, slug) {
-            try { return JSON.parse(localStorage.getItem(chaveLoja(base, slug)) || '[]'); } catch { return []; }
+            const nome = nomeBaseLocal(base);
+            const mapa = MEMORIA_LOJAS[nome];
+            return mapa?.has(slug) ? copiar(mapa.get(slug)) : [];
         }
 
         function salvarArrayLoja(base, slug, dados) {
-            bloqueioPersistencia = true;
-            try {
-                localStorage.setItem(chaveLoja(base, slug), JSON.stringify(dados || []));
-                if (slug === window.lojaAtualSlug) localStorage.setItem(base, JSON.stringify(dados || []));
-            } finally {
-                bloqueioPersistencia = false;
-            }
+            const nome = nomeBaseLocal(base);
+            if (!MEMORIA_LOJAS[nome]) MEMORIA_LOJAS[nome] = new Map();
+            MEMORIA_LOJAS[nome].set(slug, copiar(dados || []));
         }
 
         function aplicarContextoLoja(slug) {
@@ -6185,20 +6186,7 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             todasVendasBanco = carregarArrayLoja(BASES_LOCAIS.vendas, slug);
             todasDespesasBanco = carregarArrayLoja(BASES_LOCAIS.sangrias, slug);
             todosLembretesBanco = carregarArrayLoja(BASES_LOCAIS.lembretes, slug);
-            try {
-                const globais = JSON.parse(localStorage.getItem('lembretesSistemaCaixa__global') || 'null');
-                if (Array.isArray(globais)) todosLembretesBanco = globais;
-            } catch {}
             todosBoletosBanco = carregarArrayLoja(BASES_LOCAIS.boletos, slug);
-            bloqueioPersistencia = true;
-            try {
-                localStorage.setItem(BASES_LOCAIS.vendas, JSON.stringify(todasVendasBanco));
-                localStorage.setItem(BASES_LOCAIS.sangrias, JSON.stringify(todasDespesasBanco));
-                localStorage.setItem(BASES_LOCAIS.lembretes, JSON.stringify(todosLembretesBanco));
-                localStorage.setItem(BASES_LOCAIS.boletos, JSON.stringify(todosBoletosBanco));
-            } finally {
-                bloqueioPersistencia = false;
-            }
         }
 
         function marcarRegistrosDaLoja() {
@@ -6407,9 +6395,9 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
 
         function lojaIdPorSlug(slug) { return LOJAS_DB.get(slug)?.id || null; }
 
-        function chaveMapa(tabela, slug) { return `caixaSupabaseMapa__${tabela}__${slug}`; }
-        function carregarMapa(tabela, slug) { try { return JSON.parse(localStorage.getItem(chaveMapa(tabela, slug)) || '{}'); } catch { return {}; } }
-        function salvarMapa(tabela, slug, mapa) { bloqueioPersistencia = true; try { localStorage.setItem(chaveMapa(tabela, slug), JSON.stringify(mapa)); } finally { bloqueioPersistencia = false; } }
+        function chaveMapa(tabela, slug) { return `${tabela}__${slug}`; }
+        function carregarMapa(tabela, slug) { const chave = chaveMapa(tabela, slug); if (!MAPAS_SUPABASE.has(chave)) MAPAS_SUPABASE.set(chave, {}); return MAPAS_SUPABASE.get(chave); }
+        function salvarMapa(tabela, slug, mapa) { MAPAS_SUPABASE.set(chaveMapa(tabela, slug), mapa || {}); }
 
         async function buscarExistente(tabela, registro, lojaId) {
             const origem = campo(tabela, ['origem_id','local_id','id_local','legacy_id','legado_id']);
@@ -6486,25 +6474,19 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             }
         }
 
-        async function removerExcluidos(tabela, registros, slug, mapa) {
-            const idCampo = campo(tabela,['id']);
-            if (!idCampo) return;
-            const presentes = new Set(registros.map(r => String(r.id ?? assinatura(r))));
-            const removidos = Object.keys(mapa).filter(k => !presentes.has(k));
-            for (const chave of removidos) {
-                const dbId = mapa[chave]?.dbId;
-                if (dbId) {
-                    const { error } = await window.supabaseClient.from(tabela).delete().eq(idCampo, dbId);
-                    if (error) { console.warn(`Erro ao excluir ${tabela}:`, error); continue; }
-                }
-                delete mapa[chave];
-            }
+        async function salvarRegistroDiretoNoSupabase(tabela, registro, slug) {
+            if (!window.supabaseDisponivel || !window.supabaseClient) throw new Error('Supabase indisponível.');
+            const mapa = carregarMapa(tabela, slug);
+            await sincronizarRegistro(tabela, { ...registro, lojaSlug: slug }, slug, mapa);
+            salvarMapa(tabela, slug, mapa);
         }
+
+        // Exclusões nunca são inferidas a partir da memória local.
+        async function removerExcluidos() { return; }
 
         async function sincronizarColecao(tabela, registros, slug) {
             if (!window.supabaseDisponivel || !COLUNAS[tabela]) return;
             const mapa = carregarMapa(tabela, slug);
-            await removerExcluidos(tabela, registros, slug, mapa);
             const lotes = [];
             for (let i = 0; i < registros.length; i += 5) lotes.push(registros.slice(i, i + 5));
             for (const lote of lotes) await Promise.all(lote.map(r => sincronizarRegistro(tabela, r, slug, mapa)));
@@ -6625,14 +6607,79 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
         function instalarObservadorLocalStorage() {
             if (window.__caixaStorageObservado) return;
             window.__caixaStorageObservado = true;
-            const original = Storage.prototype.setItem;
+            const originalSet = Storage.prototype.setItem;
+            const originalRemove = Storage.prototype.removeItem;
             Storage.prototype.setItem = function(chave, valor) {
-                const retorno = original.call(this, chave, valor);
-                if (this === localStorage && Object.values(BASES_LOCAIS).includes(chave) && !bloqueioPersistencia && !window.sincronizandoSupabase) {
-                    agendarSincronizacao(window.lojaAtualSlug);
+                if (this === localStorage && Object.values(BASES_LOCAIS).some(base => chave === base || String(chave).startsWith(`${base}__`))) {
+                    if (!bloqueioPersistencia && !window.sincronizandoSupabase) agendarSincronizacao(window.lojaAtualSlug);
+                    return;
                 }
-                return retorno;
+                return originalSet.call(this, chave, valor);
             };
+            Storage.prototype.removeItem = function(chave) {
+                if (this === localStorage && Object.values(BASES_LOCAIS).some(base => chave === base || String(chave).startsWith(`${base}__`))) return;
+                return originalRemove.call(this, chave);
+            };
+        }
+
+        async function migrarLegadoLocalParaSupabase() {
+            if (!window.supabaseDisponivel || !window.supabaseClient) return;
+            const chaveMigracao = 'caixaExpressoMigracaoLocalV1';
+            if (localStorage.getItem(chaveMigracao) === 'concluida') return;
+
+            // Migração de segurança: lê somente cópias antigas que já estavam no navegador
+            // e envia ao Supabase apenas o que ainda não existe. Nunca apaga nada do banco.
+            // Depois desta etapa, as telas passam a trabalhar exclusivamente com o Supabase.
+            const lerArrayLegado = (chaves) => {
+                for (const chave of chaves) {
+                    try {
+                        const bruto = localStorage.getItem(chave);
+                        const dados = JSON.parse(bruto || 'null');
+                        if (Array.isArray(dados) && dados.length) return dados;
+                    } catch {}
+                }
+                return [];
+            };
+
+            const mapaExclusoes = new Map();
+            try {
+                const { data, error } = await window.supabaseClient.from('registros_excluidos').select('loja_id,tipo,legacy_id');
+                if (!error) (data || []).forEach(x => mapaExclusoes.set(`${x.loja_id}__${x.tipo}__${x.legacy_id}`, true));
+            } catch {}
+
+            const tabelas = [
+                { tipo:'vendas', base:BASES_LOCAIS.vendas, converter:'vendas', chaves:(slug)=>slug === 'real_papelaria' ? [`${BASES_LOCAIS.vendas}__${slug}`, BASES_LOCAIS.vendas] : [`${BASES_LOCAIS.vendas}__${slug}`] },
+                { tipo:'sangrias', base:BASES_LOCAIS.sangrias, converter:'sangrias', chaves:(slug)=>slug === 'real_papelaria' ? [`${BASES_LOCAIS.sangrias}__${slug}`, BASES_LOCAIS.sangrias] : [`${BASES_LOCAIS.sangrias}__${slug}`] },
+                { tipo:'lembretes', base:BASES_LOCAIS.lembretes, converter:'lembretes', chaves:(slug)=>slug === 'real_papelaria' ? [`${BASES_LOCAIS.lembretes}__${slug}`, BASES_LOCAIS.lembretes, `${BASES_LOCAIS.lembretes}__global`] : [`${BASES_LOCAIS.lembretes}__${slug}`] },
+                { tipo:'boletos', base:BASES_LOCAIS.boletos, converter:'boletos', chaves:(slug)=>slug === 'real_papelaria' ? [`${BASES_LOCAIS.boletos}__${slug}`, BASES_LOCAIS.boletos] : [`${BASES_LOCAIS.boletos}__${slug}`] }
+            ];
+
+            for (const loja of LOJAS) {
+                const lojaId = lojaIdPorSlug(loja.slug);
+                if (!lojaId) continue;
+
+                for (const cfg of tabelas) {
+                    const registros = lerArrayLegado(cfg.chaves(loja.slug));
+                    if (!registros.length) continue;
+                    const mapa = carregarMapa(cfg.tipo, loja.slug);
+
+                    for (const registroOriginal of registros) {
+                        const registro = { ...registroOriginal, lojaSlug: loja.slug };
+                        const legacyId = registro.id != null ? String(registro.id) : '';
+                        if (!legacyId) continue;
+                        if (mapaExclusoes.has(`${lojaId}__${cfg.tipo}__${legacyId}`)) continue;
+                        try {
+                            const existente = await buscarExistente(cfg.tipo, registro, lojaId);
+                            if (existente) continue;
+                            await sincronizarRegistro(cfg.tipo, registro, loja.slug, mapa);
+                        } catch (e) {
+                            console.warn(`Não foi possível migrar registro legado ${cfg.tipo}/${legacyId}:`, e);
+                        }
+                    }
+                    salvarMapa(cfg.tipo, loja.slug, mapa);
+                }
+            }
+            try { localStorage.setItem(chaveMigracao, 'concluida'); } catch {}
         }
 
         async function carregarLojasSupabase() {
@@ -6764,12 +6811,21 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
         async function selecionarTabelaLoja(tabela, slug) {
             if (!COLUNAS[tabela]) return [];
             const lojaId = lojaIdPorSlug(slug);
-            let q = window.supabaseClient.from(tabela).select('*');
             const lojaCampo = campo(tabela,['loja_id']);
-            if (lojaCampo && lojaId) q = q.eq(lojaCampo, lojaId);
-            const { data, error } = await q;
-            if (error) throw error;
-            return data || [];
+            const limitePagina = 1000;
+            const todas = [];
+            let inicio = 0;
+            while (true) {
+                let q = window.supabaseClient.from(tabela).select('*').range(inicio, inicio + limitePagina - 1);
+                if (lojaCampo && lojaId) q = q.eq(lojaCampo, lojaId);
+                const { data, error } = await q;
+                if (error) throw error;
+                const pagina = data || [];
+                todas.push(...pagina);
+                if (pagina.length < limitePagina) break;
+                inicio += limitePagina;
+            }
+            return todas;
         }
 
         async function carregarItensRemotos(slug) {
@@ -6849,28 +6905,14 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             });
             const boletosRemotos = bLinhas.map(l => ({...boletoDoDb(l), lojaSlug: slug}));
 
-            // Supabase é a fonte de verdade para vendas/recebimentos depois da migração.
-            // Não fazemos merge com o localStorage aqui: um registro apagado em outro
-            // dispositivo precisa desaparecer também deste aparelho, e não ser ressuscitado
-            // por uma cópia local antiga.
-            // Supabase continua sendo a fonte de verdade, mas uma mutação recém-criada
-            // fica protegida até o próprio Supabase confirmar sua existência.
-            const vendasSeguras = mesclarRemotoComPendentes(slug, 'vendas', vendasRemotas);
-            const sangriasSeguras = mesclarRemotoComPendentes(slug, 'sangrias', sangriasRemotas);
-            salvarArrayLoja(BASES_LOCAIS.vendas, slug, [...vendasSeguras, ...recebimentosRemotos]
+            // Supabase é a fonte de verdade. O estado em memória desta loja é
+            // substituído pelo que veio do banco; nenhum cache local é mesclado.
+            salvarArrayLoja(BASES_LOCAIS.vendas, slug, [...vendasRemotas, ...recebimentosRemotos]
                 .sort((a,b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)));
-            salvarArrayLoja(BASES_LOCAIS.sangrias, slug, sangriasSeguras);
-            const lembretesGlobaisAtuais = (() => {
-                try {
-                    const raw = localStorage.getItem('lembretesSistemaCaixa__global');
-                    return Array.isArray(JSON.parse(raw || 'null')) ? JSON.parse(raw) : [];
-                } catch { return []; }
-            })();
-            const lembretesGlobais = mesclarRegistros(lembretesGlobaisAtuais, lembretesRemotos);
-            salvarArrayLoja(BASES_LOCAIS.lembretes, slug, lembretesGlobais);
-            localStorage.setItem('lembretesSistemaCaixa__global', JSON.stringify(lembretesGlobais));
-            todosLembretesBanco = lembretesGlobais;
-            salvarArrayLoja(BASES_LOCAIS.boletos, slug, mesclarRegistros(carregarArrayLoja(BASES_LOCAIS.boletos, slug), boletosRemotos));
+            salvarArrayLoja(BASES_LOCAIS.sangrias, slug, sangriasRemotas);
+            salvarArrayLoja(BASES_LOCAIS.lembretes, slug, lembretesRemotos);
+            salvarArrayLoja(BASES_LOCAIS.boletos, slug, boletosRemotos);
+            if (slug === window.lojaAtualSlug) todosLembretesBanco = lembretesRemotos;
         }
 
         async function baixarTodasLojas() {
@@ -6993,15 +7035,15 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
                 aplicarEsquemaFallback();
                 await carregarLojasSupabase();
                 setStatusBanco('Banco: conectado', 'ok');
+                await migrarLegadoLocalParaSupabase();
 
-                // A migração inicial já foi concluída. A partir daqui o Supabase é a
+                // A partir daqui o Supabase é a
                 // fonte de verdade ao abrir o sistema, evitando que um celular/PC com
                 // localStorage antigo reenvie vendas que já foram excluídas em outro aparelho.
                 const errosLeitura = await baixarTodasLojas();
                 if (errosLeitura?.length) throw new Error(`leitura de vendas: ${errosLeitura[0]}`);
 
                 carregarDadosLocaisDaLoja(window.lojaAtualSlug);
-                marcarRegistrosDaLoja();
                 renderizarAcesso();
                 renderizarPainelGeralLocal();
                 window.multiLojaInicializado = true;
@@ -7228,9 +7270,8 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
 
         window.entrarNaLoja = async (slug) => {
             window.trocandoLoja = true;
-            prepararDadosLegados();
+            aplicarContextoLoja(slug);
             carregarDadosLocaisDaLoja(slug);
-            marcarRegistrosDaLoja();
             const telaGeral = document.getElementById('tela-geral-lojas');
             if (telaGeral) telaGeral.classList.add('hidden');
             const barra = document.getElementById('barraContextoLoja');
@@ -7260,7 +7301,6 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             salvarArrayLoja(BASES_LOCAIS.sangrias, window.lojaAtualSlug, todasDespesasBanco);
             salvarArrayLoja(BASES_LOCAIS.lembretes, window.lojaAtualSlug, todosLembretesBanco);
             salvarArrayLoja(BASES_LOCAIS.boletos, window.lojaAtualSlug, todosBoletosBanco);
-            if (window.supabaseDisponivel) await sincronizarLoja(window.lojaAtualSlug);
             const barra = document.getElementById('barraContextoLoja');
             if (barra) { barra.classList.add('hidden'); barra.classList.remove('flex'); }
             const telaGeral = document.getElementById('tela-geral-lojas');
@@ -7290,21 +7330,20 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
                     salvarArrayLoja(tipo === 'sangria' ? BASES_LOCAIS.sangrias : BASES_LOCAIS.vendas, window.lojaAtualSlug, arrDepois);
                     window.__ultimaMutacaoLocal = Date.now();
 
-                    if (tipo === 'sangria' && window.supabaseDisponivel) {
+                    if (window.supabaseDisponivel) {
+                        const tabela = tipo === 'sangria' ? 'sangrias' : (tipo === 'recebimento' ? 'recebimentos' : 'vendas');
                         novos.forEach(r => {
-                            salvarSangriaDiretoNoSupabase(r, window.lojaAtualSlug)
+                            const salvar = tipo === 'sangria'
+                                ? salvarSangriaDiretoNoSupabase(r, window.lojaAtualSlug)
+                                : salvarRegistroDiretoNoSupabase(tabela, r, window.lojaAtualSlug);
+                            salvar
                                 .then(() => setStatusBanco('Banco: sincronizado', 'ok'))
                                 .catch(e => {
-                                    console.error('Falha ao salvar sangria diretamente no Supabase:', e);
-                                    setStatusBanco('Banco: erro ao salvar sangria', 'erro');
-                                    mostrarToast(
-                                        `Sangria não confirmada no banco: ${formatarErroSupabase(e)}`.slice(0, 220),
-                                        'bg-red-600 text-white'
-                                    );
+                                    console.error(`Falha ao salvar ${tabela} diretamente no Supabase:`, e);
+                                    setStatusBanco(`Banco: erro ao salvar ${tabela}`, 'erro');
+                                    mostrarToast(`${tipo === 'sangria' ? 'Sangria' : tipo === 'recebimento' ? 'Recebimento' : 'Venda'} não confirmada no banco: ${formatarErroSupabase(e)}`.slice(0, 220), 'bg-red-600 text-white');
                                 });
                         });
-                    } else {
-                        agendarSincronizacao(window.lojaAtualSlug);
                     }
                 }
                 return resultado;
@@ -7387,8 +7426,6 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
                             if (window.supabaseDisponivel) {
                                 setStatusBanco('Banco: excluindo venda', 'sync');
                                 await excluirVendaDoSupabase(venda, slug);
-                                // Sincroniza os registros restantes para manter mapa/cache consistentes.
-                                await sincronizarLoja(slug);
                                 setStatusBanco('Banco: sincronizado', 'ok');
                             }
                             mostrarToast('Venda apagada do caixa, Painel Geral e banco de dados.', 'bg-gray-800 text-white');
@@ -7422,7 +7459,6 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
 
         function iniciar() {
             iniciarFundoPainelGeral();
-            prepararDadosLegados();
             aplicarContextoLoja(window.lojaAtualSlug);
             instalarObservadorLocalStorage();
             instalarExclusaoVendaSincronizada();
