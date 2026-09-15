@@ -592,7 +592,7 @@
                         <div>
                             <p class="geral-kicker text-[10px] md:text-xs font-black uppercase">Acesso administrativo • Empresas BJ</p>
                             <h1 class="text-3xl md:text-5xl font-black text-white mt-2 tracking-[-0.03em]">Painel Geral</h1>
-                            <p class="text-sm md:text-base text-gray-300 mt-2 max-w-2xl">Visão consolidada das quatro lojas, com faturamento, meios de pagamento e movimentações.</p>
+                            <p class="text-sm md:text-base text-gray-300 mt-2 max-w-2xl">Visão consolidada das cinco lojas, com faturamento, meios de pagamento e movimentações.</p>
                         </div>
                         <div class="flex items-center gap-3 self-start md:self-center flex-wrap justify-end">
                             <div class="geral-bg-toggle" aria-label="Cor de fundo do Painel Geral">
@@ -646,7 +646,7 @@
                             <div>
                                 <p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Visão de vendas</p>
                                 <h2 class="text-2xl md:text-3xl font-black text-gray-900 dark:text-white mt-1">Faturamento consolidado</h2>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Total das quatro lojas e distribuição por meio de pagamento.</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Total das cinco lojas e distribuição por meio de pagamento.</p>
                             </div>
                             <div class="geral-filter flex flex-col sm:flex-row gap-2">
                                 <input id="geralDataInicioFat" type="date" aria-label="Data inicial do faturamento">
@@ -658,7 +658,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                             <div class="geral-accent-card md:col-span-1 p-5 md:p-6 flex flex-col justify-between min-h-[154px]">
                                 <div class="flex items-center justify-between gap-3">
-                                    <p class="text-[10px] uppercase tracking-[.16em] font-black opacity-60">Total das 4 lojas</p>
+                                    <p class="text-[10px] uppercase tracking-[.16em] font-black opacity-60">Total das 5 lojas</p>
                                     <span class="w-9 h-9 rounded-full bg-black/10 flex items-center justify-center font-black">↗</span>
                                 </div>
                                 <div>
@@ -1058,10 +1058,16 @@
                         <h1 onclick="window.abrirAdminSecreto()" class="text-2xl font-bold cursor-pointer select-none">Caixa Expresso</h1>
                         <p class="text-gray-300 dark:text-cyan-400 text-sm mt-1 font-medium">Atendimento rápido e seguro.</p>
                     </div>
-                    <button onclick="window.abrirModalSangria()" class="bg-red-500/20 text-red-400 border border-red-500/50 p-2 rounded-xl text-xs font-bold flex items-center gap-1 active:scale-95 transition-all">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>
-                        Sangria
-                    </button>
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="window.abrirModalImportarOrcamento()" class="bg-blue-500/20 text-blue-400 border border-blue-500/50 p-2 rounded-xl text-xs font-bold flex items-center gap-1 active:scale-95 transition-all">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M7 16V4m0 0l-4 4m4-4l4 4M17 8v12m0 0l-4-4m4 4l4-4" /></svg>
+                            Orçamento
+                        </button>
+                        <button onclick="window.abrirModalSangria()" class="bg-red-500/20 text-red-400 border border-red-500/50 p-2 rounded-xl text-xs font-bold flex items-center gap-1 active:scale-95 transition-all">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>
+                            Sangria
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -1071,10 +1077,16 @@
                         <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 tracking-tight">Nova Venda</h1>
                         <p class="text-gray-500 dark:text-gray-400 mt-1">Insira os valores abaixo para calcular o troco e registrar.</p>
                     </div>
-                    <button onclick="window.abrirModalSangria()" class="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 active:scale-95 transition-all shadow-sm">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>
-                        Lançar Sangria
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button onclick="window.abrirModalImportarOrcamento()" class="bg-blue-50 hover:bg-blue-100 dark:bg-cyan-900/20 dark:hover:bg-cyan-900/40 text-blue-600 dark:text-cyan-400 border border-blue-200 dark:border-cyan-900/50 px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 active:scale-95 transition-all shadow-sm">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0l-4 4m4-4l4 4M17 8v12m0 0l-4-4m4 4l4-4" /></svg>
+                            Importar Orçamento
+                        </button>
+                        <button onclick="window.abrirModalSangria()" class="bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 active:scale-95 transition-all shadow-sm">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>
+                            Lançar Sangria
+                        </button>
+                    </div>
                 </div>
 
                 <div class="md:bg-white dark:md:bg-[#161925] md:shadow-sm md:border md:border-gray-200 dark:md:border-gray-800 md:rounded-3xl md:p-8 flex-1 flex flex-col transition-colors duration-300">
@@ -3116,77 +3128,43 @@
             return `${dia}/${mes}/${ano}`;
         }
 
-        window.salvarLembretesLocal = () => {};
+        window.salvarLembretesLocal = () => {
+            const dados = JSON.stringify(todosLembretesBanco || []);
+            // Mantém a chave legada para compatibilidade e, principalmente,
+            // grava a cópia da loja ativa antes de o sincronizador consultar o cache.
+            const slug = window.lojaAtualSlug || 'real_papelaria';
+            localStorage.setItem(`lembretesSistemaCaixa__${slug}`, dados);
+            localStorage.setItem('lembretesSistemaCaixa', dados);
+            // Lembretes são compartilhados entre todas as lojas.
+            localStorage.setItem('lembretesSistemaCaixa__global', dados);
+        };
 
-        async function salvarLembreteDiretoNoSupabase(lembrete, slug) {
-            if (!window.supabaseDisponivel || !window.supabaseClient) throw new Error('Supabase indisponível.');
-            const lojaId = lojaIdPorSlug(slug);
-            if (!lojaId) throw new Error(`Loja sem id no Supabase: ${slug}`);
-
-            const payload = conversorTabela('lembretes', { ...lembrete, lojaSlug: slug });
-            const idCampo = campo('lembretes', ['id']);
-            let dbId = lembrete.supabaseId || null;
-
-            if (dbId && idCampo) {
-                const { data, error } = await window.supabaseClient.from('lembretes')
-                    .update(payload).eq(idCampo, dbId).select('*').limit(1);
-                if (error) throw error;
-                if (data?.[0]?.[idCampo]) lembrete.supabaseId = data[0][idCampo];
-                return data?.[0] || null;
-            }
-
-            const existente = await buscarExistente('lembretes', lembrete, lojaId);
-            if (existente && idCampo) {
-                dbId = existente[idCampo];
-                const { data, error } = await window.supabaseClient.from('lembretes')
-                    .update(payload).eq(idCampo, dbId).select('*').limit(1);
-                if (error) throw error;
-                if (data?.[0]?.[idCampo]) lembrete.supabaseId = data[0][idCampo];
-                return data?.[0] || null;
-            }
-
-            const { data, error } = await window.supabaseClient.from('lembretes')
-                .insert(payload).select('*').limit(1);
-            if (error) throw error;
-            if (data?.[0]?.[idCampo]) lembrete.supabaseId = data[0][idCampo];
-            return data?.[0] || null;
-        }
-
-        async function excluirLembreteDiretoNoSupabase(lembrete, slug) {
-            if (!window.supabaseDisponivel || !window.supabaseClient) throw new Error('Supabase indisponível.');
-            const lojaId = lojaIdPorSlug(slug);
-            if (!lojaId) throw new Error(`Loja sem id no Supabase: ${slug}`);
-
-            const idCampo = campo('lembretes', ['id']);
-            if (lembrete?.supabaseId && idCampo) {
-                const { error } = await window.supabaseClient.from('lembretes').delete().eq(idCampo, lembrete.supabaseId);
-                if (error) throw error;
-                return;
-            }
-
-            const origem = campo('lembretes', ['origem_id','local_id','id_local','legacy_id','legado_id']);
-            if (origem && lembrete?.id != null) {
-                let q = window.supabaseClient.from('lembretes').delete().eq(origem, String(lembrete.id));
-                const lojaCampo = campo('lembretes', ['loja_id']);
-                if (lojaCampo) q = q.eq(lojaCampo, lojaId);
-                const { error } = await q;
-                if (error) throw error;
-            }
-        }
-
+        // Sincronização exclusiva dos lembretes com o Supabase.
+        // Antes, este módulo salvava apenas no localStorage; por isso o lembrete
+        // desaparecia em outro dispositivo e não chegava à tabela lembretes.
         window.sincronizarLembretesAgora = async () => {
             if (!window.supabaseDisponivel || typeof sincronizarColecao !== 'function') return;
-            const registros = (todosLembretesBanco || []).map(l => ({ ...l, lojaSlug: l.lojaSlug || window.lojaAtualSlug }));
+
+            const registros = (todosLembretesBanco || []).map(l => ({
+                ...l,
+                lojaSlug: l.lojaSlug || window.lojaAtualSlug
+            }));
+
+            // Os lembretes são globais na visualização, mas cada registro
+            // continua pertencendo à loja em que foi cadastrado no banco.
             const porLoja = new Map();
             registros.forEach(l => {
                 const slug = l.lojaSlug || window.lojaAtualSlug;
                 if (!porLoja.has(slug)) porLoja.set(slug, []);
                 porLoja.get(slug).push(l);
             });
-            for (const [slug, lista] of porLoja) await sincronizarColecao('lembretes', lista, slug);
+
+            for (const [slug, lista] of porLoja) {
+                await sincronizarColecao('lembretes', lista, slug);
+            }
         };
 
-        window.adicionarLembrete = async () => {
+        window.adicionarLembrete = () => {
             const cliente = document.getElementById('lemCliente').value.trim();
             const produto = document.getElementById('lemProduto').value.trim();
             const telefone = document.getElementById('lemTelefone')?.value.trim() || '';
@@ -3194,37 +3172,53 @@
             const valor = parseFloat(valorInput.dataset.rawValue || 0);
             const dataVencimento = document.getElementById('lemData').value;
 
-            if (!cliente) { mostrarToast("Informe o nome do cliente!", "bg-orange-500 text-white"); return; }
-            if (!produto) { mostrarToast("Informe o produto ou a descrição!", "bg-orange-500 text-white"); return; }
-            if (valor <= 0) { mostrarToast("Informe o valor que ficou pendente!", "bg-orange-500 text-white"); return; }
-            if (!dataVencimento) { mostrarToast("Informe a data combinada para pagamento!", "bg-orange-500 text-white"); return; }
+            if (!cliente) {
+                mostrarToast("Informe o nome do cliente!", "bg-orange-500 text-white");
+                return;
+            }
+            if (!produto) {
+                mostrarToast("Informe o produto ou a descrição!", "bg-orange-500 text-white");
+                return;
+            }
+            if (valor <= 0) {
+                mostrarToast("Informe o valor que ficou pendente!", "bg-orange-500 text-white");
+                return;
+            }
+            if (!dataVencimento) {
+                mostrarToast("Informe a data combinada para pagamento!", "bg-orange-500 text-white");
+                return;
+            }
 
             const agora = new Date();
             const novoLembrete = {
-                id: Date.now(), timestamp: agora.getTime(), lojaSlug: window.lojaAtualSlug,
-                cliente, telefone, produto, valor, dataVencimento, status: 'pendente', criadoEm: agora.toISOString()
+                id: Date.now(),
+                timestamp: agora.getTime(),
+                lojaSlug: window.lojaAtualSlug,
+                cliente: cliente,
+                telefone: telefone,
+                produto: produto,
+                valor: valor,
+                dataVencimento: dataVencimento,
+                status: 'pendente',
+                criadoEm: agora.toISOString()
             };
 
-            const chave = String(novoLembrete.id);
-            operacoesLembretesEmAndamento.add(chave);
-            try {
-                todosLembretesBanco.unshift(novoLembrete);
-                await salvarLembreteDiretoNoSupabase(novoLembrete, window.lojaAtualSlug);
-                window.atualizarLembretes();
-                document.getElementById('lemCliente').value = '';
-                document.getElementById('lemProduto').value = '';
-                if (document.getElementById('lemTelefone')) document.getElementById('lemTelefone').value = '';
-                valorInput.value = '';
-                valorInput.dataset.rawValue = 0;
-                document.getElementById('lemData').value = '';
-                mostrarToast("Lembrete adicionado!", "bg-green-600 text-white");
-            } catch (e) {
-                todosLembretesBanco = todosLembretesBanco.filter(l => String(l.id) !== chave);
-                console.error('Falha ao salvar lembrete no Supabase:', e);
-                mostrarToast(`Não foi possível salvar o lembrete: ${formatarErroSupabase(e)}`.slice(0, 220), 'bg-red-600 text-white');
-            } finally {
-                operacoesLembretesEmAndamento.delete(chave);
-            }
+            todosLembretesBanco.unshift(novoLembrete);
+            window.salvarLembretesLocal();
+            window.sincronizarLembretesAgora().catch(e => {
+                console.warn('Falha ao salvar lembrete no Supabase:', e);
+                setTimeout(() => window.sincronizarLembretesAgora().catch(err => console.warn('Nova tentativa de lembrete falhou:', err)), 1500);
+            });
+
+            document.getElementById('lemCliente').value = '';
+            document.getElementById('lemProduto').value = '';
+            if (document.getElementById('lemTelefone')) document.getElementById('lemTelefone').value = '';
+            valorInput.value = '';
+            valorInput.dataset.rawValue = 0;
+            document.getElementById('lemData').value = '';
+
+            window.atualizarLembretes();
+            mostrarToast("Lembrete adicionado!", "bg-green-600 text-white");
         };
 
         window.abrirWhatsAppLembrete = (id) => {
@@ -3271,44 +3265,26 @@
             lembrete.cliente = nome;
             lembrete.telefone = novoTelefone.trim();
 
-            const chave = String(lembrete.id);
-            operacoesLembretesEmAndamento.add(chave);
-            try {
-                await salvarLembreteDiretoNoSupabase(lembrete, lembrete.lojaSlug || window.lojaAtualSlug);
-                window.atualizarLembretes();
-                mostrarToast('Dados cadastrais atualizados!', 'bg-green-600 text-white');
-            } catch (e) {
-                console.error('Falha ao atualizar dados cadastrais do lembrete no Supabase:', e);
-                mostrarToast(`Não foi possível atualizar o lembrete: ${formatarErroSupabase(e)}`.slice(0, 220), 'bg-red-600 text-white');
-            } finally {
-                operacoesLembretesEmAndamento.delete(chave);
-            }
+            window.salvarLembretesLocal();
+
+            window.sincronizarLembretesAgora().catch(e => {
+                console.warn('Falha ao atualizar dados cadastrais do lembrete no Supabase:', e);
+            });
+
+            window.atualizarLembretes();
+            mostrarToast('Dados cadastrais atualizados!', 'bg-green-600 text-white');
         };
 
-        window.concluirLembrete = async (id) => {
+        window.concluirLembrete = (id) => {
             const indice = todosLembretesBanco.findIndex(l => String(l.id) === String(id));
             if (indice === -1) return;
 
-            const lembrete = todosLembretesBanco[indice];
-            const statusAnterior = lembrete.status;
-            const concluidoAnterior = lembrete.concluidoEm;
-            lembrete.status = 'concluido';
-            lembrete.concluidoEm = new Date().toISOString();
-            const chave = String(lembrete.id);
-            operacoesLembretesEmAndamento.add(chave);
-            try {
-                await salvarLembreteDiretoNoSupabase(lembrete, lembrete.lojaSlug || window.lojaAtualSlug);
-                window.atualizarLembretes();
-                mostrarToast("Lembrete marcado como resolvido!", "bg-green-600 text-white");
-            } catch (e) {
-                lembrete.status = statusAnterior;
-                lembrete.concluidoEm = concluidoAnterior;
-                console.error('Falha ao atualizar lembrete no Supabase:', e);
-                mostrarToast(`Não foi possível atualizar o lembrete: ${formatarErroSupabase(e)}`.slice(0, 220), 'bg-red-600 text-white');
-                window.atualizarLembretes();
-            } finally {
-                operacoesLembretesEmAndamento.delete(chave);
-            }
+            todosLembretesBanco[indice].status = 'concluido';
+            todosLembretesBanco[indice].concluidoEm = new Date().toISOString();
+            window.salvarLembretesLocal();
+            window.sincronizarLembretesAgora().catch(e => console.warn('Falha ao atualizar lembrete no Supabase:', e));
+            window.atualizarLembretes();
+            mostrarToast("Lembrete marcado como resolvido!", "bg-green-600 text-white");
         };
 
         window.excluirLembrete = (id) => {
@@ -3318,20 +3294,12 @@
             window.abrirModal(
                 'Excluir lembrete?',
                 `O lembrete de ${lembrete.cliente} será removido.`,
-                async () => {
-                    const chave = String(lembrete.id);
-                    operacoesLembretesEmAndamento.add(chave);
-                    try {
-                        await excluirLembreteDiretoNoSupabase(lembrete, lembrete.lojaSlug || window.lojaAtualSlug);
-                        todosLembretesBanco = todosLembretesBanco.filter(l => String(l.id) !== chave);
-                        window.atualizarLembretes();
-                        mostrarToast("Lembrete excluído.", "bg-red-600 text-white");
-                    } catch (e) {
-                        console.error('Falha ao excluir lembrete no Supabase:', e);
-                        mostrarToast(`Não foi possível excluir o lembrete: ${formatarErroSupabase(e)}`.slice(0, 220), 'bg-red-600 text-white');
-                    } finally {
-                        operacoesLembretesEmAndamento.delete(chave);
-                    }
+                () => {
+                    todosLembretesBanco = todosLembretesBanco.filter(l => String(l.id) !== String(id));
+                    window.salvarLembretesLocal();
+                    window.sincronizarLembretesAgora().catch(e => console.warn('Falha ao excluir lembrete no Supabase:', e));
+                    window.atualizarLembretes();
+                    mostrarToast("Lembrete excluído.", "bg-red-600 text-white");
                 }
             );
         };
@@ -3686,7 +3654,7 @@
             modal.classList.remove('flex');
         };
 
-        window.registrarSangria = async () => {
+        window.registrarSangria = () => {
             const valInput = document.getElementById('sangriaValor');
             const valor = parseFloat(valInput.dataset.rawValue || 0);
             const categoria = document.getElementById('sangriaCategoria').value;
@@ -3694,34 +3662,42 @@
             const vendedor = document.getElementById('sangriaVendedor').value;
             const descricao = document.getElementById('sangriaDescricao').value.trim();
 
-            if(valor <= 0) { mostrarToast("Insira o valor da sangria!", "bg-orange-500 text-white"); return; }
-            if(!vendedor) { mostrarToast("Selecione quem está fazendo a sangria!", "bg-orange-500 text-white"); return; }
+            if(valor <= 0) {
+                mostrarToast("Insira o valor da sangria!", "bg-orange-500 text-white");
+                return;
+            }
+            if(!vendedor) {
+                mostrarToast("Selecione quem está fazendo a sangria!", "bg-orange-500 text-white");
+                return;
+            }
 
             const agora = new Date();
+            const anoV = agora.getFullYear();
+            const mesV = String(agora.getMonth() + 1).padStart(2, '0');
+            const diaV = String(agora.getDate()).padStart(2, '0');
+
             const novaDespesa = {
-                id: Date.now(), timestamp: agora.getTime(),
-                dataIso: `${agora.getFullYear()}-${String(agora.getMonth()+1).padStart(2,'0')}-${String(agora.getDate()).padStart(2,'0')}`,
+                id: Date.now(),
+                timestamp: agora.getTime(),
+                dataIso: `${anoV}-${mesV}-${diaV}`, 
                 dataBr: agora.toLocaleDateString('pt-BR'),
                 hora: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-                categoria, descricao: descricao || 'Retirada de caixa',
-                formaRetirada: retirada, vendedor, valor, lojaSlug: window.lojaAtualSlug
+                categoria: categoria,
+                descricao: descricao || 'Retirada de caixa',
+                formaRetirada: retirada,
+                vendedor: vendedor,
+                valor: valor
             };
 
-            operacaoSangriaEmAndamento = true;
             todasDespesasBanco.unshift(novaDespesa);
-            try {
-                await salvarSangriaDiretoNoSupabase(novaDespesa, window.lojaAtualSlug);
-                window.__ultimaMutacaoLocal = Date.now();
-                mostrarToast("Sangria registrada com sucesso!", "bg-red-600 text-white");
-                window.fecharModalSangria();
-                if(!document.getElementById('tela-dashboard').classList.contains('hidden')) filtrarEAtualizarDashboard();
-                if(!document.getElementById('tela-admin').classList.contains('hidden')) { filtrarEAtualizarDashboard(); atualizarGrafico(); }
-            } catch (e) {
-                todasDespesasBanco = todasDespesasBanco.filter(d => String(d.id) !== String(novaDespesa.id));
-                console.error('Falha ao salvar sangria no Supabase:', e);
-                mostrarToast(`Não foi possível salvar a sangria: ${formatarErroSupabase(e)}`.slice(0, 220), 'bg-red-600 text-white');
-            } finally {
-                operacaoSangriaEmAndamento = false;
+
+            mostrarToast("Sangria registrada com sucesso!", "bg-red-600 text-white");
+            window.fecharModalSangria();
+            
+            if(!document.getElementById('tela-dashboard').classList.contains('hidden')) filtrarEAtualizarDashboard();
+            if(!document.getElementById('tela-admin').classList.contains('hidden')) {
+                filtrarEAtualizarDashboard();
+                atualizarGrafico();
             }
         };
 
@@ -6002,7 +5978,8 @@
             { slug: 'real_papelaria', nome: 'Real Papelaria', cupom: 'REAL PAPELARIA' },
             { slug: 'tecn_in', nome: 'TECN IN', cupom: 'TECN IN' },
             { slug: 'biber_moda_1', nome: 'Biber Moda 1', cupom: 'BIBER MODA 1' },
-            { slug: 'biber_moda_2', nome: 'Biber Moda 2', cupom: 'BIBER MODA 2' }
+            { slug: 'biber_moda_2', nome: 'Biber Moda 2', cupom: 'BIBER MODA 2' },
+            { slug: 'kauany_biju', nome: 'Kauany Biju', cupom: 'KAUANY BIJU' }
         ];
 
         const BASES_LOCAIS = {
@@ -6024,8 +6001,6 @@
         let atualizacaoRemotaEmAndamento = false;
         let intervaloSegurancaRemota = null;
         let erroSyncMostrado = false;
-        let operacaoSangriaEmAndamento = false;
-        let operacoesLembretesEmAndamento = new Set();
         let inicializacaoConcluida = false;
 
         // Acesso administrativo exclusivo do Painel Geral.
@@ -6986,9 +6961,8 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             const ultimaMutacao = Number(window.__ultimaMutacaoLocal || 0);
             const slugProtegido = slug || window.lojaAtualSlug;
             const temVendaPendente = carregarPendenciasSync(slugProtegido, 'vendas').length > 0;
-            const temSangriaPendente = carregarPendenciasSync(slugProtegido, 'sangrias').length > 0 || operacaoSangriaEmAndamento;
-            const temLembretePendente = operacoesLembretesEmAndamento.size > 0;
-            if ((ultimaMutacao && (Date.now() - ultimaMutacao) < 5000) || temVendaPendente || temSangriaPendente || temLembretePendente) {
+            const temSangriaPendente = carregarPendenciasSync(slugProtegido, 'sangrias').length > 0;
+            if ((ultimaMutacao && (Date.now() - ultimaMutacao) < 5000) || temVendaPendente || temSangriaPendente) {
                 agendarAtualizacaoRemota(slug, 1200);
                 return;
             }
@@ -7517,6 +7491,7 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             setTimeout(() => {
                 envolverRegistro('registrarVenda', 'venda');
                 envolverRegistro('registrarRecebimento', 'recebimento');
+                envolverRegistro('registrarSangria', 'sangria');
             }, 0);
 
             inicializarSupabase();
@@ -7533,6 +7508,7 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
     let orcamentoItens = [];
     let logoConfigPendente = null;
     let orcamentoNumeroAtual = '';
+    let orcamentoSalvoId = '';
 
     const hojeIsoOrc = () => {
         const d = new Date();
@@ -7709,6 +7685,248 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             window.mostrarToast?.('Orçamento gerado com sucesso.','bg-emerald-600 text-white');
         }catch(e){console.error(e);window.mostrarToast?.('Erro ao gerar o orçamento.','bg-red-600 text-white');}
     };
+    // ============================================================
+    // PERSISTÊNCIA DOS ORÇAMENTOS — Supabase
+    // Não altera o layout existente nem interfere nos demais módulos.
+    // ============================================================
+    let orcamentoSessaoInicializada = false;
+    let orcamentoSalvamentoTimer = null;
+    let orcamentosSalvosCache = [];
+
+    function gerarNumeroOrcamentoPersistente(){
+        if(orcamentoNumeroAtual) return orcamentoNumeroAtual;
+        const d=new Date();
+        orcamentoNumeroAtual=`ORC-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}${String(d.getSeconds()).padStart(2,'0')}`;
+        return orcamentoNumeroAtual;
+    }
+
+    async function obterLojaIdOrcamento(){
+        const slug=window.lojaAtualSlug || 'real_papelaria';
+        const local=window.LOJAS_DB?.get?.(slug);
+        if(local?.id) return local.id;
+        if(!window.supabaseClient) return null;
+        const {data,error}=await window.supabaseClient.from('lojas').select('id').eq('slug',slug).maybeSingle();
+        if(error) throw error;
+        return data?.id || null;
+    }
+
+    function coletarDadosPersistenciaOrcamento(){
+        const get=id=>document.getElementById(id)?.value?.trim()||'';
+        const itens=[...document.querySelectorAll('#listaItensOrcamento > div')].map(card=>{
+            const inputs=card.querySelectorAll('input');
+            const img=card.querySelector('img');
+            return {
+                id: card.querySelector('button[onclick*="removerItemOrcamento"]')?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || `item-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
+                foto: img?.src || '',
+                descricao: inputs[1]?.value || '',
+                detalhe: inputs[2]?.value || '',
+                qtd: Number(inputs[3]?.value || 0),
+                unitario: Number(inputs[4]?.value || 0)
+            };
+        });
+        return {
+            cfg: lerConfigLojaLocal(),
+            cliente:get('orcClienteNome'),
+            doc:get('orcClienteDoc'),
+            tel:get('orcClienteTelefone'),
+            data:document.getElementById('orcData')?.value||hojeIsoOrc(),
+            validade:get('orcValidade'),
+            observacoes:get('orcObservacoes'),
+            itens,
+            numero:gerarNumeroOrcamentoPersistente()
+        };
+    }
+
+    async function salvarOrcamentoSupabase(status='rascunho', mostrarMensagem=false){
+        if(!window.supabaseClient) return null;
+        try{
+            const lojaId=await obterLojaIdOrcamento();
+            if(!lojaId) throw new Error('Loja atual não encontrada no banco.');
+            const dados=coletarDadosPersistenciaOrcamento();
+            const id=orcamentoSalvoId || (window.crypto?.randomUUID ? crypto.randomUUID() : `orc-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+            const payload={id,loja_id:lojaId,numero:dados.numero,status,dados};
+            const {data,error}=await window.supabaseClient.from('orcamentos').upsert(payload,{onConflict:'id'}).select('*').single();
+            if(error) throw error;
+            orcamentoSalvoId=data.id;
+            if(mostrarMensagem) window.mostrarToast?.('Orçamento salvo com sucesso.','bg-emerald-600 text-white');
+            return data;
+        }catch(e){
+            console.error('Falha ao salvar orçamento no Supabase:',e);
+            if(mostrarMensagem) window.mostrarToast?.('Não foi possível salvar o orçamento.','bg-red-600 text-white');
+            return null;
+        }
+    }
+
+    function agendarSalvamentoOrcamento(){
+        clearTimeout(orcamentoSalvamentoTimer);
+        orcamentoSalvamentoTimer=setTimeout(()=>salvarOrcamentoSupabase('rascunho',false),800);
+    }
+
+    function aplicarDadosOrcamentoSalvo(registro){
+        const dados=registro?.dados || {};
+        orcamentoSalvoId=registro?.id || '';
+        orcamentoNumeroAtual=dados.numero || registro?.numero || '';
+        const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v??'';};
+        set('orcClienteNome',dados.cliente);
+        set('orcClienteDoc',dados.doc);
+        set('orcClienteTelefone',dados.tel);
+        set('orcData',dados.data || hojeIsoOrc());
+        set('orcValidade',dados.validade);
+        set('orcObservacoes',dados.observacoes);
+        orcamentoItens=(Array.isArray(dados.itens)&&dados.itens.length?dados.itens: [novoItemOrcamento()]).map(i=>({
+            id:i.id || `item-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
+            foto:i.foto||'',descricao:i.descricao||'',detalhe:i.detalhe||'',qtd:Number(i.qtd||1),unitario:Number(i.unitario||0)
+        }));
+        renderizarItensOrcamento();
+    }
+
+    async function carregarUltimoRascunhoOrcamento(){
+        if(!window.supabaseClient) return;
+        try{
+            const lojaId=await obterLojaIdOrcamento();
+            if(!lojaId) return;
+            const {data,error}=await window.supabaseClient.from('orcamentos').select('*').eq('loja_id',lojaId).eq('status','rascunho').order('atualizado_em',{ascending:false}).limit(1);
+            if(error) throw error;
+            if(data?.[0]) aplicarDadosOrcamentoSalvo(data[0]);
+        }catch(e){ console.warn('Não foi possível carregar o rascunho do orçamento:',e); }
+    }
+
+    function garantirBotaoOrcamentosSalvos(){
+        const pdf=document.querySelector('#tela-orcamentos button[onclick="window.gerarOrcamentoPDF()"]');
+        const grupo=pdf?.parentElement;
+        if(!grupo || document.getElementById('btnOrcamentosSalvos')) return;
+        const b=document.createElement('button');
+        b.id='btnOrcamentosSalvos';
+        b.type='button';
+        b.textContent='Salvos';
+        b.className='px-4 py-3 rounded-xl bg-white dark:bg-[#161925] border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-200 font-bold text-sm';
+        b.onclick=()=>window.abrirOrcamentosSalvos();
+        grupo.insertBefore(b,pdf);
+    }
+
+    function fecharModalOrcamentosSalvos(){document.getElementById('modalOrcamentosSalvos')?.remove();}
+
+    window.abrirOrcamentosSalvos=async()=>{
+        fecharModalOrcamentosSalvos();
+        const lojaId=await obterLojaIdOrcamento();
+        if(!lojaId){window.mostrarToast?.('Loja atual não encontrada.','bg-red-600 text-white');return;}
+        const {data,error}=await window.supabaseClient.from('orcamentos').select('*').eq('loja_id',lojaId).order('atualizado_em',{ascending:false});
+        if(error){console.error(error);window.mostrarToast?.('Não foi possível carregar os orçamentos.','bg-red-600 text-white');return;}
+        orcamentosSalvosCache=data||[];
+        const modal=document.createElement('div');
+        modal.id='modalOrcamentosSalvos';
+        modal.className='fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4';
+        modal.innerHTML=`<div class="w-full max-w-3xl max-h-[85vh] overflow-hidden bg-white dark:bg-[#161925] rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-800">
+            <div class="p-5 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between gap-3"><div><p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Histórico</p><h2 class="text-xl font-black text-gray-900 dark:text-white">Orçamentos salvos</h2></div><button type="button" onclick="window.fecharModalOrcamentosSalvos()" class="px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-bold">Fechar</button></div>
+            <div class="p-4 overflow-y-auto max-h-[65vh] space-y-2">${(data||[]).length ? data.map((r,i)=>{const d=r.dados||{};const total=(d.itens||[]).reduce((s,x)=>s+Number(x.qtd||0)*Number(x.unitario||0),0);return `<div class="p-4 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div><div class="font-black text-gray-900 dark:text-white">${escOrc(d.cliente||'Cliente não informado')}</div><div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${escOrc(r.numero||'')} • ${escOrc(dataBrOrc(d.data)||'')} • ${escOrc(r.status==='finalizado'?'PDF gerado':'Rascunho')}</div><div class="text-sm font-black text-gray-700 dark:text-gray-200 mt-1">${brlOrc(total)}</div></div><div class="flex gap-2"><button type="button" onclick="window.editarOrcamentoSalvo('${r.id}')" class="px-3 py-2 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black text-xs">Editar</button><button type="button" onclick="window.excluirOrcamentoSalvo('${r.id}')" class="px-3 py-2 rounded-xl border border-red-200 text-red-600 font-black text-xs">Excluir</button></div></div>`;}).join('') : '<div class="p-8 text-center text-sm text-gray-400">Nenhum orçamento salvo ainda.</div>'}</div>
+        </div>`;
+        document.body.appendChild(modal);
+    };
+    window.fecharModalOrcamentosSalvos=fecharModalOrcamentosSalvos;
+
+    window.editarOrcamentoSalvo=async(id)=>{
+        const registro=orcamentosSalvosCache.find(r=>String(r.id)===String(id));
+        if(!registro)return;
+        aplicarDadosOrcamentoSalvo(registro);
+        fecharModalOrcamentosSalvos();
+        window.mostrarToast?.('Orçamento carregado para edição.','bg-blue-600 text-white');
+    };
+
+    window.excluirOrcamentoSalvo=async(id)=>{
+        const ok=confirm('Excluir este orçamento salvo? Esta ação não pode ser desfeita.');
+        if(!ok)return;
+        const {error}=await window.supabaseClient.from('orcamentos').delete().eq('id',id);
+        if(error){console.error(error);window.mostrarToast?.('Não foi possível excluir o orçamento.','bg-red-600 text-white');return;}
+        orcamentosSalvosCache=orcamentosSalvosCache.filter(r=>String(r.id)!==String(id));
+        window.abrirOrcamentosSalvos();
+    };
+
+    window.inicializarModuloOrcamentos = async () => {
+        const cfg=lerConfigLojaLocal(), badge=document.getElementById('orcamentoLojaBadge');
+        if(badge)badge.textContent=cfg.nome||lojaAtualOrc().nome||'Loja';
+        garantirBotaoOrcamentosSalvos();
+        if(!document.getElementById('orcData')?.value)document.getElementById('orcData').value=hojeIsoOrc();
+        if(!orcamentoItens.length)orcamentoItens=[novoItemOrcamento()];
+        renderizarItensOrcamento();
+        ['orcClienteNome','orcClienteDoc','orcClienteTelefone','orcValidade','orcObservacoes'].forEach(id=>{const e=document.getElementById(id);if(e&&!e.dataset.orcPersistBound){e.dataset.orcPersistBound='1';e.addEventListener('input',()=>{atualizarPreviewOrcamento();agendarSalvamentoOrcamento();});}});
+        const data=document.getElementById('orcData');if(data&&!data.dataset.orcPersistBound){data.dataset.orcPersistBound='1';data.addEventListener('change',()=>{atualizarPreviewOrcamento();agendarSalvamentoOrcamento();});}
+        document.getElementById('listaItensOrcamento')?.addEventListener('input',()=>agendarSalvamentoOrcamento());
+        document.getElementById('listaItensOrcamento')?.addEventListener('change',()=>agendarSalvamentoOrcamento());
+        atualizarPreviewOrcamento();
+        if(!orcamentoSessaoInicializada){
+            orcamentoSessaoInicializada=true;
+            await carregarUltimoRascunhoOrcamento();
+            atualizarPreviewOrcamento();
+        }
+    };
+
+    const novoOrcamentoOriginal=window.novoOrcamento;
+    window.novoOrcamento=async()=>{
+        clearTimeout(orcamentoSalvamentoTimer);
+        await salvarOrcamentoSupabase('rascunho',false).catch(()=>null);
+        orcamentoSalvoId='';
+        if(typeof novoOrcamentoOriginal==='function')novoOrcamentoOriginal();
+        agendarSalvamentoOrcamento();
+    };
+
+    const gerarOrcamentoPDFOriginal=window.gerarOrcamentoPDF;
+    window.gerarOrcamentoPDF=async()=>{
+        clearTimeout(orcamentoSalvamentoTimer);
+        const salvo=await salvarOrcamentoSupabase('finalizado',true);
+        if(!salvo)return;
+        if(typeof gerarOrcamentoPDFOriginal==='function')await gerarOrcamentoPDFOriginal();
+    };
+
+    window.abrirModalImportarOrcamento=async()=>{
+        if(!window.supabaseClient){window.mostrarToast?.('Banco indisponível no momento.','bg-red-600 text-white');return;}
+        try{
+            const lojaId=await obterLojaIdOrcamento();
+            if(!lojaId){window.mostrarToast?.('Loja atual não encontrada.','bg-red-600 text-white');return;}
+            const {data,error}=await window.supabaseClient.from('orcamentos').select('*').eq('loja_id',lojaId).order('atualizado_em',{ascending:false});
+            if(error)throw error;
+            document.getElementById('modalImportarOrcamento')?.remove();
+            const modal=document.createElement('div');
+            modal.id='modalImportarOrcamento';
+            modal.className='fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4';
+            modal.innerHTML=`<div class="w-full max-w-3xl max-h-[85vh] overflow-hidden bg-white dark:bg-[#161925] rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-800">
+                <div class="p-5 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between gap-3"><div><p class="text-[10px] font-black uppercase tracking-[.18em] text-gray-400">Venda a partir de orçamento</p><h2 class="text-xl font-black text-gray-900 dark:text-white">Importar orçamento</h2></div><button type="button" onclick="window.fecharModalImportarOrcamento()" class="px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-bold">Fechar</button></div>
+                <div class="p-4 overflow-y-auto max-h-[65vh] space-y-2">${(data||[]).length ? data.map(r=>{const d=r.dados||{};const total=(d.itens||[]).reduce((sum,x)=>sum+Number(x.qtd||0)*Number(x.unitario||0),0);return `<div class="p-4 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f111a] flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div class="min-w-0"><div class="font-black text-gray-900 dark:text-white truncate">${escOrc(d.cliente||'Cliente não informado')}</div><div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${escOrc(dataBrOrc(d.data)||'')} • ${escOrc(r.numero||'')} • ${escOrc(r.status==='finalizado'?'PDF gerado':'Rascunho')}</div><div class="text-sm font-black text-gray-700 dark:text-gray-200 mt-1">${brlOrc(total)}</div></div><button type="button" onclick="window.importarOrcamentoNaVenda('${r.id}')" class="px-4 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black text-xs shrink-0">Importar</button></div>`;}).join('') : '<div class="p-8 text-center text-sm text-gray-400">Nenhum orçamento salvo para esta loja.</div>'}</div>
+            </div>`;
+            document.body.appendChild(modal);
+        }catch(e){console.error(e);window.mostrarToast?.('Não foi possível carregar os orçamentos.','bg-red-600 text-white');}
+    };
+
+    window.fecharModalImportarOrcamento=()=>document.getElementById('modalImportarOrcamento')?.remove();
+
+    window.importarOrcamentoNaVenda=async(id)=>{
+        try{
+            const lojaId=await obterLojaIdOrcamento();
+            const {data,error}=await window.supabaseClient.from('orcamentos').select('*').eq('id',id).eq('loja_id',lojaId).maybeSingle();
+            if(error)throw error;
+            if(!data){window.mostrarToast?.('Orçamento não encontrado.','bg-red-600 text-white');return;}
+            const dados=data.dados||{};
+            const itens=Array.isArray(dados.itens)?dados.itens.map(i=>({descricao:i.descricao||'Item',qtd:Number(i.qtd||1),unitario:Number(i.unitario||0),total:Number(i.qtd||1)*Number(i.unitario||0)})).filter(i=>i.unitario>0):[];
+            if(!itens.length){window.mostrarToast?.('Este orçamento não possui itens com valor.','bg-orange-500 text-white');return;}
+            carrinhoAtual=itens;
+            const caixa=document.getElementById('tela-caixa');
+            const abaCaixa=document.getElementById('nav-caixa');
+            document.querySelectorAll('[id^="tela-"]').forEach(t=>{if(t.id!=='tela-caixa')t.classList.add('hidden');});
+            caixa?.classList.remove('hidden');
+            caixa?.classList.add('flex');
+            document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+            abaCaixa?.classList.add('active');
+            window.renderizarCarrinho?.();
+            document.getElementById('compra').value='';
+            document.getElementById('compra').dataset.rawValue=0;
+            document.getElementById('quantidade').value=1;
+            document.getElementById('descricao').value='';
+            window.calcularTroco?.();
+            window.fecharModalImportarOrcamento();
+            window.mostrarToast?.(`Orçamento ${data.numero||''} importado. Confira o vendedor e a forma de pagamento antes de confirmar.`.trim(),'bg-blue-600 text-white');
+            document.getElementById('vendedor')?.focus();
+        }catch(e){console.error(e);window.mostrarToast?.('Não foi possível importar o orçamento.','bg-red-600 text-white');}
+    };
+
     window.abrirModuloAjudaOrcamentos=()=>window.mostrarToast?.('Configure os dados da loja uma vez. Depois informe cliente e itens no módulo Orçamentos e gere o PDF.','bg-gray-900 text-white');
 })();
 </script>
