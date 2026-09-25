@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -4062,8 +4062,9 @@
                     bloqueioPersistencia = false;
                 }
 
-                // Evita que um evento realtime traga a sangria excluída de volta
-                // antes da exclusão remota terminar.
+                // Evita que um evento realtime ou uma tentativa pendente traga
+                // a sangria excluída de volta antes da exclusão remota terminar.
+                if (typeof window.__removerSangriaDaFila === 'function') window.__removerSangriaDaFila(slug, idSangria);
                 confirmarPendenteSync(slug, 'sangrias', idSangria);
                 window.__ultimaMutacaoLocal = Date.now();
 
@@ -6165,6 +6166,106 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
         const MAPAS_SUPABASE = new Map();
         const PENDENCIAS_MEMORIA = new Map();
 
+        // Fila persistente exclusiva das sangrias ainda não confirmadas pelo Supabase.
+        // Não é fonte de verdade do caixa: existe somente para impedir perda de uma sangria
+        // se a conexão falhar, a página for recarregada ou o navegador for fechado antes do INSERT.
+        const CHAVE_FILA_SANGRIAS = 'caixaExpressoFilaSangriasV1';
+        let processandoFilaSangrias = false;
+        let timerFilaSangrias = null;
+
+        function carregarFilaSangrias() {
+            try {
+                const fila = JSON.parse(localStorage.getItem(CHAVE_FILA_SANGRIAS) || '[]');
+                return Array.isArray(fila) ? fila : [];
+            } catch {
+                return [];
+            }
+        }
+
+        function salvarFilaSangrias(fila) {
+            try {
+                const limpa = Array.isArray(fila) ? fila : [];
+                if (limpa.length) localStorage.setItem(CHAVE_FILA_SANGRIAS, JSON.stringify(limpa));
+                else localStorage.removeItem(CHAVE_FILA_SANGRIAS);
+            } catch (e) {
+                console.warn('Não foi possível atualizar a fila de segurança das sangrias:', e);
+            }
+        }
+
+        function enfileirarSangria(slug, sangria) {
+            if (!slug || !sangria?.id) return;
+            const chave = `${slug}__${String(sangria.id)}`;
+            const fila = carregarFilaSangrias();
+            const item = { chave, slug, sangria: copiar({ ...sangria, lojaSlug: slug }), criadoEm: Date.now() };
+            const indice = fila.findIndex(x => x?.chave === chave);
+            if (indice >= 0) fila[indice] = item;
+            else fila.push(item);
+            salvarFilaSangrias(fila);
+            marcarPendenteSync(slug, 'sangrias', sangria);
+        }
+
+        function removerSangriaDaFila(slug, id) {
+            if (!slug || id == null) return;
+            const chave = `${slug}__${String(id)}`;
+            salvarFilaSangrias(carregarFilaSangrias().filter(x => x?.chave !== chave));
+            confirmarPendenteSync(slug, 'sangrias', id);
+        }
+
+        function restaurarFilaSangriasNaMemoria() {
+            carregarFilaSangrias().forEach(item => {
+                const slug = item?.slug;
+                const sangria = item?.sangria;
+                if (!slug || !sangria?.id) return;
+                marcarPendenteSync(slug, 'sangrias', sangria);
+                const atuais = carregarArrayLoja(BASES_LOCAIS.sangrias, slug);
+                if (!atuais.some(x => String(x.id) === String(sangria.id))) {
+                    atuais.unshift({ ...sangria, lojaSlug: slug });
+                    salvarArrayLoja(BASES_LOCAIS.sangrias, slug, atuais);
+                }
+            });
+        }
+
+        function reagendarFilaSangrias(atraso = 3000) {
+            clearTimeout(timerFilaSangrias);
+            timerFilaSangrias = setTimeout(() => {
+                processarFilaSangrias().catch(e => console.warn('Nova tentativa de sangria falhou:', e));
+            }, atraso);
+        }
+
+        async function processarFilaSangrias() {
+            if (processandoFilaSangrias || !window.supabaseDisponivel || !window.supabaseClient) return false;
+            const fila = carregarFilaSangrias();
+            if (!fila.length) return true;
+
+            processandoFilaSangrias = true;
+            let houveFalha = false;
+            try {
+                for (const item of fila) {
+                    const slug = item?.slug;
+                    const sangria = item?.sangria;
+                    if (!slug || !sangria?.id || !lojaIdPorSlug(slug)) {
+                        houveFalha = true;
+                        continue;
+                    }
+                    try {
+                        await salvarSangriaDiretoNoSupabase(sangria, slug);
+                        removerSangriaDaFila(slug, sangria.id);
+                    } catch (e) {
+                        houveFalha = true;
+                        console.warn(`Sangria ${sangria.id} ainda aguardando sincronização:`, e);
+                    }
+                }
+            } finally {
+                processandoFilaSangrias = false;
+            }
+
+            if (carregarFilaSangrias().length) reagendarFilaSangrias(houveFalha ? 5000 : 1500);
+            return !houveFalha;
+        }
+
+        // Permite que a exclusão de sangria também cancele uma eventual tentativa pendente.
+        window.__removerSangriaDaFila = removerSangriaDaFila;
+
         function prepararDadosLegados() {}
 
         function nomeBaseLocal(base) {
@@ -6343,17 +6444,21 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
         }
 
         function sangriaParaDb(d) {
-            const out = payloadBase('sangrias', d, lojaIdPorSlug(d.lojaSlug || window.lojaAtualSlug));
-            definir(out,'sangrias',['timestamp','timestamp_ms'],d.timestamp);
-            definir(out,'sangrias',['data_iso','data','data_sangria'],d.dataIso);
-            definir(out,'sangrias',['data_br'],d.dataBr);
-            definir(out,'sangrias',['hora'],d.hora);
-            definir(out,'sangrias',['categoria'],d.categoria);
-            definir(out,'sangrias',['descricao','motivo'],d.descricao);
-            definir(out,'sangrias',['forma_retirada','retirado_de','forma'],d.formaRetirada);
-            definir(out,'sangrias',['vendedor','vendedor_nome','responsavel'],d.vendedor);
-            definir(out,'sangrias',['valor','total'],d.valor);
-            return out;
+            // A tabela sangrias possui um esquema próprio no banco.
+            // Usamos somente colunas que realmente existem nela; os dados adicionais
+            // da interface ficam preservados integralmente em dados_originais.
+            const slug = d.lojaSlug || window.lojaAtualSlug;
+            const lojaId = lojaIdPorSlug(slug);
+            return {
+                loja_id: lojaId,
+                legacy_id: d.id != null ? String(d.id) : null,
+                data_movimento: d.dataIso || null,
+                hora_movimento: d.hora || null,
+                valor: Number(d.valor || 0),
+                motivo: d.descricao || 'Retirada de caixa',
+                responsavel: d.vendedor || null,
+                dados_originais: copiar({ ...d, lojaSlug: slug })
+            };
         }
 
         function lembreteParaDb(l) {
@@ -6482,8 +6587,11 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             if (tabela === 'vendas' && dbId) {
                 await sincronizarItensVenda(registro, dbId, lojaId);
             }
-            if ((tabela === 'vendas' || tabela === 'sangrias') && registro?.id != null) {
-                confirmarPendenteSync(slug, tabela, registro.id);
+            if (tabela === 'vendas' && registro?.id != null) {
+                confirmarPendenteSync(slug, 'vendas', registro.id);
+            }
+            if (tabela === 'sangrias' && registro?.id != null) {
+                removerSangriaDaFila(slug, registro.id);
             }
         }
 
@@ -6578,19 +6686,19 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
         }
 
         // Sangria: persistência oficial diretamente no Supabase.
-        // O localStorage fica apenas como estado/cache da interface.
+        // A fila local acima é apenas um outbox de segurança até a confirmação do banco.
         async function salvarSangriaDiretoNoSupabase(sangria, slug) {
-            if (!window.supabaseDisponivel || !window.supabaseClient || !sangria) return false;
-            if (!COLUNAS.sangrias) throw new Error('Tabela de sangrias não disponível no Supabase.');
+            if (!window.supabaseDisponivel || !window.supabaseClient || !sangria) {
+                throw new Error('Supabase indisponível para confirmar a sangria.');
+            }
 
             const lojaId = lojaIdPorSlug(slug);
             if (!lojaId) throw new Error(`Loja sem id no Supabase: ${slug}`);
 
             const mapa = carregarMapa('sangrias', slug);
             const chaveLocal = String(sangria.id ?? assinatura(sangria));
-            const idCampo = campo('sangrias', ['id']);
             let dbId = sangria.supabaseId || mapa[chaveLocal]?.dbId || null;
-            const payload = conversorTabela('sangrias', { ...sangria, lojaSlug: slug });
+            const payload = sangriaParaDb({ ...sangria, lojaSlug: slug });
 
             if (!dbId) {
                 const existente = await buscarExistente('sangrias', sangria, lojaId);
@@ -6598,23 +6706,32 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             }
 
             let data, error;
-            if (dbId && idCampo) {
-                ({ data, error } = await window.supabaseClient.from('sangrias')
-                    .update(payload).eq(idCampo, dbId).select('*').limit(1));
+            if (dbId) {
+                ({ data, error } = await window.supabaseClient
+                    .from('sangrias')
+                    .update(payload)
+                    .eq('id', dbId)
+                    .select('id,loja_id,legacy_id,data_movimento,hora_movimento,valor,motivo,responsavel,dados_originais,criado_em')
+                    .limit(1));
             } else {
-                ({ data, error } = await window.supabaseClient.from('sangrias')
-                    .insert(payload).select('*').limit(1));
+                ({ data, error } = await window.supabaseClient
+                    .from('sangrias')
+                    .insert(payload)
+                    .select('id,loja_id,legacy_id,data_movimento,hora_movimento,valor,motivo,responsavel,dados_originais,criado_em')
+                    .limit(1));
             }
 
             if (error) throw error;
 
             const linha = data?.[0] || null;
-            dbId = dbId || idDbDaLinha('sangrias', linha);
-            mapa[chaveLocal] = { dbId: dbId || null, hash: assinatura(sangria), atualizadoEm: Date.now() };
-            salvarMapa('sangrias', slug, mapa);
+            dbId = dbId || linha?.id || null;
+            if (!dbId) throw new Error('O Supabase não confirmou o ID da sangria gravada.');
 
-            if (sangria.id != null) confirmarPendenteSync(slug, 'sangrias', sangria.id);
-            return true;
+            sangria.supabaseId = dbId;
+            mapa[chaveLocal] = { dbId, hash: assinatura(sangria), atualizadoEm: Date.now() };
+            salvarMapa('sangrias', slug, mapa);
+            removerSangriaDaFila(slug, sangria.id);
+            return linha || { id: dbId };
         }
 
         function instalarObservadorLocalStorage() {
@@ -6771,18 +6888,20 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
         }
 
         function sangriaDoDb(linha) {
-            const d = baseLocalDaLinha('sangrias', linha);
-            d.id = idLocalDaLinha('sangrias', linha, d);
-            d.supabaseId = lerCampo(linha,['id']);
-            d.timestamp ??= Number(lerCampo(linha,['timestamp','timestamp_ms'])) || Date.parse(lerCampo(linha,['created_at','criado_em'])) || Date.now();
-            d.dataIso ??= lerCampo(linha,['data_iso','data','data_sangria']) || new Date(d.timestamp).toISOString().slice(0,10);
-            d.dataBr ??= lerCampo(linha,['data_br']) || new Date(`${d.dataIso}T12:00:00`).toLocaleDateString('pt-BR');
-            d.hora ??= lerCampo(linha,['hora']) || new Date(d.timestamp).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-            d.categoria ??= lerCampo(linha,['categoria']) || 'Outros';
-            d.descricao ??= lerCampo(linha,['descricao','motivo']) || 'Retirada de caixa';
-            d.formaRetirada ??= lerCampo(linha,['forma_retirada','retirado_de','forma']) || '';
-            d.vendedor ??= lerCampo(linha,['vendedor','vendedor_nome','responsavel']) || '';
-            d.valor ??= Number(lerCampo(linha,['valor','total']) || 0);
+            const original = parseJson(lerCampo(linha, ['dados_originais']), {});
+            const d = original && typeof original === 'object' && !Array.isArray(original) ? copiar(original) : {};
+            d.id = d.id ?? lerCampo(linha, ['legacy_id']) ?? lerCampo(linha, ['id']);
+            d.supabaseId = lerCampo(linha, ['id']);
+            d.timestamp ??= Date.parse(lerCampo(linha, ['criado_em'])) || Date.now();
+            d.dataIso ??= lerCampo(linha, ['data_movimento']) || new Date(d.timestamp).toISOString().slice(0,10);
+            d.dataBr ??= new Date(`${d.dataIso}T12:00:00`).toLocaleDateString('pt-BR');
+            const horaBanco = lerCampo(linha, ['hora_movimento']);
+            d.hora ??= horaBanco ? String(horaBanco).slice(0,5) : new Date(d.timestamp).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+            d.categoria ??= 'Outros';
+            d.descricao ??= lerCampo(linha, ['motivo']) || 'Retirada de caixa';
+            d.formaRetirada ??= '';
+            d.vendedor ??= lerCampo(linha, ['responsavel']) || '';
+            d.valor = Number(d.valor ?? lerCampo(linha, ['valor']) ?? 0);
             return d;
         }
 
@@ -6893,12 +7012,21 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             // Vendas são a coleção principal. As demais não derrubam toda a conexão caso
             // alguma policy/coluna ainda precise de ajuste.
             const vLinhas = await selecionarTabelaLojaSegura('vendas', slug, true);
-            const [rLinhas, sLinhas, lLinhas, bLinhas] = await Promise.all([
+            const [rLinhas, lLinhas, bLinhas] = await Promise.all([
                 selecionarTabelaLojaSegura('recebimentos', slug),
-                selecionarTabelaLojaSegura('sangrias', slug),
                 selecionarTodosLembretes(),
                 selecionarTabelaLojaSegura('boletos', slug)
             ]);
+
+            // Sangrias são tratadas separadamente: uma falha de leitura nunca pode
+            // ser interpretada como "o banco está vazio" e apagar a memória da tela.
+            let sLinhas = null;
+            try {
+                sLinhas = await selecionarTabelaLoja('sangrias', slug);
+            } catch (e) {
+                console.error(`Falha ao ler sangrias (${slug}); mantendo os registros atuais:`, e);
+            }
+
             let itens = new Map();
             try { itens = await carregarItensRemotos(slug); }
             catch (e) { console.warn(`venda_itens indisponível (${slug}); usando itens do payload da venda.`, e); }
@@ -6910,7 +7038,6 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
                 return {...v, lojaSlug: slug};
             });
             const recebimentosRemotos = rLinhas.map(l => ({...recebimentoDoDb(l), lojaSlug: slug}));
-            const sangriasRemotas = sLinhas.map(l => ({...sangriaDoDb(l), lojaSlug: slug}));
             const lembretesRemotos = lLinhas.map(l => {
                 const lembrete = lembreteDoDb(l);
                 const slugOrigem = lembrete.lojaSlug || (LOJAS.find(x => String(x.id) === String(lerCampo(l,['loja_id'])))?.slug) || slug;
@@ -6918,11 +7045,19 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             });
             const boletosRemotos = bLinhas.map(l => ({...boletoDoDb(l), lojaSlug: slug}));
 
-            // Supabase é a fonte de verdade. O estado em memória desta loja é
-            // substituído pelo que veio do banco; nenhum cache local é mesclado.
+            // Supabase continua sendo a fonte de verdade. Para sangrias, somente registros
+            // ainda não confirmados ficam preservados localmente até a fila concluir.
             salvarArrayLoja(BASES_LOCAIS.vendas, slug, [...vendasRemotas, ...recebimentosRemotos]
                 .sort((a,b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)));
-            salvarArrayLoja(BASES_LOCAIS.sangrias, slug, sangriasRemotas);
+
+            if (sLinhas !== null) {
+                const sangriasRemotas = sLinhas.map(l => ({...sangriaDoDb(l), lojaSlug: slug}));
+                const pendentesLocais = carregarArrayLoja(BASES_LOCAIS.sangrias, slug)
+                    .filter(d => d?.id != null && existePendenteSync(slug, 'sangrias', d.id));
+                const sangriasFinais = mesclarRegistros(pendentesLocais, sangriasRemotas);
+                salvarArrayLoja(BASES_LOCAIS.sangrias, slug, sangriasFinais);
+            }
+
             salvarArrayLoja(BASES_LOCAIS.lembretes, slug, lembretesRemotos);
             salvarArrayLoja(BASES_LOCAIS.boletos, slug, boletosRemotos);
             if (slug === window.lojaAtualSlug) todosLembretesBanco = lembretesRemotos;
@@ -6961,7 +7096,15 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
             const ultimaMutacao = Number(window.__ultimaMutacaoLocal || 0);
             const slugProtegido = slug || window.lojaAtualSlug;
             const temVendaPendente = carregarPendenciasSync(slugProtegido, 'vendas').length > 0;
-            const temSangriaPendente = carregarPendenciasSync(slugProtegido, 'sangrias').length > 0;
+            let temSangriaPendente = carregarPendenciasSync(slugProtegido, 'sangrias').length > 0;
+
+            // Se uma sangria aguardou por falha de rede/banco, tenta confirmá-la antes
+            // de baixar o estado remoto. Assim uma leitura vazia nunca faz a sangria sumir.
+            if (temSangriaPendente || carregarFilaSangrias().length) {
+                await processarFilaSangrias();
+                temSangriaPendente = carregarPendenciasSync(slugProtegido, 'sangrias').length > 0;
+            }
+
             if ((ultimaMutacao && (Date.now() - ultimaMutacao) < 5000) || temVendaPendente || temSangriaPendente) {
                 agendarAtualizacaoRemota(slug, 1200);
                 return;
@@ -7047,6 +7190,8 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
                 await carregarEsquemaSupabase();
                 aplicarEsquemaFallback();
                 await carregarLojasSupabase();
+                restaurarFilaSangriasNaMemoria();
+                await processarFilaSangrias();
                 setStatusBanco('Banco: conectado', 'ok');
                 await migrarLegadoLocalParaSupabase();
 
@@ -7343,18 +7488,33 @@ function chaveLoja(base, slug) { return `${base}__${slug}`; }
                     salvarArrayLoja(tipo === 'sangria' ? BASES_LOCAIS.sangrias : BASES_LOCAIS.vendas, window.lojaAtualSlug, arrDepois);
                     window.__ultimaMutacaoLocal = Date.now();
 
-                    if (window.supabaseDisponivel) {
-                        const tabela = tipo === 'sangria' ? 'sangrias' : (tipo === 'recebimento' ? 'recebimentos' : 'vendas');
+                    const tabela = tipo === 'sangria' ? 'sangrias' : (tipo === 'recebimento' ? 'recebimentos' : 'vendas');
+
+                    if (tipo === 'sangria') {
+                        // Primeiro grava na fila de segurança; só sai dela quando o Supabase confirmar.
+                        novos.forEach(r => enfileirarSangria(window.lojaAtualSlug, r));
+                        if (window.supabaseDisponivel) {
+                            processarFilaSangrias()
+                                .then(ok => {
+                                    if (ok) setStatusBanco('Banco: sincronizado', 'ok');
+                                })
+                                .catch(e => {
+                                    console.error('Falha ao salvar sangria diretamente no Supabase:', e);
+                                    setStatusBanco('Banco: sangria aguardando sincronização', 'aviso');
+                                    reagendarFilaSangrias();
+                                });
+                        } else {
+                            setStatusBanco('Banco: sangria aguardando sincronização', 'aviso');
+                            reagendarFilaSangrias();
+                        }
+                    } else if (window.supabaseDisponivel) {
                         novos.forEach(r => {
-                            const salvar = tipo === 'sangria'
-                                ? salvarSangriaDiretoNoSupabase(r, window.lojaAtualSlug)
-                                : salvarRegistroDiretoNoSupabase(tabela, r, window.lojaAtualSlug);
-                            salvar
+                            salvarRegistroDiretoNoSupabase(tabela, r, window.lojaAtualSlug)
                                 .then(() => setStatusBanco('Banco: sincronizado', 'ok'))
                                 .catch(e => {
                                     console.error(`Falha ao salvar ${tabela} diretamente no Supabase:`, e);
                                     setStatusBanco(`Banco: erro ao salvar ${tabela}`, 'erro');
-                                    mostrarToast(`${tipo === 'sangria' ? 'Sangria' : tipo === 'recebimento' ? 'Recebimento' : 'Venda'} não confirmada no banco: ${formatarErroSupabase(e)}`.slice(0, 220), 'bg-red-600 text-white');
+                                    mostrarToast(`${tipo === 'recebimento' ? 'Recebimento' : 'Venda'} não confirmada no banco: ${formatarErroSupabase(e)}`.slice(0, 220), 'bg-red-600 text-white');
                                 });
                         });
                     }
