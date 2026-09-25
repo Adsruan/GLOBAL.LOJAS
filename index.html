@@ -4193,14 +4193,10 @@
                             const mesmoRemoto = String(d?.supabaseId ?? '') === String(dbId);
                             return !(mesmoLocal || mesmoRemoto);
                         });
-                        salvarArrayLoja(BASES_LOCAIS.sangrias, slug, todasDespesasBanco);
-
-                        try {
-                            const mapa = carregarMapa('sangrias', slug);
-                            delete mapa[String(legacyId)];
-                            delete mapa[String(idSangria)];
-                            salvarMapa('sangrias', slug, mapa);
-                        } catch {}
+                        // A exclusão remota já foi confirmada acima.
+                        // Não chama salvarArrayLoja aqui porque esse helper pertence ao
+                        // escopo interno do módulo multi-lojas e não é visível neste módulo.
+                        // O Supabase é a fonte de verdade e o array em memória já foi atualizado.
 
                         window.__ultimaMutacaoLocal = Date.now();
 
